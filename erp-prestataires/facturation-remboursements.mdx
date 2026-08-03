@@ -1,0 +1,80 @@
+---
+title: "Facturation et remboursements"
+description: "Suivre les bordereaux payables, paiements, allocations et webhooks billing."
+icon: "wallet-cards"
+---
+
+Azurance expose les bordereaux payables validés par l'assureur, les paiements, les allocations et la synchronisation ERP. Un paiement peut couvrir plusieurs bordereaux; le statut `PARTIALLY_PAID` s'applique au bordereau ou aux lignes, pas au paiement.
+
+## Bordereaux payables
+
+```http
+GET /api/v1/payable-invoices?page=1&per_page=20
+GET /api/v1/payable-invoices/{uuid}
+GET /api/v1/payable-invoices/{uuid}/items
+```
+
+Réponse synthétique:
+
+```json
+{
+  "data": [
+    {
+      "uuid": "pinv-sandbox-001",
+      "provider_invoice_ref": "ERP-INV-0001",
+      "status": "PARTIALLY_PAID",
+      "total_amount": 45000,
+      "paid_amount": 30000,
+      "currency": "XOF"
+    }
+  ]
+}
+```
+
+## Paiements et allocations
+
+```http
+GET /api/v1/payments/{uuid}
+GET /api/v1/payments/{uuid}/allocations
+```
+
+Les allocations permettent à l'ERP de savoir quelles lignes ou bordereaux sont réglés par un paiement.
+
+## Synchronisation ERP
+
+```http
+GET /api/v1/billing/sync?updated_after=2026-05-15T00:00:00Z&cursor=...
+```
+
+Utilisez cette API pour rattraper les événements manqués, reconstruire un état local ou éviter un appel par facture.
+
+## Webhook subscriptions
+
+```http
+POST /api/v1/webhook-subscriptions
+PATCH /api/v1/webhook-subscriptions/{uuid}
+DELETE /api/v1/webhook-subscriptions/{uuid}
+```
+
+```json
+{
+  "name": "ERP principal",
+  "target_url": "https://erp.example.com/webhooks/azurance",
+  "secret": "whs_live_or_sandbox_secret_min_16_chars",
+  "event_types": [
+    "payable_invoice.issued",
+    "payable_invoice.partially_paid",
+    "payable_invoice.paid",
+    "payment.created",
+    "payment.processing",
+    "payment.succeeded",
+    "payment.failed"
+  ],
+  "is_active": true,
+  "metadata": {
+    "integration": "erp-provider"
+  }
+}
+```
+
+Chaque livraison est signée par HMAC. Voir la page [Sécurité, scopes et webhooks](/commun/securite-scopes-webhooks) pour la vérification et l'anti-replay.

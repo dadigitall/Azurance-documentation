@@ -1,0 +1,67 @@
+---
+title: "Référence API prestataire"
+description: "Lire les endpoints avec leurs paramètres, champs requis, réponses et exemples multi-langages."
+icon: "braces"
+---
+
+La section **Référence API** est la documentation détaillée pour les intégrateurs ERP. Chaque endpoint y expose:
+
+- les headers, paramètres d'URL et query params;
+- les champs requis et optionnels du body;
+- la description métier de chaque champ;
+- les exemples de requête et de réponse;
+- les erreurs possibles;
+- les snippets `curl`, TypeScript, JavaScript, PHP, Java et C# générés par Mintlify.
+
+## Lecture des champs
+
+| Indication | Sens |
+| --- | --- |
+| `Required` | Champ obligatoire. L'appel est rejeté si le champ est absent ou vide. |
+| `Optional` | Champ optionnel. Il peut être omis, sauf règle métier contextualisée. |
+| `nullable` | Champ qui peut exister avec la valeur `null`. |
+| `enum` | Valeurs acceptées exclusivement. Toute autre valeur retourne une erreur de validation. |
+| `format: uuid` | Identifiant public stable au format UUID. |
+| `format: date` | Date civile au format `YYYY-MM-DD`. |
+| `format: date-time` | Date heure ISO 8601 avec fuseau, par exemple `2026-05-26T12:30:00Z`. |
+
+## Headers communs
+
+| Header | Requis | Description |
+| --- | --- | --- |
+| `X-Api-Key` | Oui | Clé API prestataire. Elle détermine le prestataire, l'organisation assureur, l'environnement et les scopes. |
+| `X-Request-Id` | Non | Identifiant de corrélation fourni par l'ERP pour suivre une opération dans les logs et audits. |
+| `Idempotency-Key` | Selon endpoint | Clé stable pour éviter les doublons sur les créations rejouables après timeout. |
+
+Envoyez uniquement les champs documentés pour chaque endpoint. Les informations de périmètre sont déterminées par la clé API.
+
+## Endpoints documentés
+
+| Endpoint | Usage | Contrat détaillé |
+| --- | --- | --- |
+| `GET /api/v1/auth/verify` | Tester la clé API et récupérer le contexte prestataire. | Voir **Vérifier une clé API prestataire**. |
+| `POST /api/v1/covered-persons/resolve` | Retrouver une personne couverte avant consentement. | Voir **Retrouver une personne couverte**. |
+| `POST /api/v1/consent-requests` | Créer un challenge de consentement fort. | Voir **Créer une demande de consentement**. |
+| `GET /api/v1/consent-requests/{consentRequestUid}` | Suivre le statut d'une demande OTP, TOTP ou Face Match. | Voir **Suivre une demande de consentement**. |
+| `POST /api/v1/consent-requests/{consentRequestUid}/verify` | Valider OTP, TOTP ou Face Match. | Voir **Vérifier une demande de consentement**. |
+| `POST /api/v1/eligibility/check` | Faire une pré-vérification ou une vérification finale d'éligibilité. | Voir **Vérifier l'éligibilité**. |
+| `POST /api/v1/media/uploads` | Uploader un justificatif ou document clinique. | Voir **Uploader un média**. |
+| `GET /api/v1/covered-persons/{type}/{uid}/prescriptions` | Lister les prescriptions autorisées. | Voir **Lister les prescriptions autorisées**. |
+| `GET /api/v1/prescriptions/{prescriptionUid}` | Lire le détail d'une prescription autorisée. | Voir **Consulter une prescription**. |
+| `POST /api/v1/service-executions` | Enregistrer une prestation réellement effectuée. | Voir **Créer une prestation effectuée**. |
+| `GET /api/v1/service-executions` | Lister les prestations du prestataire. | Voir **Lister les prestations effectuées**. |
+| `GET /api/v1/service-executions/{serviceExecutionUid}` | Lire une prestation effectuée. | Voir **Consulter une prestation effectuée**. |
+| `POST /api/v1/claims` | Soumettre un claim avec vérification finale et réservation de plafond. | Voir **Soumettre un claim**. |
+| `GET /api/v1/claims` | Lister les claims du prestataire. | Voir **Lister les claims**. |
+| `GET /api/v1/claims/{claimId}` | Lire le détail d'un claim. | Voir **Consulter un claim**. |
+| `POST /api/v1/claims/{claimId}/documents` | Rattacher un justificatif à un claim. | Voir **Joindre un document au claim**. |
+| `GET /api/v1/payable-invoices` | Lister les bordereaux payables visibles par le prestataire. | Voir **Lister les bordereaux payables**. |
+| `GET /api/v1/payments/{paymentId}` | Lire un paiement. | Voir **Consulter un paiement**. |
+| `GET /api/v1/billing/sync` | Synchroniser incrémentalement les événements billing. | Voir **Synchroniser la facturation**. |
+| `POST /api/v1/webhook-subscriptions` | Créer une souscription webhook. | Voir **Créer une souscription webhook**. |
+
+## Réponses et erreurs
+
+Les réponses `2xx` décrivent le résultat métier attendu. Les réponses `4xx` indiquent une erreur côté ERP, clé API, scopes, consentement, validation métier ou idempotence. Les réponses `5xx` indiquent une indisponibilité temporaire du service.
+
+Les erreurs stables sont documentées dans [Erreurs API](/commun/erreurs). Pour les opérations critiques, conservez toujours `X-Request-Id` côté ERP: c'est la valeur à transmettre au support pour retrouver l'audit corrélé.

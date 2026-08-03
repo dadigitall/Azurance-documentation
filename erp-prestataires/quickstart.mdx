@@ -1,0 +1,259 @@
+---
+title: "Quickstart prestataire"
+description: "Premier parcours sandbox pour connecter un ERP hôpital, pharmacie, clinique ou laboratoire."
+icon: "rocket"
+---
+
+Ce quickstart couvre le parcours prestataire standard: vérifier la clé, retrouver la personne couverte, obtenir un consentement fort, enregistrer la prestation réellement effectuée, vérifier l'éligibilité, joindre les justificatifs, soumettre le claim, puis suivre les décisions et paiements.
+
+## 1. Configurer la clé
+
+```bash
+export AZURANCE_PROVIDER_API_KEY="azr_sandbox_provider_..."
+export AZURANCE_PROVIDER_BASE_URL="https://provider-api-sandbox.elenami.com"
+```
+
+Tous les appels utilisent:
+
+```http
+X-Api-Key: ${AZURANCE_PROVIDER_API_KEY}
+X-Request-Id: erp-provider-001
+```
+
+Envoyez uniquement les champs documentés pour chaque endpoint. Le périmètre autorisé est déterminé par la clé API.
+
+Pour la production, utilisez `https://provider-api.elenami.com` avec une clé `production`.
+
+## 2. Tester la clé API
+
+```http
+GET /api/v1/auth/verify
+```
+
+```ts
+const response = await fetch(`${baseUrl}/api/v1/auth/verify`, {
+  headers: {
+    Accept: "application/json",
+    "X-Api-Key": process.env.AZURANCE_PROVIDER_API_KEY!
+  }
+})
+
+const context = await response.json()
+```
+
+Réponse attendue:
+
+```json
+{
+  "valid": true,
+  "environment": "sandbox",
+  "tenant_name": "NSIA Assurance CI",
+  "subject_type": "PROVIDER",
+  "subject_name": "Pharmacie du Plateau",
+  "scopes": ["eligibility.check", "claims.create"]
+}
+```
+
+## 3. Vérifier le profil réseau
+
+```http
+GET /api/v1/network/profile
+```
+
+```ts
+const response = await fetch(`${baseUrl}/api/v1/network/profile`, {
+  headers: {
+    Accept: "application/json",
+    "X-Api-Key": process.env.AZURANCE_PROVIDER_API_KEY!
+  }
+})
+```
+
+## 4. Retrouver la personne couverte
+
+```http
+POST /api/v1/covered-persons/resolve
+```
+
+```json
+{
+  "identifier_type": "npi",
+  "identifier": "NPI-1234567890"
+}
+```
+
+La recherche peut retourner plusieurs affiliations, notamment si un NPI ou un numéro de téléphone existe chez plusieurs assureurs. Avant consentement, la réponse reste minimale et ne contient aucune donnée médicale.
+
+## 5. Obtenir le consentement
+
+```http
+POST /api/v1/consent-requests
+```
+
+```json
+{
+  "covered_person_type": "beneficiary",
+  "covered_person_uid": "12000000-0000-4000-8000-000000000001",
+  "subscription_uid": "11000000-0000-4000-8000-000000000001",
+  "purpose": "pharmacy_dispensing",
+  "purpose_detail": "Dispensation de médicaments sur ordonnance",
+  "scopes": [
+    "clinical.prescriptions.view",
+    "service_executions.create",
+    "eligibility.check",
+    "claims.create",
+    "media.upload"
+  ],
+  "channel": "sms",
+  "assurance_level_required": 2
+}
+```
+
+Validez ensuite l'OTP, le TOTP ou le challenge renforcé. Pour Face Match, suivez le statut de la demande jusqu'à validation dans l'application assurée:
+
+```http
+GET /api/v1/consent-requests/{consentRequestUid}
+POST /api/v1/consent-requests/{consentRequestUid}/verify
+```
+
+Le résultat fournit un `consent_ref` court et expirant. Ce consentement sera vérifié sur les lectures sensibles, la prestation et le claim.
+
+## 6. Faire une pré-vérification d'éligibilité
+
+```http
+POST /api/v1/eligibility/check
+```
+
+```json
+{
+  "identifier": "POL-SBX-000001",
+  "coverage_code": "CONSULTATION_GP",
+  "amount": 15000,
+  "purpose": "PRECHECK"
+}
+```
+
+La pré-vérification est informative, `read_only=true`, ne réserve aucun plafond et ne crée pas de claim. À la soumission du claim, Azurance refait toujours une vérification finale.
+
+## 7. Créer le contexte clinique
+
+```http
+POST /api/v1/encounters
+```
+
+```json
+{
+  "insured_uid": "insured-sandbox-001",
+  "encounter_type": "consultation",
+  "encounter_date": "2026-05-15T09:30:00Z",
+  "icd10_codes": ["J06.9"],
+  "chief_complaint": "Fièvre et toux",
+  "clinical_summary": "Consultation générale"
+}
+```
+
+Les laboratoires, pharmacies et autres prestataires peuvent rattacher leurs documents au parcours clinique lorsque la prestation découle d'une consultation ou d'une prescription.
+
+## 8. Enregistrer la prestation effectuée
+
+```http
+POST /api/v1/service-executions
+Idempotency-Key: erp-dispensation-2026-0001
+```
+
+```json
+{
+  "subscription_uid": "11000000-0000-4000-8000-000000000001",
+  "covered_person_type": "beneficiary",
+  "covered_person_uid": "12000000-0000-4000-8000-000000000001",
+  "coverage_type_code": "PHARMACY_DRUG",
+  "service_date": "2026-05-26",
+  "provider_reference": "ERP-DISP-2026-0001",
+  "consent_ref": "40000000-0000-4000-8000-000000000001",
+  "items": [
+    {
+      "description": "Dispensation Amoxicilline 500mg",
+      "quantity": 1,
+      "unit_price": 3500,
+      "prescription_uid": "50000000-0000-4000-8000-000000000001",
+      "prescribed_medication_code": "AMOX-500-BRAND",
+      "medication_code": "AMOX-500-GENERIC",
+      "prescribed_quantity": 12,
+      "dispensed_quantity": 10,
+      "substitution_reason": "Générique équivalent disponible, accord patient."
+    }
+  ]
+}
+```
+
+L'ERP garde son panier local. Azurance enregistre uniquement la prestation réellement effectuée.
+
+## 9. Uploader un document
+
+```http
+POST /api/v1/media/uploads
+Content-Type: multipart/form-data
+```
+
+Champs principaux:
+
+| Champ | Description |
+| --- | --- |
+| `file` | Fichier envoyé par l'ERP. |
+| `category` | `CLINICAL_DOCUMENT`, `CLAIM_SUPPORTING_DOCUMENT`, `CLAIM_ATTACHMENT` ou `OTHER`. |
+| `purpose` | Usage métier optionnel. |
+| `metadata` | Métadonnées JSON optionnelles. |
+
+## 10. Soumettre un claim
+
+```http
+POST /api/v1/claims
+Idempotency-Key: erp-claim-2026-0001
+```
+
+```json
+{
+  "service_execution_uid": "svc-exec-sandbox-001",
+  "subscription_id": "11000000-0000-4000-8000-000000000001",
+  "policyholder_id": "21000000-0000-4000-8000-000000000001",
+  "covered_person_type": "beneficiary",
+  "covered_person_uid": "12000000-0000-4000-8000-000000000001",
+  "consent_ref": "40000000-0000-4000-8000-000000000001",
+  "coverage_type_code": "PHARMACY_DRUG",
+  "service_date": "2026-05-26",
+  "amount_claimed": 3500,
+  "provider_reference": "ERP-CLAIM-2026-0001",
+  "precheck_eligibility_uuid": "01HY_PRECHECK_UUID",
+  "items": [
+    {
+      "description": "Dispensation Amoxicilline 500mg",
+      "quantity": 1,
+      "unit_price": 3500,
+      "prescription_uid": "50000000-0000-4000-8000-000000000001"
+    }
+  ],
+  "documents": [
+    {
+      "document_type": "PRESCRIPTION",
+      "media_uid": "med-prescription-001"
+    },
+    {
+      "document_type": "INVOICE",
+      "media_uid": "med-invoice-001"
+    }
+  ]
+}
+```
+
+Si la vérification finale refuse, aucun claim n'est créé et l'API retourne `422`. Si le claim est accepté, Azurance réserve la part assureur sur le plafond global et le plafond de couverture. La réservation est consommée à l'approbation ou libérée au rejet.
+
+## 11. Suivre remboursement et paiement
+
+Pour éviter un polling massif claim par claim, utilisez:
+
+```http
+GET /api/v1/billing/sync?updated_after=2026-05-15T00:00:00Z
+POST /api/v1/webhook-subscriptions
+```
+
+Les webhooks signalent les événements de bordereau et de paiement; les détails complets restent récupérables par API paginée.

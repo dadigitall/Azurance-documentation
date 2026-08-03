@@ -1,0 +1,59 @@
+---
+title: "Documentation Azurance"
+description: "Intégrez les parcours santé, assurance et remboursement d'Azurance depuis vos systèmes métier."
+icon: "book-open"
+---
+
+Documentation officielle pour connecter des ERP de santé et des systèmes d'assurance à Azurance.
+
+<div className="brand-panel">
+  <div>
+    <p className="brand-kicker">Documentation publique Azurance</p>
+    <p className="brand-lead">
+      Conçue pour accompagner les intégrateurs ERP, de la première clé API jusqu'au suivi de remboursement.
+    </p>
+  </div>
+  <div className="brand-logo-stack" aria-label="DA Digit All">
+    <img src="/assets/da-digit-all-nav.png" alt="DA Digit All" className="brand-logo brand-logo-light" />
+    <img src="/assets/da-digit-all-nav-dark.png" alt="DA Digit All" className="brand-logo brand-logo-dark" />
+  </div>
+</div>
+
+<CardGroup cols={2}>
+  <Card title="ERP Prestataires" icon="hospital" href="/erp-prestataires/quickstart">
+    Vérifiez l'éligibilité, créez un parcours clinique, soumettez un claim, synchronisez les remboursements et recevez les webhooks.
+  </Card>
+  <Card title="ERP Assurances" icon="shield-check" href="/erp-assurances/quickstart">
+    Gérez plans, membres, souscriptions, bénéficiaires, éligibilité, réseau prestataire et décisions de claims.
+  </Card>
+</CardGroup>
+
+## Pour qui
+
+Cette documentation s'adresse aux équipes qui intègrent Azurance dans un logiciel métier déjà utilisé au guichet, en pharmacie, en clinique, dans un laboratoire ou dans un back-office assureur:
+
+- éditeurs d'ERP hospitaliers, cliniques, pharmacies et laboratoires;
+- assureurs, mutuelles et gestionnaires de portefeuilles santé;
+- intégrateurs chargés de sécuriser les échanges entre SI métier et APIs Azurance.
+
+## Points d'accès officiels
+
+| Espace | Production | Sandbox |
+| --- | --- | --- |
+| ERP Prestataires | `https://provider-api.elenami.com` | `https://provider-api-sandbox.elenami.com` |
+| ERP Assurances | `https://insurer-api.elenami.com` | `https://insurer-api-sandbox.elenami.com` |
+
+Tous les environnements utilisent `X-Api-Key`. Une clé sandbox ne fonctionne que sur l'environnement sandbox; une clé production ne fonctionne que sur l'environnement production.
+
+## Principes d'intégration
+
+- Les ERP appellent uniquement les domaines API publics documentés.
+- Une clé API détermine le partenaire, l'environnement, les scopes et le contexte autorisé.
+- Les clés API restent côté serveur: proxy backend, job d'intégration, middleware hospitalier ou connecteur assureur.
+- Les exemples utilisent des UUID et codes métier publics.
+- Les URLs non listées dans cette documentation ne font pas partie du contrat public.
+- Les changements de contrat public sont documentés dans le changelog avant publication.
+
+## Signature
+
+Azurance est développé par **DA Digit All**.

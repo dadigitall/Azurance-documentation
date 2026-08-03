@@ -1,0 +1,87 @@
+---
+title: "Documents et médias"
+description: "Uploader des fichiers puis les rattacher aux claims ou aux encounters."
+icon: "paperclip"
+---
+
+L'API médias stocke les fichiers et retourne une référence `media_uid`. Cette référence peut ensuite être rattachée à un claim, un encounter ou un document clinique.
+
+Les justificatifs requis sont évalués selon la couverture et le type de prestation. Pour une pharmacie, `PRESCRIPTION` et `INVOICE` sont obligatoires en v1.
+
+## Upload média
+
+```http
+POST /api/v1/media/uploads
+Content-Type: multipart/form-data
+```
+
+| Champ | Requis | Description |
+| --- | --- | --- |
+| `file` | Oui | Fichier binaire. |
+| `category` | Oui | `CLINICAL_DOCUMENT`, `CLAIM_SUPPORTING_DOCUMENT`, `CLAIM_ATTACHMENT`, `OTHER`. |
+| `purpose` | Non | Usage métier. |
+| `external_reference` | Non | Référence ERP source. |
+| `metadata` | Non | Métadonnées au format JSON, sans données médicales inutiles. |
+
+```bash
+curl -X POST "https://provider-api.elenami.com/api/v1/media/uploads" \
+  -H "X-Api-Key: $AZURANCE_PROVIDER_API_KEY" \
+  -H "X-Request-Id: erp-media-001" \
+  -F "file=@consultation.pdf" \
+  -F "category=CLAIM_SUPPORTING_DOCUMENT" \
+  -F "purpose=claim_submission"
+```
+
+Réponse:
+
+```json
+{
+  "data": {
+    "media_uid": "med-sandbox-001",
+    "file_name": "consultation.pdf",
+    "category": "CLAIM_SUPPORTING_DOCUMENT",
+    "storage_status": "STORED"
+  }
+}
+```
+
+## Rattacher à un claim
+
+```http
+POST /api/v1/claims/{claimId}/documents
+```
+
+```json
+{
+  "document_type": "INVOICE",
+  "media_uid": "med-sandbox-001",
+  "file_name": "facture.pdf"
+}
+```
+
+Types de documents courants:
+
+| Type | Usage |
+| --- | --- |
+| `PRESCRIPTION` | Ordonnance ou prescription structurée/non structurée. |
+| `INVOICE` | Facture prestataire. |
+| `LAB_RESULT` | Résultat laboratoire. |
+| `MEDICAL_REPORT` | Rapport médical ou compte rendu d'hospitalisation. |
+| `OTHER` | Autre pièce acceptée par règle assureur. |
+
+## Rattacher à un encounter
+
+```http
+POST /api/v1/encounters/{encounterId}/documents
+```
+
+```json
+{
+  "document_type": "LAB_RESULT",
+  "media_uid": "med-sandbox-002",
+  "file_name": "resultat-labo.pdf",
+  "issued_at": "2026-05-15T14:30:00Z"
+}
+```
+
+Les fichiers lourds ne doivent pas être transportés dans les webhooks. Les webhooks transportent des IDs et l'ERP récupère les détails par API.

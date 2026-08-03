@@ -1,0 +1,237 @@
+---
+title: "Parcours prestation ERP"
+description: "Parcours complet prestataire: personne couverte, consentement fort, prestation effectuée, éligibilité, justificatifs et claim."
+icon: "workflow"
+---
+
+Cette page décrit le parcours cible pour un ERP prestataire, notamment pharmacie, laboratoire, clinique ou hôpital. Azurance ne crée pas de panier dans l'API en v1: l'ERP garde son panier métier local et soumet uniquement la prestation réellement effectuée.
+
+## Vue d'ensemble
+
+```text
+retrouver la personne couverte
+→ obtenir un consentement fort N2 minimum
+→ lire les données autorisées
+→ enregistrer la prestation effectuée
+→ vérifier l'éligibilité finale
+→ joindre les justificatifs
+→ soumettre le claim
+→ suivre la décision et les webhooks
+```
+
+Le terme public `covered_person` désigne la personne qui reçoit la prestation. Elle peut être:
+
+| Type | Sens métier |
+| --- | --- |
+| `policyholder` | Titulaire du contrat. |
+| `beneficiary` | Ayant droit rattaché au contrat. |
+
+Le titulaire n'est pas fusionné dans la liste des bénéficiaires. Si un contrat a un titulaire et trois ayants droit, le titulaire reste `policyholder` et les trois autres personnes restent `beneficiary`.
+
+## 1. Retrouver la personne couverte
+
+```http
+POST /api/v1/covered-persons/resolve
+```
+
+```json
+{
+  "identifier_type": "npi",
+  "identifier": "NPI-1234567890"
+}
+```
+
+Identifiants supportés:
+
+| Type | Cardinalité possible |
+| --- | --- |
+| `npi` | Peut retourner plusieurs affiliations si la personne est assurée chez plusieurs assureurs. |
+| `phone_number` | Peut retourner plusieurs affiliations. |
+| `policy_number` | Peut retourner le titulaire et les ayants droit rattachés au contrat. |
+| `subscription_number` | Numéro de souscription ou d'adhésion fourni par l'assureur; cible généralement une affiliation précise. |
+| `member_number` | Numéro d'adhérent, de carte ou de membre attribué par l'assureur à une personne couverte. À utiliser seulement si l'assureur l'expose sur les supports assurés. |
+| `beneficiary_number` | Numéro d'ayant droit attribué par l'assureur; cible un bénéficiaire rattaché à un contrat. |
+
+La réponse est volontairement minimisée: identité masquée, type de personne, souscription, assureur, statut de couverture. Aucune donnée médicale, ordonnance ou donnée sensible n'est retournée avant consentement.
+
+## 2. Demander le consentement
+
+```http
+POST /api/v1/consent-requests
+```
+
+```json
+{
+  "covered_person_type": "beneficiary",
+  "covered_person_uid": "12000000-0000-4000-8000-000000000001",
+  "subscription_uid": "11000000-0000-4000-8000-000000000001",
+  "purpose": "pharmacy_dispensing",
+  "purpose_detail": "Dispensation de médicaments sur ordonnance",
+  "scopes": [
+    "clinical.prescriptions.view",
+    "service_executions.create",
+    "eligibility.check",
+    "claims.create",
+    "media.upload"
+  ],
+  "channel": "sms",
+  "assurance_level_required": 2
+}
+```
+
+Le niveau minimal standard est `2`, validé par OTP ou TOTP. Un niveau `3` peut être exigé par règle assureur, montant élevé, donnée sensible ou contrôle renforcé, via Face Match.
+
+Le motif `purpose` est une valeur encadrée. Les valeurs acceptées sont:
+
+| Purpose | Usage |
+| --- | --- |
+| `prescription_access` | Lire une ordonnance ou un résumé de prescription. |
+| `pharmacy_dispensing` | Dispenser des médicaments en pharmacie. |
+| `lab_exam_execution` | Réaliser ou facturer un examen de laboratoire. |
+| `medical_act_execution` | Réaliser un acte médical ou paramédical. |
+| `hospital_admission` | Ouvrir un parcours d'admission ou d'hospitalisation. |
+| `claim_submission` | Soumettre un claim lié à une prestation réalisée. |
+| `prior_authorization` | Demander ou suivre une autorisation préalable. |
+| `supporting_document_upload` | Ajouter des justificatifs au parcours. |
+
+### Cas Face Match N3
+
+Pour demander une validation Face Match:
+
+```json
+{
+  "covered_person_type": "beneficiary",
+  "covered_person_uid": "12000000-0000-4000-8000-000000000001",
+  "subscription_uid": "11000000-0000-4000-8000-000000000001",
+  "purpose": "pharmacy_dispensing",
+  "purpose_detail": "Dispensation nécessitant une validation biométrique",
+  "scopes": [
+    "clinical.prescriptions.view",
+    "service_executions.create",
+    "eligibility.check",
+    "claims.create"
+  ],
+  "channel": "face_match",
+  "assurance_level_required": 3
+}
+```
+
+Si la personne couverte est un bénéficiaire mineur, le titulaire de la police peut valider à sa place. La preuve de consentement indique alors `validated_by_type: "policyholder_representative"`. Si le bénéficiaire est adulte, il doit valider avec son propre compte assuré. Sans compte assuré joignable ou portrait de référence, la demande N3 est refusée avec une erreur métier explicite.
+
+## 3. Vérifier le challenge
+
+```http
+POST /api/v1/consent-requests/{consentRequestUid}/verify
+```
+
+```json
+{
+  "method": "sms",
+  "code": "123456"
+}
+```
+
+Réponse simplifiée:
+
+```json
+{
+  "data": {
+    "consent_ref": "40000000-0000-4000-8000-000000000001",
+    "method": "sms",
+    "assurance_level": 2,
+    "scopes": [
+      "clinical.prescriptions.view",
+      "service_executions.create",
+      "eligibility.check",
+      "claims.create"
+    ],
+    "expires_at": "2026-05-26T15:30:00Z"
+  }
+}
+```
+
+Le `consent_ref` est court, expirant et lié au prestataire, à la personne couverte, à la souscription, aux scopes et au niveau atteint. Il ne peut pas être réutilisé sur une autre personne, une autre souscription, un autre prestataire ou un autre scope.
+
+## 4. Lire les données autorisées
+
+Pour une pharmacie:
+
+```http
+GET /api/v1/covered-persons/{type}/{uid}/prescriptions?subscription_uid=...
+GET /api/v1/prescriptions/{prescription_uid}
+```
+
+Ces endpoints exigent un consentement valide avec le scope `clinical.prescriptions.view`. Une pharmacie ne doit recevoir que les prescriptions pertinentes pour son usage.
+
+## 5. Enregistrer la prestation réellement effectuée
+
+```http
+POST /api/v1/service-executions
+Idempotency-Key: erp-dispensation-2026-0001
+```
+
+```json
+{
+  "subscription_uid": "11000000-0000-4000-8000-000000000001",
+  "covered_person_type": "beneficiary",
+  "covered_person_uid": "12000000-0000-4000-8000-000000000001",
+  "coverage_type_code": "PHARMACY_DRUG",
+  "service_date": "2026-05-26",
+  "provider_reference": "ERP-DISP-2026-0001",
+  "consent_ref": "40000000-0000-4000-8000-000000000001",
+  "items": [
+    {
+      "description": "Dispensation Amoxicilline 500mg",
+      "quantity": 1,
+      "unit_price": 3500,
+      "prescription_uid": "50000000-0000-4000-8000-000000000001",
+      "prescription_line_uid": "50000000-0000-4000-8000-000000000002",
+      "prescribed_medication_code": "AMOX-500-BRAND",
+      "medication_code": "AMOX-500-GENERIC",
+      "prescribed_quantity": 12,
+      "dispensed_quantity": 10,
+      "substitution_reason": "Générique équivalent disponible, accord patient."
+    }
+  ]
+}
+```
+
+Règles pharmacie v1:
+
+- ordonnance obligatoire;
+- `prescription_line_uid` recommandé si l'ordonnance est structurée;
+- `substitution_reason` obligatoire si le médicament délivré diffère du médicament prescrit;
+- `dispensed_quantity` doit être inférieure ou égale à `prescribed_quantity`;
+- pas de blocage v1 sur un référentiel médicament couvert/non couvert.
+
+## 6. Soumettre le claim
+
+```http
+POST /api/v1/claims
+Idempotency-Key: erp-claim-2026-0001
+```
+
+Le claim référence la prestation effectuée via `service_execution_uid` lorsque disponible. Azurance refait une vérification finale `CLAIM_SUBMISSION`, réserve la part assureur sur les plafonds, valide les justificatifs requis et conserve un snapshot du consentement.
+
+Effet sur les plafonds:
+
+| Moment | Effet |
+| --- | --- |
+| `PRECHECK` | Lecture seule, aucune réservation. |
+| Claim soumis | Réservation de la part assureur sur plafond global et couverture. |
+| Claim `APPROVED` | Consommation de la réservation. |
+| Claim `REJECTED` | Libération de la réservation. |
+| Claim `INFO_NEEDED` | Réservation conservée. |
+| Claim `PAID` | Aucun recalcul de plafond. |
+
+## Idempotence et anti-doublon
+
+Les créations ERP doivent envoyer `Idempotency-Key`. En cas de timeout, l'ERP peut rejouer exactement la même requête:
+
+| Cas | Réponse |
+| --- | --- |
+| Même clé + même corps de requête | Réponse initiale rejouée avec `X-Idempotent-Replay: true`. |
+| Même clé + corps de requête différent | `409 IDEMPOTENCY_CONFLICT`. |
+| Même `provider_reference` | `409 DUPLICATE_PROVIDER_REFERENCE`. |
+
+Utilisez une clé stable par opération métier ERP, par exemple `dispensation:{erp_id}` ou `claim:{erp_claim_id}`.

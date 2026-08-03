@@ -1,0 +1,9 @@
+---
+title: "Suivre une demande de consentement"
+description: "Consulte le statut d'une demande OTP, TOTP ou Face Match."
+openapi: "/openapi/provider-api.openapi.yml GET /api/v1/consent-requests/{consentRequestUid}"
+---
+
+Utilisez cet endpoint pour suivre une demande de consentement après sa création, notamment lorsque le niveau demandé est `3` et que la validation Face Match se fait dans l'application assurée.
+
+Les statuts possibles indiquent si le challenge est en attente, envoyé, validé, expiré, révoqué ou échoué. Quand la demande est validée, la réponse peut inclure le `consent_ref` et le snapshot de consentement à utiliser dans la suite du parcours.

@@ -1,0 +1,271 @@
+{
+  "$schema": "https://mintlify.com/docs.json",
+  "theme": "mint",
+  "name": "Azurance",
+  "description": "Documentation officielle des intégrations ERP prestataires et ERP assurances Azurance.",
+  "logo": {
+    "light": "/assets/da-digit-all-nav.png",
+    "dark": "/assets/da-digit-all-nav-dark.png",
+    "href": "/"
+  },
+  "favicon": "/assets/da-digit-all-mark.png",
+  "colors": {
+    "primary": "#F7941D",
+    "light": "#F9A11B",
+    "dark": "#241047"
+  },
+  "fonts": {
+    "family": "Geist",
+    "weight": 450,
+    "heading": {
+      "family": "Geist",
+      "weight": 650
+    },
+    "body": {
+      "family": "Geist",
+      "weight": 450
+    }
+  },
+  "icons": {
+    "library": "lucide"
+  },
+  "background": {
+    "color": {
+      "light": "#FCFBF8",
+      "dark": "#120A24"
+    }
+  },
+  "appearance": {
+    "default": "system"
+  },
+  "styling": {
+    "eyebrows": "breadcrumbs"
+  },
+  "navigation": {
+    "global": {
+      "anchors": [
+        {
+          "anchor": "Accueil",
+          "icon": "house",
+          "href": "/"
+        },
+        {
+          "anchor": "Changelog",
+          "icon": "list",
+          "href": "/changelog"
+        }
+      ]
+    },
+    "products": [
+      {
+        "product": "ERP Prestataires",
+        "description": "Connecter un hôpital, une clinique, une pharmacie ou un laboratoire.",
+        "icon": "hospital",
+        "groups": [
+          {
+            "group": "Premiers pas",
+            "pages": [
+              "erp-prestataires/quickstart",
+              "commun/llm-kit",
+              "commun/conventions-api",
+              "commun/authentification",
+              "commun/securite-scopes-webhooks",
+              "commun/erreurs"
+            ]
+          },
+          {
+            "group": "Endpoints",
+            "pages": [
+              "erp-prestataires/eligibilite",
+              "erp-prestataires/claims",
+              "erp-prestataires/clinique",
+              "erp-prestataires/reseau",
+              "erp-prestataires/documents-medias",
+              "erp-prestataires/facturation-remboursements"
+            ]
+          },
+          {
+            "group": "Référence API",
+            "pages": [
+              "erp-prestataires/reference-api",
+              "erp-prestataires/api/auth-verify",
+              "erp-prestataires/api/network-status",
+              "erp-prestataires/api/network-profile",
+              "erp-prestataires/api/network-relationships",
+              "erp-prestataires/api/provider-insurer-relationships",
+              "erp-prestataires/api/covered-persons-resolve",
+              "erp-prestataires/api/consent-requests-create",
+              "erp-prestataires/api/consent-requests-get",
+              "erp-prestataires/api/consent-requests-verify",
+              "erp-prestataires/api/eligibility-check",
+              "erp-prestataires/api/eligibility-member-card",
+              "erp-prestataires/api/media-uploads-create",
+              "erp-prestataires/api/prior-authorizations-create",
+              "erp-prestataires/api/prior-authorizations-list",
+              "erp-prestataires/api/prior-authorizations-get",
+              "erp-prestataires/api/prior-authorizations-documents",
+              "erp-prestataires/api/prior-authorizations-cancel",
+              "erp-prestataires/api/encounters-create",
+              "erp-prestataires/api/encounters-list",
+              "erp-prestataires/api/encounters-get",
+              "erp-prestataires/api/encounters-medical-acts",
+              "erp-prestataires/api/encounters-documents",
+              "erp-prestataires/api/prescriptions-create",
+              "erp-prestataires/api/prescriptions-list",
+              "erp-prestataires/api/prescriptions-get",
+              "erp-prestataires/api/covered-person-prescriptions-list",
+              "erp-prestataires/api/insured-prescriptions",
+              "erp-prestataires/api/medical-record-get",
+              "erp-prestataires/api/medical-record-update",
+              "erp-prestataires/api/medical-record-summary",
+              "erp-prestataires/api/medical-record-timeline",
+              "erp-prestataires/api/medications-list",
+              "erp-prestataires/api/medications-search",
+              "erp-prestataires/api/medications-export",
+              "erp-prestataires/api/medications-resolve",
+              "erp-prestataires/api/medications-get",
+              "erp-prestataires/api/service-executions-create",
+              "erp-prestataires/api/service-executions-list",
+              "erp-prestataires/api/service-executions-get",
+              "erp-prestataires/api/claims-create",
+              "erp-prestataires/api/claims-list",
+              "erp-prestataires/api/claims-get",
+              "erp-prestataires/api/claim-documents-attach",
+              "erp-prestataires/api/payable-invoices-list",
+              "erp-prestataires/api/payable-invoices-items",
+              "erp-prestataires/api/payments-get",
+              "erp-prestataires/api/payments-allocations",
+              "erp-prestataires/api/billing-sync",
+              "erp-prestataires/api/webhook-subscriptions-create",
+              "erp-prestataires/api/webhook-subscriptions-list",
+              "erp-prestataires/api/webhook-subscriptions-update",
+              "erp-prestataires/api/webhook-subscriptions-delete"
+            ]
+          }
+        ]
+      },
+      {
+        "product": "ERP Assurances",
+        "description": "Synchroniser les membres, contrats, garanties et décisions de remboursement.",
+        "icon": "shield-check",
+        "groups": [
+          {
+            "group": "Premiers pas",
+            "pages": [
+              "erp-assurances/quickstart",
+              "commun/llm-kit",
+              "commun/conventions-api",
+              "commun/authentification",
+              "commun/securite-scopes-webhooks",
+              "commun/erreurs"
+            ]
+          },
+          {
+            "group": "Endpoints",
+            "pages": [
+              "erp-assurances/membres-souscriptions",
+              "erp-assurances/contrats-couvertures",
+              "erp-assurances/claims",
+              "erp-assurances/eligibilite",
+              "erp-assurances/reseau-prestataires"
+            ]
+          },
+          {
+            "group": "Référence API",
+            "pages": [
+              "erp-assurances/api/auth-verify",
+              "erp-assurances/api/members-list",
+              "erp-assurances/api/members-create",
+              "erp-assurances/api/members-get",
+              "erp-assurances/api/members-update",
+              "erp-assurances/api/member-portrait-upload",
+              "erp-assurances/api/member-portrait-status",
+              "erp-assurances/api/subscriptions-list",
+              "erp-assurances/api/subscriptions-create",
+              "erp-assurances/api/subscriptions-get",
+              "erp-assurances/api/subscriptions-update-status",
+              "erp-assurances/api/subscriptions-renew",
+              "erp-assurances/api/beneficiaries-list",
+              "erp-assurances/api/beneficiaries-create",
+              "erp-assurances/api/beneficiaries-update-status",
+              "erp-assurances/api/beneficiary-portrait-upload",
+              "erp-assurances/api/beneficiary-portrait-status",
+              "erp-assurances/api/eligibility-check",
+              "erp-assurances/api/eligibility-check-batch",
+              "erp-assurances/api/claims-stats",
+              "erp-assurances/api/claims-list",
+              "erp-assurances/api/claims-get",
+              "erp-assurances/api/claims-update-status",
+              "erp-assurances/api/claim-documents-list",
+              "erp-assurances/api/fraud-assessment-create",
+              "erp-assurances/api/fraud-assessment-get",
+              "erp-assurances/api/fraud-assessment-by-uuid",
+              "erp-assurances/api/fraud-assessment-feedback",
+              "erp-assurances/api/plans-list",
+              "erp-assurances/api/plans-create",
+              "erp-assurances/api/plans-get",
+              "erp-assurances/api/plans-update",
+              "erp-assurances/api/plans-delete",
+              "erp-assurances/api/coverage-types-list",
+              "erp-assurances/api/reimbursement-calculate",
+              "erp-assurances/api/providers-list",
+              "erp-assurances/api/provider-network-relationships",
+              "erp-assurances/api/providers-get",
+              "erp-assurances/api/provider-specialties",
+              "erp-assurances/api/provider-network-check",
+              "erp-assurances/api/billing-payable-invoices-list",
+              "erp-assurances/api/billing-payable-invoice-get",
+              "erp-assurances/api/billing-payable-invoice-items",
+              "erp-assurances/api/billing-payments-list",
+              "erp-assurances/api/billing-payment-create",
+              "erp-assurances/api/billing-payment-get",
+              "erp-assurances/api/billing-payment-confirm",
+              "erp-assurances/api/billing-payment-allocations",
+              "erp-assurances/api/billing-sync",
+              "erp-assurances/api/webhooks-list",
+              "erp-assurances/api/webhooks-create",
+              "erp-assurances/api/webhooks-update",
+              "erp-assurances/api/webhooks-delete",
+              "erp-assurances/api/analytics-portfolio-summary",
+              "erp-assurances/api/analytics-claims-summary",
+              "erp-assurances/api/analytics-loss-ratio",
+              "erp-assurances/api/analytics-provider-performance",
+              "erp-assurances/api/analytics-coverage-utilization",
+              "erp-assurances/api/notifications-list",
+              "erp-assurances/api/notifications-get",
+              "erp-assurances/api/notifications-mark-read",
+              "erp-assurances/api/notifications-preferences-get",
+              "erp-assurances/api/notifications-preferences-update"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "navbar": {
+    "links": [
+      {
+        "label": "DA Digit All",
+        "href": "/"
+      }
+    ]
+  },
+  "api": {
+    "playground": {
+      "display": "simple"
+    },
+    "examples": {
+      "languages": [
+        "curl",
+        "typescript",
+        "javascript",
+        "php",
+        "java",
+        "csharp"
+      ]
+    }
+  },
+  "seo": {
+    "indexing": "navigable"
+  }
+}

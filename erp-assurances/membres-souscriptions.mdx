@@ -1,0 +1,146 @@
+---
+title: "Membres et souscriptions"
+description: "Gérer les assurés, contrats, bénéficiaires, statuts et renouvellements."
+icon: "users-round"
+---
+
+Cette section couvre les plans, membres, souscriptions, bénéficiaires, statuts contractuels, plafonds et renouvellements manipulés par les ERP assurances.
+
+## Membres
+
+```http
+GET /api/v1/members?page=1&per_page=20
+POST /api/v1/members
+GET /api/v1/members/{memberUuid}
+PUT /api/v1/members/{memberUuid}
+```
+
+Création:
+
+```json
+{
+  "policy_number": "POL-SBX-000001",
+  "national_id": "BJ-00000001",
+  "first_name": "Awa",
+  "last_name": "Kone",
+  "date_of_birth": "1992-03-22",
+  "gender": "FEMALE",
+  "phone_primary": "+22997000000",
+  "email": "awa.kone@example.com",
+  "city": "Cotonou",
+  "country": "BJ",
+  "status": "ACTIVE",
+  "kyc_status": "VERIFIED"
+}
+```
+
+Réponse:
+
+```json
+{
+  "data": {
+    "uuid": "member-sandbox-001",
+    "policy_number": "POL-SBX-000001",
+    "status": "ACTIVE",
+    "kyc_status": "VERIFIED"
+  }
+}
+```
+
+## Souscriptions
+
+```http
+GET /api/v1/subscriptions?page=1&per_page=20
+POST /api/v1/subscriptions
+GET /api/v1/subscriptions/{subscriptionUuid}
+PATCH /api/v1/subscriptions/{subscriptionUuid}/status
+POST /api/v1/subscriptions/{subscriptionUuid}/renew
+```
+
+Création:
+
+```json
+{
+  "policyholder_uuid": "member-sandbox-001",
+  "subscription_number": "SUB-SBX-000001",
+  "plan_code": "STANDARD-SBX",
+  "plan_name": "Plan Standard Sandbox",
+  "status": "ACTIVE",
+  "effective_date": "2026-01-01",
+  "expiry_date": "2026-12-31",
+  "premium_amount": 25000,
+  "premium_frequency": "MONTHLY",
+  "annual_coverage_limit": 1500000
+}
+```
+
+Réponse:
+
+```json
+{
+  "data": {
+    "uuid": "subscription-sandbox-001",
+    "subscription_number": "SUB-SBX-000001",
+    "plan_code": "STANDARD-SBX",
+    "status": "ACTIVE"
+  }
+}
+```
+
+## Changer le statut
+
+```json
+{
+  "status": "SUSPENDED",
+  "reason": "Prime impayée",
+  "changed_by": "erp-assureur"
+}
+```
+
+Statuts courants: `ACTIVE`, `SUSPENDED`, `EXPIRED`, `CANCELLED`.
+
+## Renouveler
+
+```json
+{
+  "subscription_number": "SUB-SBX-000002",
+  "effective_date": "2027-01-01",
+  "expiry_date": "2027-12-31",
+  "premium_amount": 27000,
+  "annual_coverage_limit": 1600000
+}
+```
+
+Le renouvellement retourne une nouvelle souscription active et laisse l'ancienne historisée.
+
+## Bénéficiaires
+
+```http
+GET /api/v1/subscriptions/{subscriptionUuid}/beneficiaries
+POST /api/v1/subscriptions/{subscriptionUuid}/beneficiaries
+PATCH /api/v1/subscriptions/{subscriptionUuid}/beneficiaries/{beneficiaryUuid}/status
+```
+
+Création:
+
+```json
+{
+  "beneficiary_number": "BEN-SBX-000001",
+  "first_name": "Mariam",
+  "last_name": "Kone",
+  "date_of_birth": "2015-04-10",
+  "gender": "FEMALE",
+  "relationship": "CHILD",
+  "coverage_start_date": "2026-01-01",
+  "is_dependent": true
+}
+```
+
+Mise à jour du statut:
+
+```json
+{
+  "status": "SUSPENDED",
+  "reason": "Ayant droit retiré"
+}
+```

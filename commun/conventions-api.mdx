@@ -1,0 +1,97 @@
+---
+title: "Conventions API"
+description: "Conventions communes aux intégrations ERP prestataires et ERP assurances."
+icon: "braces"
+---
+
+Les APIs publiques Azurance sont versionnées sous `/api/v1` et exposées via les domaines officiels suivants:
+
+| Espace | Production | Sandbox |
+| --- | --- | --- |
+| ERP Prestataires | `https://provider-api.elenami.com` | `https://provider-api-sandbox.elenami.com` |
+| ERP Assurances | `https://insurer-api.elenami.com` | `https://insurer-api-sandbox.elenami.com` |
+
+Le contrat HTTP reste identique entre sandbox et production. La clé API porte son environnement et ne peut pas être utilisée sur l'autre environnement.
+
+<Info>
+Utilisez uniquement les domaines API documentés pour votre environnement. Les autres URLs Azurance ne font pas partie du contrat d'intégration ERP.
+</Info>
+
+## Formats
+
+Les endpoints JSON utilisent:
+
+```http
+Accept: application/json
+Content-Type: application/json
+```
+
+Les uploads médias utilisent `multipart/form-data` avec un champ fichier `file` et des champs métier comme `category`, `purpose` ou `metadata`.
+
+## Contexte partenaire
+
+Le contexte de sécurité vient toujours de `X-Api-Key`.
+
+| Valeur | Source |
+| --- | --- |
+| Organisation assureur | Clé API validée par Azurance |
+| Prestataire | Clé API prestataire |
+| Environnement | Clé API: `sandbox` ou `production` |
+| Scopes | Clé API |
+
+Les champs de contexte partenaire, prestataire ou assureur sont résolus par Azurance à partir de `X-Api-Key`. Ils ne sont pas à fournir dans le body ou la query string des appels publics.
+
+## Identifiants publics
+
+Les ERP manipulent des UUID et des codes métier publics:
+
+| Ressource | Identifiant public recommandé |
+| --- | --- |
+| Membre assuré | `uuid`, `policy_number` |
+| Souscription | `uuid`, `subscription_number` |
+| Plan | `plan_code` |
+| Claim | `uuid` ou `claim_id` public |
+| Bordereau payable | `uuid` |
+| Paiement | `uuid` |
+| Média | `media_uid` |
+
+Les identifiants de base de données ne font pas partie du contrat public.
+
+## Pagination et synchronisation
+
+Les listes supportent `page` et `per_page` lorsque la pagination classique est suffisante. Les flux de synchronisation ERP, notamment billing, utilisent aussi `cursor` et `updated_after`.
+
+```http
+GET /api/v1/billing/sync?updated_after=2026-05-15T00:00:00Z&cursor=eyJpZCI6...
+```
+
+## Dates et montants
+
+- Dates calendaires: `YYYY-MM-DD`.
+- Timestamps: ISO 8601 UTC, par exemple `2026-05-15T09:30:00Z`.
+- Montants: nombres décimaux dans la devise du contrat ou du bordereau.
+- Devise par défaut des exemples: `XOF`.
+
+## Corrélation
+
+Envoyez `X-Request-Id` depuis l'ERP lorsqu'un workflow traverse plusieurs appels. Azurance associe cet identifiant aux journaux, aux événements sortants et aux échanges de support.
+
+## Idempotence
+
+Les appels qui créent une ressource métier doivent envoyer `Idempotency-Key`:
+
+```http
+Idempotency-Key: erp-operation-2026-0001
+```
+
+Endpoints concernés côté prestataire:
+
+| Endpoint | Recommandation |
+| --- | --- |
+| `POST /api/v1/service-executions` | Une clé stable par prestation réellement effectuée. |
+| `POST /api/v1/claims` | Une clé stable par claim ERP. |
+| `POST /api/v1/media/uploads` | Une clé stable par fichier si l'ERP supporte le retry d'upload. |
+
+Si la même clé est rejouée avec le même corps de requête, Azurance retourne la réponse initiale et peut ajouter `X-Idempotent-Replay: true`. Si le corps de requête change, l'API retourne `409 IDEMPOTENCY_CONFLICT`.
+
+Utilisez aussi `provider_reference` comme référence métier unique par prestataire pour détecter les doublons indépendamment du transport HTTP.

@@ -1,0 +1,983 @@
+openapi: 3.1.0
+info:
+  title: AZURANCE ERP Provider API
+  version: 0.1.0
+  description: API externe sandbox pour ERP prestataires. Le BFF valide X-Api-Key via auth-service puis appelle les microservices internes.
+servers:
+  - url: http://localhost:3101
+    description: Sandbox local provider-api-bff
+security:
+  - ApiKeyAuth: []
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-Api-Key
+  parameters:
+    RequestId:
+      in: header
+      name: X-Request-Id
+      required: false
+      schema:
+        type: string
+      description: Identifiant de corrélation propagé aux services internes.
+  schemas:
+    Error:
+      type: object
+      properties:
+        message:
+          type: string
+    PriorAuthorization:
+      type: object
+      description: Demande de prévalidation assurance avant exécution d'une prestation.
+      properties:
+        uuid:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [PENDING_REVIEW, INFO_NEEDED, APPROVED, REJECTED, EXPIRED, CANCELLED, CONSUMED]
+          description: PENDING_REVIEW = en attente de revue; INFO_NEEDED = pièces attendues; APPROVED = accord préalable; REJECTED = refus; EXPIRED = accord expiré; CANCELLED = annulé; CONSUMED = utilisé par un claim approuvé.
+        priority:
+          type: string
+          enum: [URGENT, STANDARD, DEFERRED]
+          description: URGENT = revue prioritaire; STANDARD = traitement normal; DEFERRED = traitement non urgent.
+        subscription_uid:
+          type: string
+        covered_person_type:
+          type: string
+          enum: [policyholder, beneficiary]
+        covered_person_uid:
+          type: string
+        coverage_type_code:
+          type: string
+        estimated_amount:
+          type: number
+        authorized_amount:
+          type: number
+          nullable: true
+        currency:
+          type: string
+          example: XOF
+        provider_reference:
+          type: string
+          nullable: true
+        consent_ref:
+          type: string
+          format: uuid
+        validation_request_uid:
+          type: string
+          format: uuid
+          nullable: true
+        limit_reservation_uid:
+          type: string
+          format: uuid
+          nullable: true
+    ProviderNetworkRelationship:
+      type: object
+      description: Relation conventionnelle entre le prestataire authentifié par X-Api-Key et une compagnie d'assurance.
+      properties:
+        relationship_uid:
+          type: string
+          format: uuid
+          description: Identifiant public de la relation réseau.
+        relationship_type:
+          type: string
+          enum: [care_network]
+          description: Type de relation. care_network signifie convention ou affiliation à un réseau de soins.
+        relationship_status:
+          type: string
+          enum: [ACTIVE, ENDED]
+          description: Statut de la relation. ACTIVE autorise l'usage selon les règles de la convention; ENDED signifie relation clôturée.
+        network_status:
+          type: string
+          enum: [PREFERRED, IN_NETWORK, OUT_OF_NETWORK]
+          description: Niveau réseau. PREFERRED indique un réseau privilégié; IN_NETWORK indique un prestataire conventionné; OUT_OF_NETWORK indique hors réseau.
+        network_name:
+          type: string
+          nullable: true
+          description: Nom public du réseau si configuré.
+        network_tier:
+          type: string
+          nullable: true
+          description: Niveau brut configuré par le réseau, par exemple preferred, standard, pharmacy ou lab.
+        contract_reference:
+          type: string
+          nullable: true
+          description: Référence de convention si disponible.
+        contract_start_date:
+          type: string
+          format: date-time
+          nullable: true
+          description: Date de début de relation.
+        contract_end_date:
+          type: string
+          format: date-time
+          nullable: true
+          description: Date de fin de relation si connue.
+        claim_submission_enabled:
+          type: boolean
+          description: Indique si la relation permet de soumettre des claims dans son état courant.
+        requires_prior_authorization:
+          type: boolean
+          description: Indique si une autorisation préalable est requise par défaut pour ce réseau.
+        covered_service_families:
+          type: array
+          description: Familles de prestations couvertes par cette relation si configurées.
+          items:
+            type: string
+        insurer:
+          type: object
+          description: Compagnie d'assurance liée à la relation.
+        provider:
+          type: object
+          description: Organisation prestataire liée à la relation.
+    MedicationProduct:
+      type: object
+      description: Produit médicament du référentiel pivot Azurance.
+      properties:
+        uid:
+          type: string
+          format: uuid
+          description: Identifiant public du produit médicament Azurance.
+        country_code:
+          type: string
+          description: Pays du référentiel produit, par exemple BJ.
+        market_status:
+          type: string
+          enum: [LOCAL_AUTHORIZED, CANDIDATE, UNVERIFIED, WITHDRAWN, REJECTED]
+          description: LOCAL_AUTHORIZED = autorisé localement; CANDIDATE = candidat externe; UNVERIFIED = import non validé; WITHDRAWN = retiré; REJECTED = rejeté.
+        source:
+          type: string
+          enum: [ABMED_BENIN, BDPM_FR, MEDICAMENTS_API_FR, CSV]
+          description: ABMED_BENIN = source locale Bénin; BDPM_FR/MEDICAMENTS_API_FR = sources candidates France; CSV = import contrôlé.
+        designation:
+          type: string
+          description: Désignation officielle ou importée du produit.
+        dci_raw:
+          type: string
+          nullable: true
+          description: DCI/substances lorsque disponibles.
+        authorization_number:
+          type: string
+          nullable: true
+          description: Numéro AMM ou identifiant d'autorisation.
+        authorization_expires_at:
+          type: string
+          format: date
+          nullable: true
+        presentations:
+          type: array
+          items:
+            type: object
+        clinical_mapping:
+          type: object
+          nullable: true
+          description: Mapping clinique ATC/RxCUI non obligatoire.
+        resolve_confidence:
+          type: number
+          nullable: true
+          description: Score de correspondance retourné uniquement par resolve.
+    MedicationReferenceLine:
+      type: object
+      properties:
+        description:
+          type: string
+        quantity:
+          type: number
+        unit_price:
+          type: number
+        prescription_uid:
+          type: string
+          format: uuid
+        prescription_line_uid:
+          type: string
+          format: uuid
+        prescribed_medication_code:
+          type: string
+        medication_code:
+          type: string
+        medication_product_uid:
+          type: string
+          format: uuid
+          description: Produit Azurance retenu par l'ERP après recherche/résolution.
+        presentation_uid:
+          type: string
+          description: Présentation Azurance retenue si applicable.
+        erp_product_code:
+          type: string
+          description: Code produit interne ERP, conservé comme snapshot de dispensation.
+        erp_product_name:
+          type: string
+          description: Nom produit interne ERP, conservé comme snapshot.
+        erp_mapping_confidence:
+          type: number
+          minimum: 0
+          maximum: 1
+          description: Confiance déclarée par l'ERP pour le rapprochement ponctuel.
+        dispensed_quantity:
+          type: number
+        metadata:
+          type: object
+paths:
+  /api/health:
+    get:
+      security: []
+      summary: Healthcheck BFF prestataire
+      responses:
+        '200':
+          description: OK
+  /api/v1/prior-authorizations:
+    post:
+      summary: Demander une préautorisation de prestation
+      description: Crée une demande formelle de prévalidation avant exécution, par exemple proforma de kinésithérapie ou matériel médical.
+      x-codeSamples:
+        - lang: curl
+          source: |
+            curl --request POST \
+              --url "https://provider-api-sandbox.elenami.com/api/v1/prior-authorizations" \
+              --header "Content-Type: application/json" \
+              --header "X-Api-Key: $AZURANCE_PROVIDER_API_KEY" \
+              --data '{"subscription_uid":"sub_001","covered_person_type":"beneficiary","covered_person_uid":"ben_001","coverage_type_code":"PHYSIOTHERAPY","estimated_amount":150000,"currency":"XOF","priority":"STANDARD","consent_ref":"00000000-0000-4000-8000-000000000001","items":[{"description":"10 séances de rééducation","quantity":10,"unit_price":15000}],"documents":[{"document_type":"PROFORMA","media_uid":"media_001"}]}'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [subscription_uid, covered_person_type, covered_person_uid, coverage_type_code, estimated_amount, consent_ref, items]
+              properties:
+                subscription_uid: { type: string }
+                covered_person_type:
+                  type: string
+                  enum: [policyholder, beneficiary]
+                covered_person_uid: { type: string }
+                coverage_type_code: { type: string }
+                service_date_from: { type: string, format: date }
+                service_date_to: { type: string, format: date }
+                estimated_amount: { type: number }
+                currency: { type: string, example: XOF }
+                priority:
+                  type: string
+                  enum: [URGENT, STANDARD, DEFERRED]
+                reason: { type: string }
+                provider_reference: { type: string }
+                consent_ref: { type: string, format: uuid }
+                items:
+                  type: array
+                  items:
+                    type: object
+                documents:
+                  type: array
+                  items:
+                    type: object
+      responses:
+        '201':
+          description: Demande créée en attente de revue
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/PriorAuthorization'
+        '403':
+          description: Scope ou consentement insuffisant
+        '422':
+          description: Précheck d'éligibilité refusé ou payload invalide
+    get:
+      summary: Lister les préautorisations du prestataire
+      x-codeSamples:
+        - lang: curl
+          source: |
+            curl --request GET \
+              --url "https://provider-api-sandbox.elenami.com/api/v1/prior-authorizations?status=PENDING_REVIEW" \
+              --header "X-Api-Key: $AZURANCE_PROVIDER_API_KEY"
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [PENDING_REVIEW, INFO_NEEDED, APPROVED, REJECTED, EXPIRED, CANCELLED, CONSUMED]
+      responses:
+        '200':
+          description: Liste paginée
+  /api/v1/prior-authorizations/{uid}:
+    get:
+      summary: Consulter une préautorisation
+      parameters:
+        - in: path
+          name: uid
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Détail de la préautorisation
+  /api/v1/prior-authorizations/{uid}/documents:
+    post:
+      summary: Ajouter une pièce à une préautorisation
+      parameters:
+        - in: path
+          name: uid
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Pièce ajoutée
+  /api/v1/prior-authorizations/{uid}/cancel:
+    post:
+      summary: Annuler une préautorisation
+      parameters:
+        - in: path
+          name: uid
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Préautorisation annulée
+  /api/v1/network/status:
+    get:
+      summary: Lire le statut réseau global du prestataire authentifié
+      description: >
+        Retourne le statut réseau général du prestataire lié à X-Api-Key. Cet endpoint ne vérifie pas
+        l'éligibilité d'un assuré ni d'une prestation précise; pour cela utiliser /api/v1/eligibility/check.
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+      responses:
+        '200':
+          description: Statut réseau global du prestataire
+        '401':
+          description: API key absente ou invalide
+        '403':
+          description: Scope providers.network.view manquant
+  /api/v1/network/profile:
+    get:
+      summary: Lire le profil réseau du prestataire authentifié
+      description: Retourne le profil du prestataire rattaché à X-Api-Key.
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+      responses:
+        '200':
+          description: Profil prestataire
+  /api/v1/network/relationships:
+    get:
+      summary: Lister les relations assureur du prestataire authentifié
+      description: >
+        Liste les compagnies et réseaux avec lesquels le prestataire lié à X-Api-Key est conventionné.
+        Aucun identifiant assuré n'est envoyé; la vérification par assuré reste portée par eligibility/check.
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - in: query
+          name: status
+          required: false
+          schema:
+            type: string
+            enum: [all, active, ended]
+          description: Filtre optionnel. all retourne toutes les relations; active retourne les relations actives; ended retourne les relations clôturées.
+      responses:
+        '200':
+          description: Relations assureur du prestataire
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ProviderNetworkRelationship'
+                  meta:
+                    type: object
+        '403':
+          description: Scope providers.network.view manquant
+  /api/v1/provider/insurer-relationships:
+    get:
+      summary: Alias métier pour lister les relations assureur du prestataire
+      description: Equivalent de /api/v1/network/relationships avec un nom plus explicite pour les ERP.
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - in: query
+          name: status
+          required: false
+          schema:
+            type: string
+            enum: [all, active, ended]
+      responses:
+        '200':
+          description: Relations assureur du prestataire
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ProviderNetworkRelationship'
+                  meta:
+                    type: object
+  /api/v1/reference/medications:
+    get:
+      summary: Lister le référentiel médicaments Azurance
+      description: Retourne les produits médicaments du référentiel pivot pour initialiser ou synchroniser un ERP prestataire. Ne retourne pas de stock, lot ou prix réel pharmacie.
+      x-codeSamples:
+        - lang: curl
+          source: |
+            curl --request GET \
+              --url "https://provider-api-sandbox.elenami.com/api/v1/reference/medications?country_code=BJ&page=1&per_page=100" \
+              --header "X-Api-Key: $AZURANCE_PROVIDER_API_KEY"
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - in: query
+          name: country_code
+          schema: { type: string, default: BJ }
+        - in: query
+          name: market_status
+          schema:
+            type: string
+            enum: [LOCAL_AUTHORIZED, CANDIDATE, UNVERIFIED, WITHDRAWN, REJECTED]
+          description: LOCAL_AUTHORIZED par défaut. CANDIDATE inclut les sources externes candidates.
+        - in: query
+          name: source
+          schema:
+            type: string
+            enum: [ABMED_BENIN, BDPM_FR, MEDICAMENTS_API_FR, CSV]
+        - in: query
+          name: include_candidates
+          schema: { type: boolean, default: false }
+        - in: query
+          name: page
+          schema: { type: integer, minimum: 1, default: 1 }
+        - in: query
+          name: per_page
+          schema: { type: integer, minimum: 1, maximum: 500, default: 100 }
+      responses:
+        '200':
+          description: Liste paginée de produits médicaments
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/MedicationProduct'
+                  meta:
+                    type: object
+        '403':
+          description: Scope reference.medications.view manquant
+  /api/v1/reference/medications/search:
+    get:
+      summary: Rechercher un médicament du référentiel
+      description: Recherche par désignation, DCI, AMM ou titulaire. Les produits autorisés localement sont prioritaires.
+      x-codeSamples:
+        - lang: curl
+          source: |
+            curl --request GET \
+              --url "https://provider-api-sandbox.elenami.com/api/v1/reference/medications/search?q=amoxicilline&country_code=BJ" \
+              --header "X-Api-Key: $AZURANCE_PROVIDER_API_KEY"
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - in: query
+          name: q
+          required: true
+          schema: { type: string, minLength: 2 }
+        - in: query
+          name: country_code
+          schema: { type: string, default: BJ }
+        - in: query
+          name: include_candidates
+          schema: { type: boolean, default: false }
+        - in: query
+          name: limit
+          schema: { type: integer, minimum: 1, maximum: 50, default: 10 }
+      responses:
+        '200':
+          description: Résultats de recherche
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/MedicationProduct'
+                  total:
+                    type: integer
+  /api/v1/reference/medications/export:
+    get:
+      summary: Exporter une page du référentiel médicaments
+      description: Export contrôlé JSON ou CSV, limité par pagination. Aucun dump illimité n'est exposé.
+      x-codeSamples:
+        - lang: curl
+          source: |
+            curl --request GET \
+              --url "https://provider-api-sandbox.elenami.com/api/v1/reference/medications/export?country_code=BJ&format=csv&page=1&per_page=500" \
+              --header "X-Api-Key: $AZURANCE_PROVIDER_API_KEY"
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - in: query
+          name: format
+          schema:
+            type: string
+            enum: [json, csv]
+            default: json
+        - in: query
+          name: country_code
+          schema: { type: string, default: BJ }
+        - in: query
+          name: market_status
+          schema:
+            type: string
+            enum: [LOCAL_AUTHORIZED, CANDIDATE, UNVERIFIED, WITHDRAWN, REJECTED]
+        - in: query
+          name: page
+          schema: { type: integer, minimum: 1, default: 1 }
+        - in: query
+          name: per_page
+          schema: { type: integer, minimum: 1, maximum: 500, default: 500 }
+      responses:
+        '200':
+          description: Export JSON ou CSV
+  /api/v1/reference/medications/resolve:
+    post:
+      summary: Résoudre un produit ERP vers le référentiel Azurance
+      description: Retourne des candidats de correspondance sans créer de mapping persistant côté Azurance.
+      x-codeSamples:
+        - lang: curl
+          source: |
+            curl --request POST \
+              --url "https://provider-api-sandbox.elenami.com/api/v1/reference/medications/resolve" \
+              --header "Content-Type: application/json" \
+              --header "X-Api-Key: $AZURANCE_PROVIDER_API_KEY" \
+              --data '{"erp_product_code":"PHARMA-ERP-AMOX-500","erp_product_name":"AMOX 500 GEL B/12","country_code":"BJ"}'
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [erp_product_name]
+              properties:
+                erp_product_code:
+                  type: string
+                erp_product_name:
+                  type: string
+                country_code:
+                  type: string
+                  default: BJ
+                limit:
+                  type: integer
+                  minimum: 1
+                  maximum: 20
+      responses:
+        '200':
+          description: Meilleure correspondance et candidats
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      best_match:
+                        $ref: '#/components/schemas/MedicationProduct'
+                      candidates:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/MedicationProduct'
+                      confidence:
+                        type: number
+  /api/v1/reference/medications/{uid}:
+    get:
+      summary: Consulter une fiche médicament du référentiel
+      description: Retourne un produit médicament, ses présentations et son mapping clinique si disponible.
+      x-codeSamples:
+        - lang: curl
+          source: |
+            curl --request GET \
+              --url "https://provider-api-sandbox.elenami.com/api/v1/reference/medications/60000000-0000-4000-8000-000000000001" \
+              --header "X-Api-Key: $AZURANCE_PROVIDER_API_KEY"
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - in: path
+          name: uid
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Fiche médicament
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/MedicationProduct'
+        '404':
+          description: Produit introuvable
+  /api/v1/eligibility/check:
+    post:
+      summary: Précheck d'éligibilité ERP sans création de claim
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [coverage_type_code, amount]
+              properties:
+                subscription_uid:
+                  type: string
+                  format: uuid
+                covered_person_type:
+                  type: string
+                  enum: [policyholder, beneficiary]
+                covered_person_uid:
+                  type: string
+                consent_ref:
+                  type: string
+                  format: uuid
+                subscription_id:
+                  type: string
+                  description: Ancien champ sandbox conservé temporairement.
+                policyholder_id:
+                  type: string
+                  description: Ancien champ sandbox conservé temporairement.
+                coverage_type_code:
+                  type: string
+                amount:
+                  type: number
+                service_date:
+                  type: string
+                  format: date
+      responses:
+        '200':
+          description: Résultat d'éligibilité
+        '401':
+          description: API key absente ou invalide
+        '403':
+          description: Scope insuffisant
+  /api/v1/covered-persons/resolve:
+    post:
+      summary: Résoudre une personne couverte sans exposer de données médicales
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [identifier_type, identifier]
+              properties:
+                identifier_type:
+                  type: string
+                  enum: [npi, phone_number, policy_number, subscription_number, member_number, beneficiary_number, policyholder_uid, beneficiary_uid]
+                identifier:
+                  type: string
+                subscription_uid:
+                  type: string
+                  format: uuid
+                limit:
+                  type: integer
+                  minimum: 1
+                  maximum: 10
+      responses:
+        '200':
+          description: Liste bornée de candidats covered_person
+        '400':
+          description: Recherche non indexée, wildcard ou identifiant trop court
+        '429':
+          description: Rate limit atteint
+  /api/v1/consent-requests:
+    post:
+      summary: Initier un consentement fort assuré pour un ERP prestataire
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [covered_person_type, covered_person_uid, subscription_uid, purpose, scopes]
+              properties:
+                covered_person_type:
+                  type: string
+                  enum: [policyholder, beneficiary]
+                covered_person_uid:
+                  type: string
+                subscription_uid:
+                  type: string
+                  format: uuid
+                purpose:
+                  type: string
+                scopes:
+                  type: array
+                  items:
+                    type: string
+                channel:
+                  type: string
+                  enum: [sms, email, whatsapp, totp, face_match]
+                assurance_level_required:
+                  type: integer
+                  enum: [2, 3]
+      responses:
+        '201':
+          description: Challenge de consentement créé
+  /api/v1/consent-requests/{uid}/verify:
+    post:
+      summary: Vérifier un consentement OTP/TOTP ou Face Match
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - in: path
+          name: uid
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                method:
+                  type: string
+                  enum: [sms, email, whatsapp, totp, face_match]
+                code:
+                  type: string
+                face_match_session_id:
+                  type: string
+                  format: uuid
+      responses:
+        '200':
+          description: Consentement validé avec consent_ref
+        '422':
+          description: Challenge invalide ou expiré
+  /api/v1/covered-persons/{type}/{uid}/prescriptions:
+    get:
+      summary: Lister les ordonnances autorisées après consentement fort
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - in: path
+          name: type
+          required: true
+          schema:
+            type: string
+            enum: [policyholder, beneficiary]
+        - in: path
+          name: uid
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: subscription_uid
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - in: query
+          name: consent_ref
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Ordonnances filtrées selon le consentement et le prestataire
+        '403':
+          description: Consentement ou scope invalide
+  /api/v1/media/uploads:
+    post:
+      summary: Upload de document clinique ou justificatif claim
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file, category, purpose]
+              properties:
+                file:
+                  type: string
+                  format: binary
+                category:
+                  type: string
+                purpose:
+                  type: string
+                external_reference:
+                  type: string
+                metadata:
+                  type: string
+      responses:
+        '201':
+          description: Média créé
+  /api/v1/claims:
+    post:
+      summary: Soumettre un claim après recheck final obligatoire
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [subscription_id, policyholder_id, coverage_type_code, service_date, amount_claimed, currency, items]
+              properties:
+                subscription_id:
+                  type: string
+                  service_execution_uid:
+                    type: string
+                    format: uuid
+                  prior_authorization_uid:
+                    type: string
+                    format: uuid
+                  covered_person_type:
+                    type: string
+                    enum: [policyholder, beneficiary]
+                covered_person_uid:
+                  type: string
+                consent_ref:
+                  type: string
+                  format: uuid
+                policyholder_id:
+                  type: string
+                coverage_type_code:
+                  type: string
+                service_date:
+                  type: string
+                  format: date
+                amount_claimed:
+                  type: number
+                currency:
+                  type: string
+                  example: XOF
+                precheck_eligibility_uuid:
+                  type: string
+                  format: uuid
+                items:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/MedicationReferenceLine'
+      responses:
+        '201':
+          description: Claim créé
+        '422':
+          description: Check final refusé, aucun claim créé
+        '503':
+          description: Service interne indisponible, aucun claim créé
+    get:
+      summary: Lister les claims du prestataire lié à la clé API
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+      responses:
+        '200':
+          description: Liste paginée
+  /api/v1/service-executions:
+    post:
+      summary: Enregistrer une prestation réellement effectuée par l'ERP
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [subscription_uid, covered_person_type, covered_person_uid, coverage_type_code, service_date, consent_ref, items]
+              properties:
+                subscription_uid:
+                  type: string
+                  format: uuid
+                covered_person_type:
+                  type: string
+                  enum: [policyholder, beneficiary]
+                covered_person_uid:
+                  type: string
+                coverage_type_code:
+                  type: string
+                service_date:
+                  type: string
+                  format: date
+                provider_reference:
+                  type: string
+                consent_ref:
+                  type: string
+                  format: uuid
+                items:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/MedicationReferenceLine'
+      responses:
+        '201':
+          description: Prestation enregistrée
+        '403':
+          description: Consentement ou scope invalide
+    get:
+      summary: Lister les prestations réellement effectuées par le prestataire
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+      responses:
+        '200':
+          description: Liste paginée
+  /api/v1/payable-invoices:
+    get:
+      summary: Lister les bordereaux payables visibles par l'ERP prestataire
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+      responses:
+        '200':
+          description: Liste paginée
+  /api/v1/payments/{paymentId}:
+    get:
+      summary: Consulter un paiement
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - in: path
+          name: paymentId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Paiement
+  /api/v1/billing/sync:
+    get:
+      summary: Flux incrémental ERP des événements billing
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - in: query
+          name: cursor
+          schema:
+            type: string
+        - in: query
+          name: updated_after
+          schema:
+            type: string
+            format: date-time
+      responses:
+        '200':
+          description: Page de synchronisation
+  /api/v1/webhook-subscriptions:
+    post:
+      summary: Créer une souscription webhook ERP
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+      responses:
+        '201':
+          description: Souscription créée

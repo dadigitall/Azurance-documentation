@@ -1,0 +1,70 @@
+---
+title: "Éligibilité assureur"
+description: "Tester une couverture ou exécuter des checks batch depuis l'ERP assurance."
+icon: "badge-check"
+---
+
+L'éligibilité assureur s'appuie sur le contexte contractuel Azurance: membre, souscription active, plan, couverture, plafond et statut. Les checks sont journalisés avec un identifiant de corrélation.
+
+## Check unitaire
+
+```http
+POST /api/v1/eligibility/check
+```
+
+```json
+{
+  "identifier": "POL-SBX-000001",
+  "coverage_code": "CONSULTATION_GP",
+  "amount": 15000,
+  "service_date": "2026-05-15"
+}
+```
+
+Réponse:
+
+```json
+{
+  "data": {
+    "eligibility_check_uuid": "01HY6Q5V9QZ4J7B0J6C2P8T9RK",
+    "eligible": true,
+    "reason": null,
+    "coverage": {
+      "coverage_code": "CONSULTATION_GP",
+      "remaining_limit": 285000
+    },
+    "reimbursement": {
+      "reimbursement_amount": 12000,
+      "copay_amount": 3000,
+      "requires_authorization": false
+    }
+  }
+}
+```
+
+## Check batch
+
+```http
+POST /api/v1/eligibility/check-batch
+```
+
+```json
+{
+  "checks": [
+    {
+      "identifier": "POL-SBX-000001",
+      "coverage_code": "CONSULTATION_GP",
+      "amount": 15000,
+      "service_date": "2026-05-15"
+    },
+    {
+      "identifier": "POL-SBX-000002",
+      "coverage_code": "PHARMACY",
+      "amount": 8000,
+      "service_date": "2026-05-15"
+    }
+  ]
+}
+```
+
+Les refus attendus couvrent notamment contrat expiré, contrat suspendu, garantie absente, plafond atteint et prestataire hors réseau.

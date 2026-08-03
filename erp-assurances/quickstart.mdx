@@ -1,0 +1,162 @@
+---
+title: "Quickstart assurance"
+description: "Premier parcours sandbox pour connecter un ERP assureur."
+icon: "rocket"
+---
+
+Ce quickstart suit le parcours assurance actuel: créer un plan, créer un membre, ouvrir une souscription, ajouter un bénéficiaire, tester l'éligibilité, suspendre ou renouveler le contrat, puis traiter les claims.
+
+## 1. Configurer la clé
+
+```bash
+export AZURANCE_INSURER_API_KEY="azr_sandbox_insurer_..."
+export AZURANCE_INSURER_BASE_URL="https://insurer-api-sandbox.elenami.com"
+```
+
+Tous les appels utilisent `X-Api-Key`. Le périmètre assureur autorisé est déterminé par la clé.
+
+Pour la production, utilisez `https://insurer-api.elenami.com` avec une clé `production`.
+
+## 2. Tester la clé API
+
+```http
+GET /api/v1/auth/verify
+```
+
+```ts
+const response = await fetch(`${baseUrl}/api/v1/auth/verify`, {
+  headers: {
+    Accept: "application/json",
+    "X-Api-Key": process.env.AZURANCE_INSURER_API_KEY!
+  }
+})
+
+const context = await response.json()
+```
+
+Réponse attendue:
+
+```json
+{
+  "valid": true,
+  "environment": "sandbox",
+  "tenant_name": "NSIA Assurance CI",
+  "subject_type": "INSURER",
+  "subject_name": "NSIA Assurance CI",
+  "scopes": ["insurer.members.manage", "insurer.claims.view"]
+}
+```
+
+## 3. Créer un plan
+
+```http
+POST /api/v1/plans
+```
+
+```json
+{
+  "plan_code": "STANDARD-SBX",
+  "plan_name": "Plan Standard Sandbox",
+  "plan_type": "STANDARD",
+  "base_premium": 25000,
+  "premium_frequency": "MONTHLY",
+  "annual_coverage_limit": 1500000,
+  "effective_date": "2026-01-01",
+  "is_active": true
+}
+```
+
+## 4. Créer un membre
+
+```http
+POST /api/v1/members
+```
+
+```json
+{
+  "policy_number": "POL-SBX-000001",
+  "first_name": "Awa",
+  "last_name": "Kone",
+  "date_of_birth": "1992-03-22",
+  "gender": "FEMALE",
+  "phone_primary": "+22997000000",
+  "email": "awa.kone@example.com",
+  "status": "ACTIVE",
+  "kyc_status": "VERIFIED"
+}
+```
+
+La réponse retourne un `uuid` public à réutiliser pour la souscription.
+
+## 5. Créer une souscription
+
+```http
+POST /api/v1/subscriptions
+```
+
+```json
+{
+  "policyholder_uuid": "member-sandbox-001",
+  "subscription_number": "SUB-SBX-000001",
+  "plan_code": "STANDARD-SBX",
+  "plan_name": "Plan Standard Sandbox",
+  "status": "ACTIVE",
+  "effective_date": "2026-01-01",
+  "expiry_date": "2026-12-31",
+  "premium_amount": 25000,
+  "premium_frequency": "MONTHLY",
+  "annual_coverage_limit": 1500000
+}
+```
+
+## 6. Ajouter un bénéficiaire
+
+```http
+POST /api/v1/subscriptions/{subscriptionUuid}/beneficiaries
+```
+
+```json
+{
+  "beneficiary_number": "BEN-SBX-000001",
+  "first_name": "Mariam",
+  "last_name": "Kone",
+  "date_of_birth": "2015-04-10",
+  "gender": "FEMALE",
+  "relationship": "CHILD",
+  "coverage_start_date": "2026-01-01"
+}
+```
+
+## 7. Tester l'éligibilité
+
+```http
+POST /api/v1/eligibility/check
+```
+
+```json
+{
+  "identifier": "POL-SBX-000001",
+  "coverage_code": "CONSULTATION_GP",
+  "amount": 15000,
+  "service_date": "2026-05-15"
+}
+```
+
+## 8. Suspendre, expirer ou renouveler
+
+```http
+PATCH /api/v1/subscriptions/{subscriptionUuid}/status
+POST /api/v1/subscriptions/{subscriptionUuid}/renew
+```
+
+Le renouvellement crée une nouvelle souscription active sans écraser l'ancien contrat historisé.
+
+## 9. Traiter les claims
+
+```http
+GET /api/v1/claims
+GET /api/v1/claims/{claimId}
+PATCH /api/v1/claims/{claimId}/status
+```
+
+Les décisions claim doivent rester cohérentes avec les snapshots d'éligibilité et de remboursement calculés à la soumission.

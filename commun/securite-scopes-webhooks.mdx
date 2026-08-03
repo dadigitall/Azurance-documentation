@@ -1,0 +1,157 @@
+---
+title: "Sécurité, scopes et webhooks"
+description: "Règles de sécurité publiques pour les clés API, les scopes, les webhooks et l'anti-replay."
+icon: "shield-check"
+---
+
+Cette page décrit le contrat de sécurité public pour les clés API, les scopes et les webhooks.
+
+## Principes
+
+- `X-Api-Key` est le seul header public d'authentification.
+- Une clé appartient à un environnement: `sandbox` ou `production`.
+- Une clé porte un sujet: `PROVIDER`, `INSURER` ou `ERP`.
+- L'organisation, le prestataire ou l'assureur autorisé sont déterminés par la clé.
+- Les champs non documentés dans les requêtes publiques sont rejetés en `400`.
+- Tous les appels doivent être faits depuis un backend ERP ou un middleware serveur.
+- Les appels doivent utiliser uniquement les domaines `provider-api` et `insurer-api` documentés.
+
+## Vérification de clé
+
+Les ERP peuvent tester leur clé sans déclencher de workflow métier:
+
+```http
+GET /api/v1/auth/verify
+Host: provider-api-sandbox.elenami.com
+X-Api-Key: azr_sandbox_...
+```
+
+Le même endpoint existe sur `insurer-api-sandbox.elenami.com`. Il exige une clé valide et retourne le contexte autorisé: environnement, organisation, sujet partenaire et scopes. Il ne nécessite pas de scope métier spécifique et ne retourne jamais la clé brute.
+
+## Scopes prestataires
+
+| Scope | Endpoints principaux |
+| --- | --- |
+| `covered_persons.resolve` | `POST /api/v1/covered-persons/resolve` |
+| `consent_requests.create` | `POST /api/v1/consent-requests` |
+| `consent_requests.verify` | `POST /api/v1/consent-requests/{uid}/verify` |
+| `eligibility.check` | `POST /api/v1/eligibility/check`, `POST /api/v1/eligibility/member-card` |
+| `providers.network.view` | `GET /api/v1/network/status`, `GET /api/v1/network/profile` |
+| `service_executions.create` | `POST /api/v1/service-executions` |
+| `claims.create` | `POST /api/v1/claims` |
+| `claims.view` | `GET /api/v1/claims`, `GET /api/v1/claims/{claimId}` |
+| `claims.documents.attach` | `POST /api/v1/claims/{claimId}/documents` |
+| `clinical.encounters.manage` | Création et modification d'encounters |
+| `clinical.encounters.view` | Lecture d'encounters |
+| `clinical.prescriptions.manage` | Création de prescriptions |
+| `clinical.prescriptions.view` | Lecture de prescriptions |
+| `clinical.records.manage` | Mise à jour du dossier médical |
+| `clinical.records.view` | Lecture du dossier médical |
+| `clinical.documents.attach` | `POST /api/v1/encounters/{id}/documents` |
+| `media.upload` | `POST /api/v1/media/uploads` |
+| `billing.payable_invoices.view` | Bordereaux payables et lignes |
+| `billing.payments.view` | Paiements et allocations |
+| `billing.sync` | `GET /api/v1/billing/sync` |
+| `billing.webhooks.manage` | Gestion des subscriptions webhook |
+
+## Consentement prestataire
+
+Les données sensibles et les actions associées à une personne couverte exigent un consentement fort:
+
+| Niveau | Méthodes |
+| --- | --- |
+| `N2` | OTP ou TOTP. Niveau minimal pour prescription, prestation et claim sensible. |
+| `N3` | Face Match ou contrôle renforcé. Déclenchable par montant, donnée sensible, suspicion ou règle assureur. |
+
+Un consentement est lié au prestataire, à la souscription, à la personne couverte, aux scopes et à une durée courte. Il ne doit jamais être réutilisé hors de ce périmètre.
+
+## Scopes assureurs
+
+| Scope | Endpoints principaux |
+| --- | --- |
+| `insurer.policies.view` | Plans, garanties, calculs de remboursement |
+| `insurer.policies.manage` | Création, mise à jour et suppression de plans |
+| `insurer.members.view` | Lecture membres, contrats et bénéficiaires |
+| `insurer.members.manage` | Création, renouvellement, statut contrat et bénéficiaire |
+| `insurer.claims.view` | Lecture claims, statistiques et documents |
+| `insurer.claims.manage` | Décision et mise à jour de statut claim |
+| `insurer.providers.view` | Réseau prestataires côté assureur |
+| `eligibility.check` | Checks d'éligibilité assureur |
+
+## Webhooks billing
+
+Les ERP prestataires peuvent souscrire aux événements billing pour éviter le polling massif:
+
+```http
+POST /api/v1/webhook-subscriptions
+Host: provider-api-sandbox.elenami.com
+X-Api-Key: azr_sandbox_...
+Content-Type: application/json
+```
+
+```json
+{
+  "name": "ERP principal",
+  "target_url": "https://erp.example.com/webhooks/azurance",
+  "secret": "whs_live_or_sandbox_secret_min_16_chars",
+  "event_types": [
+    "payable_invoice.issued",
+    "payable_invoice.partially_paid",
+    "payable_invoice.paid",
+    "payment.created",
+    "payment.processing",
+    "payment.succeeded",
+    "payment.failed"
+  ],
+  "is_active": true
+}
+```
+
+`target_url` doit être en HTTPS, sans identifiants dans l'URL, et sur un port autorisé. Les URLs localhost, IP privées, IP réservées et metadata cloud sont refusées.
+
+Azurance signe chaque livraison avec:
+
+| Header | Description |
+| --- | --- |
+| `X-Azurance-Event-Id` | Identifiant idempotent de l'événement. |
+| `X-Azurance-Delivery-Timestamp` | Timestamp utilisé dans la signature. |
+| `X-Azurance-Signature` | Signature HMAC au format `sha256=<digest>`. |
+
+## Vérification HMAC
+
+Le message signé est:
+
+```text
+{timestamp}.{raw_json_payload}
+```
+
+Le digest est:
+
+```text
+hex(hmac_sha256(webhook_secret, message))
+```
+
+Exemple Node.js:
+
+```ts
+import crypto from "node:crypto"
+
+function verifyWebhook(rawBody: string, timestamp: string, signature: string, secret: string): boolean {
+  const expected = "sha256=" + crypto
+    .createHmac("sha256", secret)
+    .update(`${timestamp}.${rawBody}`)
+    .digest("hex")
+
+  return crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expected))
+}
+```
+
+## Anti-replay
+
+L'ERP doit:
+
+- refuser une livraison dont le timestamp est trop ancien;
+- stocker `X-Azurance-Event-Id` pour traiter chaque événement une seule fois;
+- vérifier la signature sur le body brut avant parsing applicatif;
+- retourner rapidement `2xx` après persistance locale;
+- récupérer les détails lourds par API paginée ou via `/api/v1/billing/sync`, pas dans le webhook.

@@ -1,0 +1,111 @@
+---
+title: "Authentification"
+description: "Utilisation du header public X-Api-Key pour les ERP prestataires et assureurs."
+icon: "key-round"
+---
+
+Les ERP prestataires et assureurs utilisent tous le même header public: `X-Api-Key`.
+
+Les noms de variables d'environnement peuvent rester spécialisés côté ERP, par exemple `AZURANCE_PROVIDER_API_KEY` ou `AZURANCE_INSURER_API_KEY`, mais le nom du header HTTP envoyé à Azurance est toujours `X-Api-Key`.
+
+## Headers publics
+
+| Header | Requis | Description |
+| --- | --- | --- |
+| `X-Api-Key` | Oui | Clé API partenaire fournie pendant l'onboarding sandbox ou production. |
+| `X-Request-Id` | Non | Identifiant de corrélation fourni par l'ERP. Si absent, Azurance en génère un. |
+| `Accept` | Recommandé | `application/json`. |
+| `Content-Type` | Requis avec body JSON | `application/json`. |
+
+La clé API détermine automatiquement l'organisation, l'environnement, le partenaire et les scopes autorisés. Les appels publics ne doivent fournir que les champs documentés endpoint par endpoint.
+
+## Vérifier une clé API
+
+```http
+GET /api/v1/auth/verify
+Host: provider-api-sandbox.elenami.com
+X-Api-Key: azr_sandbox_...
+X-Request-Id: erp-req-001
+```
+
+```ts
+const response = await fetch("https://provider-api-sandbox.elenami.com/api/v1/auth/verify", {
+  headers: {
+    Accept: "application/json",
+    "X-Api-Key": process.env.AZURANCE_PROVIDER_API_KEY!,
+    "X-Request-Id": "erp-req-001"
+  }
+})
+
+const profile = await response.json()
+```
+
+Réponse typique:
+
+```json
+{
+  "valid": true,
+  "environment": "sandbox",
+  "tenant_uid": "40000000-0000-4000-8000-000000000001",
+  "tenant_slug": "nsia-ci",
+  "tenant_name": "NSIA Assurance CI",
+  "subject_type": "PROVIDER",
+  "subject_uid": "30000000-0000-4000-8000-000000000002",
+  "subject_name": "Pharmacie du Plateau",
+  "scopes": [
+    "eligibility.check",
+    "claims.create",
+    "claims.view"
+  ]
+}
+```
+
+Ce endpoint est prévu pour le bouton "Tester la connexion" d'un ERP. Il valide la clé, son environnement et son sujet, puis retourne le contexte lisible. Il ne retourne jamais la clé brute ni son hash.
+
+Pour une clé assureur, utilisez le même chemin sur le domaine assureur:
+
+```http
+GET /api/v1/auth/verify
+Host: insurer-api-sandbox.elenami.com
+X-Api-Key: azr_sandbox_...
+```
+
+```ts
+const response = await fetch("https://insurer-api-sandbox.elenami.com/api/v1/auth/verify", {
+  headers: {
+    Accept: "application/json",
+    "X-Api-Key": process.env.AZURANCE_INSURER_API_KEY!
+  }
+})
+
+const context = await response.json()
+```
+
+Réponse typique:
+
+```json
+{
+  "valid": true,
+  "environment": "sandbox",
+  "tenant_uid": "40000000-0000-4000-8000-000000000001",
+  "tenant_slug": "nsia-ci",
+  "tenant_name": "NSIA Assurance CI",
+  "subject_type": "INSURER",
+  "subject_uid": "40000000-0000-4000-8000-000000000001",
+  "subject_name": "NSIA Assurance CI",
+  "scopes": [
+    "insurer.members.manage",
+    "insurer.claims.view"
+  ]
+}
+```
+
+## Bonnes pratiques
+
+- Stocker la clé dans un coffre de secrets ou dans les variables serveur de l'ERP.
+- Utiliser des clés différentes par environnement: sandbox et production.
+- Utiliser `https://provider-api-sandbox.elenami.com` ou `https://insurer-api-sandbox.elenami.com` avec les clés sandbox.
+- Utiliser `https://provider-api.elenami.com` ou `https://insurer-api.elenami.com` avec les clés production.
+- Journaliser `X-Request-Id`, le statut HTTP et l'endpoint appelé, jamais la clé brute.
+- Rotater la clé lors d'un changement de prestataire, d'assureur, d'ERP ou de périmètre de scopes.
+- Appeler uniquement les domaines API publics correspondant à l'environnement de la clé.

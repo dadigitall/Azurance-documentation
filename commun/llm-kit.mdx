@@ -1,0 +1,87 @@
+---
+title: "Azurance LLM Kit"
+description: "Installer un contexte prêt pour les assistants de code utilisés par votre équipe."
+icon: "bot"
+---
+
+Azurance LLM Kit installe dans votre projet un contexte d'intégration prêt à l'emploi pour les assistants de code.
+
+Il ajoute les règles d'intégration, les parcours ERP Prestataires et ERP Assurances, ainsi que les contrats OpenAPI nécessaires pour retrouver les endpoints, headers, schémas et contraintes exactes.
+
+<Card title="Code source" icon="github" href="https://github.com/dadigitall/azurance-skills">
+  Consultez le package, les exemples et les fichiers installés par le kit.
+</Card>
+
+## Installation
+
+Depuis la racine de votre projet ERP:
+
+```bash
+npx azurance-llm
+```
+
+Pour installer uniquement un contexte spécialisé:
+
+```bash
+npx azurance-llm --target provider
+npx azurance-llm --target insurer
+```
+
+Pour prévisualiser les fichiers sans écrire dans le projet:
+
+```bash
+npx azurance-llm --dry-run
+```
+
+Pour installer dans un autre dossier:
+
+```bash
+npx azurance-llm --dir ./mon-erp
+```
+
+## Fichiers ajoutés
+
+```text
+AGENTS.md
+.azurance/
+  llm/
+    context.md
+    provider-api.md
+    insurer-api.md
+    openapi/
+      provider-api.openapi.yml
+      insurer-api.openapi.yml
+```
+
+`AGENTS.md` sert de point d'entrée pour l'assistant de code. Il indique quoi lire en priorité et rappelle les règles de sécurité à respecter pendant l'intégration.
+
+## Ce que le kit apporte
+
+- Les domaines publics sandbox et production pour ERP Prestataires et ERP Assurances.
+- Les règles d'authentification avec `X-Api-Key`.
+- Les contraintes de sécurité pour garder les clés API côté serveur.
+- Les workflows prestataires: éligibilité, documents, claims, synchronisation billing et webhooks.
+- Les workflows assureurs: plans, membres, souscriptions, bénéficiaires, éligibilité et claims.
+- Les contrats OpenAPI pour générer ou vérifier le code d'intégration.
+
+## Compatibilité assistants de code
+
+Le kit est basé sur des fichiers Markdown et OpenAPI standards. Il fonctionne avec les outils qui lisent les fichiers du projet:
+
+| Outil | Compatibilité |
+| --- | --- |
+| Codex | Complète via `AGENTS.md` |
+| Cursor | Complète via fichiers projet |
+| Claude Code | Complète via fichiers projet |
+| Windsurf | Complète via fichiers projet |
+| GitHub Copilot Chat | Compatible si le projet est indexé |
+| Autres assistants compatibles fichiers projet | Compatible via Markdown et OpenAPI |
+
+## Règles à respecter pendant l'intégration
+
+- Appeler uniquement les APIs publiques Azurance.
+- Utiliser `X-Api-Key` pour les appels partenaires.
+- Utiliser uniquement les clés API partenaires fournies pour votre environnement.
+- Ne jamais exposer une clé API dans un frontend, une application mobile, des logs ou de l'analytics.
+- Ne pas envoyer `tenant_id`, `provider_uuid`, `insurer_uid` ou équivalent lorsque ces valeurs sont dérivées de la clé API.
+- Réessayer seulement `429` et `5xx` avec backoff.

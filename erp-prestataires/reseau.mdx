@@ -1,0 +1,120 @@
+---
+title: "Réseau prestataire"
+description: "Vérifier le conventionnement du prestataire représenté par la clé API."
+icon: "network"
+---
+
+Le réseau prestataire est dérivé de `X-Api-Key`. Un ERP prestataire ne choisit pas le `provider_uuid` dans le body ou dans la query string.
+
+Cette page répond à deux besoins différents:
+
+- connaître le statut du prestataire qui appelle l'API;
+- lister les compagnies d'assurance avec lesquelles ce prestataire est conventionné.
+
+Pour vérifier une prestation précise pour une personne couverte, utilisez ensuite le check d'éligibilité.
+
+## Statut réseau
+
+```http
+GET /api/v1/network/status
+```
+
+```bash
+curl --request GET \
+  --url "https://provider-api-sandbox.elenami.com/api/v1/network/status" \
+  --header "X-Api-Key: $AZURANCE_PROVIDER_API_KEY" \
+  --header "X-Request-Id: erp-provider-network-001"
+```
+
+Réponse typique:
+
+```json
+{
+  "data": {
+    "provider_uid": "prv-sandbox-001",
+    "network_status": "ACTIVE",
+    "can_submit_claims": true,
+    "can_check_eligibility": true
+  }
+}
+```
+
+## Profil prestataire
+
+```http
+GET /api/v1/network/profile
+```
+
+```bash
+curl --request GET \
+  --url "https://provider-api-sandbox.elenami.com/api/v1/network/profile" \
+  --header "X-Api-Key: $AZURANCE_PROVIDER_API_KEY" \
+  --header "X-Request-Id: erp-provider-network-002"
+```
+
+```json
+{
+  "data": {
+    "provider_uid": "prv-sandbox-001",
+    "display_name": "Clinique Sandbox",
+    "type": "CLINIC",
+    "specialties": ["GENERAL_MEDICINE"],
+    "network_level": "PREFERRED",
+    "contracts": [
+      {
+        "insurer_uid": "insurer-sandbox-001",
+        "status": "ACTIVE",
+        "effective_date": "2026-01-01"
+      }
+    ]
+  }
+}
+```
+
+## Assureurs conventionnés
+
+```http
+GET /api/v1/network/relationships?status=active
+```
+
+```bash
+curl --request GET \
+  --url "https://provider-api-sandbox.elenami.com/api/v1/network/relationships?status=active" \
+  --header "X-Api-Key: $AZURANCE_PROVIDER_API_KEY" \
+  --header "X-Request-Id: erp-provider-network-003"
+```
+
+Réponse typique:
+
+```json
+{
+  "data": [
+    {
+      "relationship_uid": "4a2a9c78-4d1d-45c6-b7f2-8c43f2aef201",
+      "relationship_type": "care_network",
+      "relationship_status": "ACTIVE",
+      "network_status": "IN_NETWORK",
+      "network_name": "Réseau Pharmacies Conventionnées CI",
+      "claim_submission_enabled": true,
+      "requires_prior_authorization": false,
+      "insurer": {
+        "uid": "40000000-0000-4000-8000-000000000001",
+        "name": "NSIA Assurance CI",
+        "type": "insurer"
+      },
+      "provider": {
+        "uid": "30000000-0000-4000-8000-000000000002",
+        "name": "Pharmacie du Plateau",
+        "type": "pharmacy"
+      }
+    }
+  ],
+  "meta": {
+    "count": 1
+  }
+}
+```
+
+`/api/v1/provider/insurer-relationships` est un alias métier qui retourne le même contenu.
+
+Si le prestataire est hors réseau pour l'assureur concerné, les checks d'éligibilité et les claims peuvent être refusés avec `PROVIDER_NOT_IN_NETWORK`.

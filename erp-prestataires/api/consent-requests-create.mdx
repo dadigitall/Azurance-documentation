@@ -1,0 +1,24 @@
+---
+title: "Créer une demande de consentement"
+description: "Démarre un challenge OTP, TOTP ou Face Match pour autoriser l'accès ERP."
+openapi: "/openapi/provider-api.openapi.yml POST /api/v1/consent-requests"
+---
+
+Le champ `purpose` est volontairement encadré. Il décrit le motif métier de la demande et doit utiliser l'une des valeurs publiques documentées dans le schéma OpenAPI. Le champ optionnel `purpose_detail` permet d'afficher un contexte lisible à l'assuré, sans donnée sensible.
+
+| Purpose | Usage |
+| --- | --- |
+| `prescription_access` | Lire une ordonnance ou un résumé de prescription. |
+| `pharmacy_dispensing` | Dispenser des médicaments en pharmacie. |
+| `lab_exam_execution` | Réaliser ou facturer un examen de laboratoire. |
+| `medical_act_execution` | Réaliser un acte médical ou paramédical. |
+| `hospital_admission` | Ouvrir un parcours d'admission ou d'hospitalisation. |
+| `claim_submission` | Soumettre un claim lié à une prestation réalisée. |
+| `prior_authorization` | Demander ou suivre une autorisation préalable. |
+| `supporting_document_upload` | Ajouter des justificatifs au parcours. |
+
+## Niveaux d'assurance
+
+`assurance_level_required` vaut `2` pour OTP/TOTP et `3` pour Face Match. Un consentement N3 ne redescend jamais automatiquement en N2: si Face Match est requis et impossible, la demande échoue avec une erreur métier explicite.
+
+Pour un bénéficiaire mineur, le titulaire de la police peut valider à sa place dans l'application assurée. La réponse indique alors `validated_by_type: "policyholder_representative"`. Pour un bénéficiaire adulte, la validation doit être réalisée par son propre compte assuré.

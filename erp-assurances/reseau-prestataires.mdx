@@ -1,0 +1,93 @@
+---
+title: "Réseau prestataires"
+description: "Consulter les prestataires conventionnés visibles pour l'assureur."
+icon: "building-2"
+---
+
+L'ERP assureur peut consulter le réseau de prestataires rattaché à son périmètre. Les prestataires, contrats réseau et spécialités sont filtrés par la clé API assureur.
+
+## Lister les prestataires
+
+```http
+GET /api/v1/providers?page=1&per_page=20
+```
+
+```bash
+curl --request GET \
+  --url "https://insurer-api-sandbox.elenami.com/api/v1/providers?page=1&per_page=20" \
+  --header "X-Api-Key: $AZURANCE_INSURER_API_KEY" \
+  --header "X-Request-Id: erp-insurer-providers-001"
+```
+
+Réponse:
+
+```json
+{
+  "data": [
+    {
+      "uuid": "provider-sandbox-001",
+      "display_name": "Clinique Sandbox",
+      "type": "CLINIC",
+      "network_status": "ACTIVE",
+      "network_level": "PREFERRED"
+    }
+  ]
+}
+```
+
+## Lister les conventions réseau
+
+Cet endpoint répond à la question: "avec quels prestataires ma compagnie est-elle conventionnée ?"
+
+```http
+GET /api/v1/providers/network-relationships?status=active&type=PHARMACY
+```
+
+```bash
+curl --request GET \
+  --url "https://insurer-api-sandbox.elenami.com/api/v1/providers/network-relationships?status=active&type=PHARMACY" \
+  --header "X-Api-Key: $AZURANCE_INSURER_API_KEY" \
+  --header "X-Request-Id: erp-insurer-network-001"
+```
+
+Réponse:
+
+```json
+{
+  "data": [
+    {
+      "relationship_uid": "4a2a9c78-4d1d-45c6-b7f2-8c43f2aef201",
+      "relationship_type": "care_network",
+      "relationship_status": "ACTIVE",
+      "network_status": "PREFERRED",
+      "network_name": "Réseau Soins Prioritaires",
+      "claim_submission_enabled": true,
+      "requires_prior_authorization": true,
+      "insurer": {
+        "uid": "40000000-0000-4000-8000-000000000001",
+        "name": "NSIA Assurance CI",
+        "type": "insurer"
+      },
+      "provider": {
+        "uid": "30000000-0000-4000-8000-000000000010",
+        "name": "Clinique Sandbox",
+        "type": "clinic",
+        "city": "Cotonou"
+      }
+    }
+  ],
+  "meta": {
+    "count": 1
+  }
+}
+```
+
+## Détail prestataire
+
+```http
+GET /api/v1/providers/{providerUuid}
+GET /api/v1/providers/{providerUuid}/specialties
+GET /api/v1/providers/{providerUuid}/network-check
+```
+
+`network-check` permet de vérifier qu'un prestataire est conventionné avant d'autoriser certains workflows d'éligibilité, de claim ou de facturation.

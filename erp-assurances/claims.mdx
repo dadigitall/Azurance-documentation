@@ -1,0 +1,68 @@
+---
+title: "Claims assureur"
+description: "Lister, analyser et décider les claims soumis par les prestataires."
+icon: "clipboard-check"
+---
+
+L'ERP assureur lit les claims, consulte les documents associés et met à jour les décisions de traitement. Les montants approuvés alimentent ensuite les bordereaux payables et le suivi des règlements.
+
+## Endpoints
+
+```http
+GET /api/v1/claims/stats
+GET /api/v1/claims?page=1&per_page=20
+GET /api/v1/claims/{claimId}
+PATCH /api/v1/claims/{claimId}/status
+GET /api/v1/claims/{claimId}/documents
+```
+
+Scopes:
+
+| Action | Scope |
+| --- | --- |
+| Lire les claims | `insurer.claims.view` |
+| Décider ou modifier un claim | `insurer.claims.manage` |
+
+## Lister les claims
+
+```ts
+const response = await fetch("https://insurer-api.elenami.com/api/v1/claims?status=UNDER_REVIEW", {
+  headers: {
+    Accept: "application/json",
+    "X-Api-Key": process.env.AZURANCE_INSURER_API_KEY!
+  }
+})
+```
+
+## Mettre à jour le statut
+
+```json
+{
+  "status": "APPROVED",
+  "amount_approved": 12000,
+  "reviewer_notes": "Dossier conforme",
+  "decision_reason": "Garantie active et documents fournis"
+}
+```
+
+Réponse:
+
+```json
+{
+  "data": {
+    "uuid": "claim-sandbox-001",
+    "status": "APPROVED",
+    "amount_claimed": 15000,
+    "amount_approved": 12000,
+    "updated_at": "2026-05-15T11:03:10Z"
+  }
+}
+```
+
+## Documents
+
+```http
+GET /api/v1/claims/{claimId}/documents
+```
+
+Les documents retournent des références médias et des métadonnées métier. Le contenu binaire est récupéré via les URLs ou mécanismes documentés par l'API.

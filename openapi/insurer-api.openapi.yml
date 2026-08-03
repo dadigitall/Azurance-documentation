@@ -1,0 +1,1296 @@
+openapi: 3.1.0
+info:
+  title: AZURANCE ERP Insurer API
+  version: 0.3.0
+  description: >
+    API externe sandbox pour ERP compagnies d'assurance. Le tenant assurance est toujours dérivé de
+    X-Api-Key; aucun tenant_id, tenant_uid, insurer_uid ou insurer_uuid fourni par le client n'est accepté.
+servers:
+  - url: http://localhost:3102
+    description: Sandbox local insurer-bff
+security:
+  - ApiKeyAuth: []
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-Api-Key
+  parameters:
+    RequestId:
+      in: header
+      name: X-Request-Id
+      required: false
+      schema:
+        type: string
+    Page:
+      in: query
+      name: page
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+    PerPage:
+      in: query
+      name: per_page
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+  schemas:
+    Error:
+      type: object
+      properties:
+        message:
+          type: string
+    CreatePaymentRequest:
+      type: object
+      required: [idempotency_key, payment_method, beneficiary_type, beneficiary_uuid, amount]
+      properties:
+        idempotency_key:
+          type: string
+          maxLength: 120
+        payment_method:
+          type: string
+          enum: [MANUAL, MOBILE_MONEY, BANK_TRANSFER, CHECK]
+        payment_provider:
+          type: string
+        beneficiary_type:
+          type: string
+        beneficiary_uuid:
+          type: string
+        beneficiary_name:
+          type: string
+        amount:
+          type: number
+        currency:
+          type: string
+          default: XOF
+        requested_by:
+          type: string
+        allocations:
+          type: array
+          items:
+            type: object
+            required: [payable_invoice_uuid, amount]
+            properties:
+              payable_invoice_uuid:
+                type: string
+              payable_invoice_item_uuid:
+                type: string
+              amount:
+                type: number
+              metadata:
+                type: object
+        metadata:
+          type: object
+    ConfirmPaymentRequest:
+      type: object
+      required: [external_reference]
+      properties:
+        external_reference:
+          type: string
+          maxLength: 160
+        paid_at:
+          type: string
+          format: date
+          nullable: true
+        proof_document_uid:
+          type: string
+          maxLength: 100
+          nullable: true
+        metadata:
+          type: object
+          nullable: true
+    CreateWebhookRequest:
+      type: object
+      required: [name, target_url, secret, event_types]
+      properties:
+        name:
+          type: string
+        target_url:
+          type: string
+          format: uri
+        secret:
+          type: string
+          minLength: 16
+        event_types:
+          type: array
+          items:
+            type: string
+        is_active:
+          type: boolean
+          default: true
+        metadata:
+          type: object
+    UpdateWebhookRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        target_url:
+          type: string
+          format: uri
+        secret:
+          type: string
+          minLength: 16
+        event_types:
+          type: array
+          items:
+            type: string
+        is_active:
+          type: boolean
+        metadata:
+          type: object
+    TriggerFraudAssessmentRequest:
+      type: object
+      required: [idempotency_key]
+      properties:
+        trigger:
+          type: string
+          default: CLAIM_SUBMITTED
+        priority:
+          type: string
+          enum: [NORMAL, HIGH, URGENT]
+          default: NORMAL
+        idempotency_key:
+          type: string
+          maxLength: 120
+    FraudFeedbackRequest:
+      type: object
+      required: [decision]
+      properties:
+        decision:
+          type: string
+          enum: [CONFIRM_FRAUD, FALSE_POSITIVE, NEED_REVIEW]
+        reason_codes:
+          type: array
+          items:
+            type: string
+        comment:
+          type: string
+    PriorAuthorization:
+      type: object
+      description: Demande de prévalidation prestataire à revoir par la compagnie d'assurance.
+      properties:
+        uuid:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [PENDING_REVIEW, INFO_NEEDED, APPROVED, REJECTED, EXPIRED, CANCELLED, CONSUMED]
+          description: PENDING_REVIEW = en attente; INFO_NEEDED = pièces attendues; APPROVED = accord donné; REJECTED = refus; EXPIRED = expiré; CANCELLED = annulé; CONSUMED = utilisé par un claim approuvé.
+        priority:
+          type: string
+          enum: [URGENT, STANDARD, DEFERRED]
+        provider_uuid:
+          type: string
+        subscription_uid:
+          type: string
+        covered_person_type:
+          type: string
+          enum: [policyholder, beneficiary]
+        covered_person_uid:
+          type: string
+        coverage_type_code:
+          type: string
+        estimated_amount:
+          type: number
+        authorized_amount:
+          type: number
+          nullable: true
+        validation_request_uid:
+          type: string
+          format: uuid
+          nullable: true
+    InsurerProviderNetworkRelationship:
+      type: object
+      description: Relation conventionnelle entre la compagnie authentifiée par X-Api-Key et un prestataire.
+      properties:
+        relationship_uid:
+          type: string
+          format: uuid
+          description: Identifiant public de la relation réseau.
+        relationship_type:
+          type: string
+          enum: [care_network]
+          description: Type de relation. care_network signifie convention ou affiliation à un réseau de soins.
+        relationship_status:
+          type: string
+          enum: [ACTIVE, ENDED]
+          description: Statut de la relation. ACTIVE signifie convention active; ENDED signifie convention clôturée.
+        network_status:
+          type: string
+          enum: [PREFERRED, IN_NETWORK, OUT_OF_NETWORK]
+          description: Niveau réseau. PREFERRED indique un prestataire privilégié; IN_NETWORK indique un prestataire conventionné; OUT_OF_NETWORK indique hors réseau.
+        network_name:
+          type: string
+          nullable: true
+          description: Nom public du réseau si configuré.
+        network_tier:
+          type: string
+          nullable: true
+          description: Niveau brut configuré par le réseau.
+        contract_reference:
+          type: string
+          nullable: true
+          description: Référence de convention si disponible.
+        contract_start_date:
+          type: string
+          format: date-time
+          nullable: true
+          description: Date de début de relation.
+        contract_end_date:
+          type: string
+          format: date-time
+          nullable: true
+          description: Date de fin de relation si connue.
+        claim_submission_enabled:
+          type: boolean
+          description: Indique si le prestataire peut soumettre des claims pour cette relation.
+        requires_prior_authorization:
+          type: boolean
+          description: Indique si une autorisation préalable est requise par défaut pour ce réseau.
+        covered_service_families:
+          type: array
+          description: Familles de prestations couvertes par cette relation si configurées.
+          items:
+            type: string
+        insurer:
+          type: object
+          description: Compagnie d'assurance propriétaire du réseau.
+        provider:
+          type: object
+          description: Prestataire conventionné.
+    PortraitSource:
+      type: string
+      enum: [insurer_contract, kyc_refresh, member_update, other]
+    PortraitStatus:
+      type: object
+      properties:
+        exists:
+          type: boolean
+        subject_type:
+          type: string
+          enum: [MEMBER, BENEFICIARY]
+        subject_uuid:
+          type: string
+          format: uuid
+        media_uid:
+          type: string
+        mime_type:
+          type: string
+          enum: [image/jpeg, image/png]
+        source:
+          $ref: '#/components/schemas/PortraitSource'
+        captured_at:
+          type: string
+          format: date-time
+        activated_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+    PortraitUploadResponse:
+      type: object
+      properties:
+        subject_type:
+          type: string
+          enum: [MEMBER, BENEFICIARY]
+        subject_uuid:
+          type: string
+          format: uuid
+        media_uid:
+          type: string
+        mime_type:
+          type: string
+          enum: [image/jpeg, image/png]
+        status:
+          type: string
+          enum: [ACTIVE]
+        source:
+          $ref: '#/components/schemas/PortraitSource'
+        captured_at:
+          type: string
+          format: date-time
+        activated_at:
+          type: string
+          format: date-time
+    PortraitUpload:
+      type: object
+      required: [file, source]
+      properties:
+        file:
+          type: string
+          format: binary
+          description: JPEG ou PNG uniquement, 1 MB maximum.
+        source:
+          $ref: '#/components/schemas/PortraitSource'
+        captured_at:
+          type: string
+          format: date-time
+        metadata:
+          type: string
+          description: JSON object optionnel, sans données sensibles inutiles.
+paths:
+  /api/v1/prior-authorizations:
+    get:
+      summary: Lister les préautorisations à traiter
+      x-codeSamples:
+        - lang: curl
+          source: |
+            curl --request GET \
+              --url "https://insurer-api-sandbox.elenami.com/api/v1/prior-authorizations?status=PENDING_REVIEW" \
+              --header "X-Api-Key: $AZURANCE_INSURER_API_KEY"
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [PENDING_REVIEW, INFO_NEEDED, APPROVED, REJECTED, EXPIRED, CANCELLED, CONSUMED]
+        - in: query
+          name: provider_uuid
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Liste paginée des préautorisations
+  /api/v1/prior-authorizations/{uid}:
+    get:
+      summary: Consulter une préautorisation
+      parameters:
+        - in: path
+          name: uid
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Détail de la préautorisation
+  /api/v1/prior-authorizations/{uid}/decision:
+    post:
+      summary: Décider une préautorisation
+      description: Approuve, refuse ou demande des informations complémentaires. Une approbation crée une réservation souple du plafond.
+      x-codeSamples:
+        - lang: curl
+          source: |
+            curl --request POST \
+              --url "https://insurer-api-sandbox.elenami.com/api/v1/prior-authorizations/00000000-0000-4000-8000-000000000001/decision" \
+              --header "Content-Type: application/json" \
+              --header "X-Api-Key: $AZURANCE_INSURER_API_KEY" \
+              --data '{"decision":"APPROVED","decided_by":"medical_advisor","authorized_amount":150000,"expires_at":"2026-07-30T23:59:59Z","conditions":["Facturation conforme au proforma validé"]}'
+      parameters:
+        - in: path
+          name: uid
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [decision, decided_by]
+              properties:
+                decision:
+                  type: string
+                  enum: [APPROVED, REJECTED, INFO_NEEDED]
+                  description: APPROVED = accord; REJECTED = refus; INFO_NEEDED = pièces ou clarification requises.
+                decided_by:
+                  type: string
+                authorized_amount:
+                  type: number
+                expires_at:
+                  type: string
+                  format: date-time
+                reason:
+                  type: string
+                notes:
+                  type: string
+                conditions:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        '200':
+          description: Décision enregistrée
+  /api/v1/health:
+    get:
+      security: []
+      summary: Healthcheck BFF assurance
+      responses:
+        '200':
+          description: OK
+  /api/v1/auth/verify:
+    get:
+      summary: Vérifier la clé API et les scopes visibles
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+      responses:
+        '200':
+          description: Clé API valide
+        '401':
+          description: API key absente ou invalide
+  /api/v1/members:
+    get:
+      summary: Lister les assurés du portefeuille
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PerPage'
+      responses:
+        '200':
+          description: Liste paginée des assurés
+    post:
+      summary: Créer un assuré
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+      responses:
+        '201':
+          description: Assuré créé
+  /api/v1/members/{memberId}:
+    get:
+      summary: Consulter un assuré
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - in: path
+          name: memberId
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Assuré
+    put:
+      summary: Mettre à jour un assuré
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - in: path
+          name: memberId
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Assuré mis à jour
+  /api/v1/members/{memberId}/portrait:
+    put:
+      summary: Envoyer ou remplacer le portrait biométrique d'un assuré
+      description: >
+        Upload multipart protégé par le scope insurer.members.manage. La photo est stockée dans
+        media-service avec la catégorie BIOMETRIC_PHOTO. L'API publique ne retourne jamais l'image,
+        ni d'URL signée. L'assuré doit avoir un identity_uid pour activer le portrait face match.
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - in: path
+          name: memberId
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PortraitUpload'
+      responses:
+        '201':
+          description: Portrait activé
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/PortraitUploadResponse'
+        '400':
+          description: Image invalide ou contexte forcé
+        '403':
+          description: Scope insurer.members.manage manquant
+        '404':
+          description: Assuré introuvable dans le tenant de la clé API
+        '422':
+          description: identity_uid manquant ou payload invalide
+  /api/v1/members/{memberId}/portrait/status:
+    get:
+      summary: Lire le statut du portrait biométrique d'un assuré
+      description: Retourne uniquement le statut et les métadonnées techniques; jamais l'image.
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - in: path
+          name: memberId
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Statut du portrait
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/PortraitStatus'
+  /api/v1/subscriptions:
+    get:
+      summary: Lister les souscriptions
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PerPage'
+      responses:
+        '200':
+          description: Liste paginée des souscriptions
+    post:
+      summary: Créer une souscription
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+      responses:
+        '201':
+          description: Souscription créée
+  /api/v1/subscriptions/{subscriptionId}:
+    get:
+      summary: Consulter une souscription
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - in: path
+          name: subscriptionId
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Souscription
+  /api/v1/subscriptions/{subscriptionId}/status:
+    patch:
+      summary: Mettre à jour le statut d'une souscription
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - in: path
+          name: subscriptionId
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Statut mis à jour
+  /api/v1/subscriptions/{subscriptionId}/renew:
+    post:
+      summary: Renouveler une souscription
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - in: path
+          name: subscriptionId
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Souscription renouvelée
+  /api/v1/subscriptions/{subscriptionId}/beneficiaries:
+    get:
+      summary: Lister les bénéficiaires d'une souscription
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - in: path
+          name: subscriptionId
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Bénéficiaires
+    post:
+      summary: Ajouter un bénéficiaire
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - in: path
+          name: subscriptionId
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '201':
+          description: Bénéficiaire ajouté
+  /api/v1/subscriptions/{subscriptionId}/beneficiaries/{beneficiaryId}/status:
+    patch:
+      summary: Mettre à jour le statut d'un bénéficiaire
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - in: path
+          name: subscriptionId
+          required: true
+          schema: { type: string, format: uuid }
+        - in: path
+          name: beneficiaryId
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Statut bénéficiaire mis à jour
+  /api/v1/subscriptions/{subscriptionId}/beneficiaries/{beneficiaryId}/portrait:
+    put:
+      summary: Envoyer ou remplacer le portrait biométrique d'un bénéficiaire
+      description: >
+        Même cycle de vie que le portrait assuré: stockage media-service, historique versionné,
+        une seule version ACTIVE, aucun téléchargement public.
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - in: path
+          name: subscriptionId
+          required: true
+          schema: { type: string, format: uuid }
+        - in: path
+          name: beneficiaryId
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PortraitUpload'
+      responses:
+        '201':
+          description: Portrait activé
+        '403':
+          description: Scope insurer.members.manage manquant
+        '404':
+          description: Souscription ou bénéficiaire introuvable dans le tenant
+        '422':
+          description: identity_uid manquant ou payload invalide
+  /api/v1/subscriptions/{subscriptionId}/beneficiaries/{beneficiaryId}/portrait/status:
+    get:
+      summary: Lire le statut du portrait biométrique d'un bénéficiaire
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - in: path
+          name: subscriptionId
+          required: true
+          schema: { type: string, format: uuid }
+        - in: path
+          name: beneficiaryId
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Statut du portrait
+  /api/v1/eligibility/check:
+    post:
+      summary: Vérifier l'éligibilité d'une personne couverte
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+      responses:
+        '200':
+          description: Résultat d'éligibilité
+  /api/v1/eligibility/check-batch:
+    post:
+      summary: Vérifier l'éligibilité en lot
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+      responses:
+        '200':
+          description: Résultats d'éligibilité
+  /api/v1/claims/stats:
+    get:
+      summary: Statistiques claims du tenant assurance
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+      responses:
+        '200':
+          description: Statistiques
+  /api/v1/claims:
+    get:
+      summary: Lister les claims du tenant assurance
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - in: query
+          name: status
+          schema: { type: string }
+        - in: query
+          name: provider_uid
+          schema: { type: string }
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PerPage'
+      responses:
+        '200':
+          description: Liste paginée
+  /api/v1/claims/{claimId}:
+    get:
+      summary: Consulter un claim
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - in: path
+          name: claimId
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Claim
+  /api/v1/claims/{claimId}/status:
+    put:
+      summary: Mettre à jour le statut d'un claim
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - in: path
+          name: claimId
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Claim mis à jour
+    patch:
+      summary: Mettre à jour le statut d'un claim
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - in: path
+          name: claimId
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Claim mis à jour
+  /api/v1/claims/{claimId}/documents:
+    get:
+      summary: Lister les documents associés à un claim
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - in: path
+          name: claimId
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Documents du claim
+  /api/v1/plans:
+    get:
+      summary: Lister les plans du tenant assurance
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PerPage'
+      responses:
+        '200':
+          description: Liste des plans
+    post:
+      summary: Créer un plan
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+      responses:
+        '201':
+          description: Plan créé
+  /api/v1/plans/{planId}:
+    get:
+      summary: Consulter un plan par code
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - in: path
+          name: planId
+          required: true
+          description: Code du plan pour la lecture.
+          schema: { type: string }
+      responses:
+        '200':
+          description: Plan
+    put:
+      summary: Mettre à jour un plan
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - in: path
+          name: planId
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Plan mis à jour
+    delete:
+      summary: Supprimer un plan
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - in: path
+          name: planId
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Plan supprimé
+  /api/v1/coverage-types:
+    get:
+      summary: Lister les types de couverture
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+      responses:
+        '200':
+          description: Catalogue de couvertures
+  /api/v1/reimbursement/calculate:
+    post:
+      summary: Calculer un remboursement théorique
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+      responses:
+        '200':
+          description: Calcul de remboursement
+  /api/v1/providers:
+    get:
+      summary: Lister les prestataires du réseau tenant
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PerPage'
+        - in: query
+          name: type
+          schema: { type: string }
+      responses:
+        '200':
+          description: Liste des prestataires
+  /api/v1/providers/network-relationships:
+    get:
+      summary: Lister les prestataires conventionnés de la compagnie
+      description: >
+        Retourne les prestataires liés au réseau de la compagnie authentifiée par X-Api-Key,
+        avec le statut de convention, le niveau réseau et les informations utiles de suivi.
+        Cet endpoint ne remplace pas eligibility/check pour une prestation ou un assuré précis.
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - in: query
+          name: status
+          required: false
+          schema:
+            type: string
+            enum: [all, active, ended]
+          description: Filtre optionnel. all retourne toutes les relations; active retourne les relations actives; ended retourne les relations clôturées.
+        - in: query
+          name: type
+          required: false
+          schema:
+            type: string
+            enum: [HOSPITAL, CLINIC, PHARMACY, LABORATORY, SPECIALIST]
+          description: Filtre optionnel par type de prestataire.
+      responses:
+        '200':
+          description: Prestataires conventionnés de la compagnie
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/InsurerProviderNetworkRelationship'
+                  meta:
+                    type: object
+        '403':
+          description: Scope insurer.providers.view manquant
+  /api/v1/providers/{providerId}:
+    get:
+      summary: Consulter le détail d'un prestataire
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - in: path
+          name: providerId
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Prestataire
+  /api/v1/providers/{providerId}/specialties:
+    get:
+      summary: Lister les spécialités d'un prestataire
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - in: path
+          name: providerId
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Spécialités
+  /api/v1/providers/{providerId}/network-check:
+    get:
+      summary: Vérifier l'appartenance réseau d'un prestataire
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - in: path
+          name: providerId
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Statut réseau
+  /api/v1/claims/{claimId}/fraud-assessment:
+    post:
+      summary: Déclencher une évaluation de fraude pour un claim
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - in: path
+          name: claimId
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TriggerFraudAssessmentRequest'
+      responses:
+        '202':
+          description: Évaluation en file d'attente
+        '409':
+          description: Évaluation déjà existante
+  /api/v1/claims/{claimId}/fraud-assessment/latest:
+    get:
+      summary: Récupérer la dernière évaluation de fraude pour un claim
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - in: path
+          name: claimId
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Dernière évaluation
+        '404':
+          description: Aucune évaluation trouvée
+  /api/v1/fraud-assessments/{uuid}:
+    get:
+      summary: Consulter une évaluation de fraude par UUID
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - in: path
+          name: assessmentUuid
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Détail de l'évaluation
+        '404':
+          description: Évaluation introuvable
+  /api/v1/fraud-assessments/{uuid}/feedback:
+    post:
+      summary: Soumettre un retour sur une évaluation de fraude
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - in: path
+          name: assessmentUuid
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FraudFeedbackRequest'
+      responses:
+        '200':
+          description: Feedback enregistré
+  /api/v1/billing/payable-invoices:
+    get:
+      summary: Lister les factures payables
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PerPage'
+        - in: query
+          name: status
+          schema: { type: string }
+        - in: query
+          name: beneficiary_uuid
+          schema: { type: string }
+      responses:
+        '200':
+          description: Liste paginée des factures
+  /api/v1/billing/payable-invoices/{uuid}:
+    get:
+      summary: Consulter une facture payable
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - in: path
+          name: uuid
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Facture
+  /api/v1/billing/payable-invoices/{uuid}/items:
+    get:
+      summary: Lister les lignes d'une facture payable
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - in: path
+          name: uuid
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Lignes de la facture
+  /api/v1/billing/payments:
+    get:
+      summary: Lister les paiements
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PerPage'
+        - in: query
+          name: status
+          schema: { type: string }
+        - in: query
+          name: beneficiary_uuid
+          schema: { type: string }
+        - in: query
+          name: payment_method
+          schema: { type: string }
+      responses:
+        '200':
+          description: Liste paginée des paiements
+    post:
+      summary: Créer un paiement
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePaymentRequest'
+      responses:
+        '201':
+          description: Paiement créé
+        '422':
+          description: Validation error
+  /api/v1/billing/payments/{uuid}:
+    get:
+      summary: Consulter un paiement
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - in: path
+          name: uuid
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Paiement
+  /api/v1/billing/payments/{uuid}/confirm:
+    post:
+      summary: Confirmer un paiement (tout canal)
+      description: Confirme un paiement manuel ou externe (virement, mobile money, chèque). L'idempotency est assurée par le statut du paiement.
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - in: path
+          name: uuid
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConfirmPaymentRequest'
+      responses:
+        '200':
+          description: Paiement confirmé
+        '422':
+          description: Validation error
+  /api/v1/billing/payments/{uuid}/allocations:
+    get:
+      summary: Lister les allocations d'un paiement
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - in: path
+          name: uuid
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Allocations du paiement
+  /api/v1/webhooks:
+    get:
+      summary: Lister les abonnements webhook
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PerPage'
+      responses:
+        '200':
+          description: Liste paginée des abonnements
+    post:
+      summary: Créer un abonnement webhook
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateWebhookRequest'
+      responses:
+        '201':
+          description: Abonnement créé
+  /api/v1/webhooks/{uuid}:
+    patch:
+      summary: Mettre à jour un abonnement webhook
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - in: path
+          name: uuid
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateWebhookRequest'
+      responses:
+        '200':
+          description: Abonnement mis à jour
+    delete:
+      summary: Supprimer un abonnement webhook
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - in: path
+          name: uuid
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '204':
+          description: Abonnement supprimé
+  /api/v1/analytics/portfolio-summary:
+    get:
+      summary: Synthèse du portefeuille (souscriptions, primes, assurés)
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+      responses:
+        '200':
+          description: Synthèse portefeuille
+  /api/v1/analytics/claims-summary:
+    get:
+      summary: Synthèse des claims (montants, statuts, types de couverture)
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - in: query
+          name: date_from
+          schema: { type: string, format: date }
+        - in: query
+          name: date_to
+          schema: { type: string, format: date }
+      responses:
+        '200':
+          description: Synthèse claims
+  /api/v1/analytics/loss-ratio:
+    get:
+      summary: Ratio de sinistralité (primes vs sinistres)
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - in: query
+          name: date_from
+          schema: { type: string, format: date }
+        - in: query
+          name: date_to
+          schema: { type: string, format: date }
+      responses:
+        '200':
+          description: Ratio de sinistralité
+  /api/v1/analytics/provider-performance:
+    get:
+      summary: Performance par prestataire (volume, taux d'approbation)
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - in: query
+          name: date_from
+          schema: { type: string, format: date }
+        - in: query
+          name: date_to
+          schema: { type: string, format: date }
+        - in: query
+          name: limit
+          schema: { type: integer, minimum: 1, maximum: 100 }
+      responses:
+        '200':
+          description: Performance prestataires
+  /api/v1/analytics/coverage-utilization:
+    get:
+      summary: Utilisation des couvertures (plafonds annuels)
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - in: query
+          name: limit
+          schema: { type: integer, minimum: 1, maximum: 100 }
+      responses:
+        '200':
+          description: Utilisation des couvertures
+  /api/v1/notifications:
+    get:
+      summary: Lister les notifications
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PerPage'
+        - in: query
+          name: recipient_id
+          schema: { type: string }
+        - in: query
+          name: status
+          schema: { type: string }
+      responses:
+        '200':
+          description: Liste paginée des notifications
+  /api/v1/notifications/{notificationId}:
+    get:
+      summary: Consulter une notification
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - in: path
+          name: notificationId
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Notification
+  /api/v1/notifications/{notificationId}/read:
+    patch:
+      summary: Marquer une notification comme lue
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - in: path
+          name: notificationId
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Notification marquée comme lue
+  /api/v1/notifications/preferences:
+    get:
+      summary: Lister les préférences de notification
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - in: query
+          name: recipient_id
+          schema: { type: string }
+      responses:
+        '200':
+          description: Préférences de notification
+  /api/v1/notifications/preferences/{recipientId}:
+    put:
+      summary: Mettre à jour les préférences de notification
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - in: path
+          name: recipientId
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                preferences:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      event_type:
+                        type: string
+                      channels:
+                        type: array
+                        items:
+                          type: string
+                          enum: [email, sms, push, in_app]
+      responses:
+        '200':
+          description: Préférences mises à jour

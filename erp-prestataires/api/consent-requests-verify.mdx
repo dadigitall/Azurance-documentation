@@ -1,0 +1,12 @@
+---
+title: "Vérifier une demande de consentement"
+description: "Valide le challenge et retourne le consentement traçable."
+openapi: "/openapi/provider-api.openapi.yml POST /api/v1/consent-requests/{consentRequestUid}/verify"
+---
+
+Cet endpoint finalise une demande déjà créée.
+
+- Pour `sms`, `email`, `whatsapp` ou `totp`, envoyez `method` et `code`.
+- Pour `face_match`, envoyez `method: "face_match"` et `face_match_session_id` lorsque la session biométrique est terminée.
+
+La réponse retourne un `consent_ref` court et expirant. Il est lié au prestataire, à la personne couverte, à la souscription, au motif, aux scopes et au niveau d'assurance atteint.

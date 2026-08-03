@@ -1,0 +1,97 @@
+---
+title: "Erreurs"
+description: "Format général des erreurs et codes métier courants."
+icon: "circle-alert"
+---
+
+Les APIs retournent des codes HTTP standards et un corps JSON exploitable par un ERP.
+
+## Codes HTTP
+
+| Code | Sens | Action ERP |
+| --- | --- | --- |
+| `400` | Requête invalide ou contexte public forcé | Corriger le corps de requête. Ne pas réessayer tel quel. |
+| `401` | Clé API absente, invalide, expirée ou révoquée | Corriger ou rotater la clé. |
+| `403` | Scope manquant | Demander l'ajout du scope pendant l'onboarding. |
+| `404` | Ressource introuvable dans le périmètre de la clé | Vérifier l'UUID public ou la synchronisation ERP. |
+| `422` | Validation métier refusée | Afficher le motif métier et arrêter le workflow concerné. |
+| `429` | Rate limit atteint | Réessayer avec backoff progressif. |
+| `5xx` | Indisponibilité Azurance ou provider aval | Réessayer avec idempotence et backoff. |
+
+## Exemples
+
+Clé absente:
+
+```json
+{
+  "message": "X-Api-Key header is required"
+}
+```
+
+Scope manquant:
+
+```json
+{
+  "message": "Missing required API scope",
+  "required_scope": "billing.sync"
+}
+```
+
+Contexte interdit:
+
+```json
+{
+  "message": "This field is not accepted on public API requests"
+}
+```
+
+Rate limit:
+
+```json
+{
+  "message": "Rate limit exceeded",
+  "retry_after": 60
+}
+```
+
+## Headers de rate limit
+
+Les réponses peuvent inclure:
+
+| Header | Description |
+| --- | --- |
+| `X-RateLimit-Limit` | Quota de la fenêtre courante. |
+| `X-RateLimit-Remaining` | Nombre d'appels restants. |
+| `X-RateLimit-Reset` | Timestamp de réinitialisation. |
+| `Retry-After` | Délai conseillé après `429`. |
+
+## Codes métier d'éligibilité
+
+| Code | Description |
+| --- | --- |
+| `MEMBER_NOT_FOUND` | Aucun assuré ne correspond à l'identifiant. |
+| `NO_ACTIVE_SUBSCRIPTION` | Aucun contrat actif à la date de service. |
+| `SUBSCRIPTION_EXPIRED` | Contrat expiré. |
+| `SUBSCRIPTION_SUSPENDED` | Contrat suspendu. |
+| `COVERAGE_NOT_INCLUDED` | Garantie absente du plan. |
+| `ANNUAL_LIMIT_REACHED` | Plafond atteint. |
+| `GLOBAL_LIMIT_EXCEEDED` | Part assureur supérieure au plafond global restant. |
+| `COVERAGE_LIMIT_EXCEEDED` | Part assureur supérieure au plafond de couverture restant. |
+| `LIMIT_EXCEEDED` | Réservation de plafond impossible. |
+| `PROVIDER_NOT_IN_NETWORK` | Prestataire hors réseau pour l'assureur. |
+
+## Codes métier ERP prestataire
+
+| Code | Description |
+| --- | --- |
+| `REQUIRED_DOCUMENT_MISSING` | Une pièce justificative obligatoire manque. |
+| `DUPLICATE_PROVIDER_REFERENCE` | La référence ERP existe déjà pour ce prestataire. |
+| `IDEMPOTENCY_CONFLICT` | Même `Idempotency-Key`, corps de requête différent. |
+| `CONSENT_SCOPE_MISSING` | Le consentement ne contient pas le scope requis. |
+| `CONSENT_EXPIRED` | Le consentement a expiré ou a été révoqué. |
+
+## Gestion recommandée
+
+- Ne jamais réessayer automatiquement un `401`, `403`, `400` ou `422` sans correction.
+- Réessayer `429` et `5xx` avec backoff exponentiel et clé d'idempotence si l'appel crée une ressource.
+- Journaliser `status`, `message`, `error_code`, `X-Request-Id` et `event_id` webhook, jamais les secrets.

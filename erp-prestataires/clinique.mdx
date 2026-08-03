@@ -1,0 +1,95 @@
+---
+title: "Clinique"
+description: "Créer les encounters, prescriptions, actes et documents médicaux utiles au parcours prestataire."
+icon: "stethoscope"
+---
+
+Le domaine clinique conserve la chronologie des admissions, consultations, actes, prescriptions et documents produits par les prestataires intégrés. Le périmètre autorisé est déterminé par `X-Api-Key`.
+
+## Créer un encounter
+
+```http
+POST /api/v1/encounters
+```
+
+```json
+{
+  "insured_uid": "insured-sandbox-001",
+  "encounter_type": "consultation",
+  "encounter_date": "2026-05-15T09:30:00Z",
+  "icd10_codes": ["J06.9"],
+  "chief_complaint": "Fièvre et toux",
+  "clinical_summary": "Consultation générale",
+  "department": "Médecine générale",
+  "attending_physician": "Dr A. Mensah"
+}
+```
+
+Types courants: `consultation`, `hospitalization`, `emergency`, `surgery`, `procedure`, `imaging`, `laboratory`.
+
+## Ajouter un acte médical
+
+```http
+POST /api/v1/encounters/{encounterId}/medical-acts
+```
+
+```json
+{
+  "act_code": "CONSULTATION_GP",
+  "act_label": "Consultation médecin généraliste",
+  "performed_at": "2026-05-15T09:45:00Z",
+  "amount": 15000
+}
+```
+
+## Créer une prescription
+
+```http
+POST /api/v1/encounters/{encounterId}/prescriptions
+```
+
+```json
+{
+  "prescription_type": "LAB_TEST",
+  "prescribed_at": "2026-05-15T10:00:00Z",
+  "items": [
+    {
+      "code": "CBC",
+      "label": "Numération formule sanguine",
+      "quantity": 1
+    }
+  ],
+  "notes": "À réaliser avant contrôle"
+}
+```
+
+## Rattacher un document médical
+
+```http
+POST /api/v1/encounters/{encounterId}/documents
+```
+
+```json
+{
+  "document_type": "LAB_RESULT",
+  "media_uid": "med-sandbox-002",
+  "file_name": "nfs-resultat.pdf",
+  "issued_at": "2026-05-15T14:30:00Z",
+  "metadata": {
+    "laboratory_reference": "LAB-2026-00077"
+  }
+}
+```
+
+Un laboratoire peut produire un résultat et l'attacher au parcours déclenché par une prescription. Le fichier lui-même est d'abord créé via `POST /api/v1/media/uploads`.
+
+## Dossier médical
+
+```http
+GET /api/v1/insured/{insuredUid}/medical-record
+PUT /api/v1/insured/{insuredUid}/medical-record
+GET /api/v1/insured/{insuredUid}/summary
+GET /api/v1/insured/{insuredUid}/timeline
+```
+
+Ces endpoints permettent à un ERP autorisé de récupérer l'historique structuré de l'assuré sans exposer les documents binaires directement dans les réponses.

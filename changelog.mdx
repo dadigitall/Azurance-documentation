@@ -1,0 +1,63 @@
+---
+title: "Changelog"
+description: "Historique des changements de la documentation publique Azurance."
+icon: "list"
+---
+
+Suivez les changements de contrat public, les nouvelles pages et les corrections importantes.
+
+## 2026-05-27 - Consentement N3 Face Match
+
+- Ajout du suivi public `GET /api/v1/consent-requests/{consentRequestUid}` pour les demandes OTP, TOTP et Face Match.
+- Encadrement de `purpose` avec une liste de motifs métier publics et ajout de `purpose_detail`.
+- Alignement des exemples consentement sur `assurance_level_required: 2` ou `3` et les méthodes `sms`, `email`, `whatsapp`, `totp`, `face_match`.
+- Documentation du cas N3 Face Match, incluant la validation par le titulaire pour un bénéficiaire mineur.
+- Harmonisation des références OpenAPI prestataire et assurance: toutes les réponses documentées ont maintenant un schéma et un exemple de body, y compris les erreurs courantes.
+- Activation globale des snippets `curl` dans toutes les références API, en plus de TypeScript, JavaScript, PHP, Java et C#.
+- Ajout d'explications détaillées sur les valeurs `enum` et renommage public de "résoudre une personne couverte" vers "retrouver une personne couverte".
+
+## 2026-05-26 - Parcours ERP prestataire complet
+
+- Ajout de la référence OpenAPI prestataire dans Mintlify: une page par endpoint avec génération des exemples `curl`, TypeScript, JavaScript, PHP, Java et C#.
+- Enrichissement de l'OpenAPI prestataire: descriptions détaillées des champs, `operationId`, exemples de requête, schémas de réponse et erreurs métier pour le parcours ERP prestataire.
+- Ajout de la page "Parcours prestation ERP" pour documenter résolution personne couverte, consentement fort, prestation effectuée, éligibilité finale, justificatifs et claim.
+- Documentation de `POST /api/v1/service-executions` avec idempotence, `provider_reference` et règles pharmacie.
+- Clarification des plafonds v1: global souscription + annuel par couverture, réservés/consommés sur la part assureur.
+- Ajout des règles de justificatifs v1, notamment pharmacie `PRESCRIPTION` + `INVOICE`.
+- Ajout des erreurs `LIMIT_EXCEEDED`, `REQUIRED_DOCUMENT_MISSING`, `DUPLICATE_PROVIDER_REFERENCE`, `IDEMPOTENCY_CONFLICT` et `CONSENT_SCOPE_MISSING`.
+- Mise à jour OpenAPI prestataire avec `covered-persons`, `consent-requests`, `service-executions`, nouveaux champs claim et header `Idempotency-Key`.
+
+## 2026-05-22 - Vérification publique des clés API
+
+- Ajout de `GET /api/v1/auth/verify` sur les APIs publiques prestataire et assureur.
+- Documentation du retour `tenant_name` et `subject_name` pour permettre aux ERP d'afficher clairement l'organisation rattachée à la clé.
+- Clarification: l'endpoint sert au bouton "Tester la connexion" côté ERP, sans retourner la clé brute ni son hash.
+
+## 2026-05-21 - Alignement environnement elenami.com et durcissement production
+
+- Mise à jour des URLs publiques officielles: `provider-api.elenami.com` et `insurer-api.elenami.com`.
+- Ajout des URLs sandbox dédiées: `provider-api-sandbox.elenami.com` et `insurer-api-sandbox.elenami.com`.
+- Clarification des domaines API publics à utiliser par les partenaires.
+- Correction des exemples webhook billing avec le contrat réel: `name`, `target_url`, `secret`, `event_types`, `is_active`.
+- Rappel que les clés API sont strictement séparées entre sandbox et production.
+
+## 2026-05-15 - Alignement API v1 sandbox/security
+
+- Remplacement du contrat public par le header unique `X-Api-Key`.
+- Documentation de `X-Request-Id`, des erreurs `401`, `403`, `400`, `429` et des headers de rate limit.
+- Ajout de la page sécurité, scopes, signatures webhook HMAC et anti-replay.
+- Correction de l'éligibilité prestataire en `POST /api/v1/eligibility/check` et `POST /api/v1/eligibility/member-card`.
+- Mise à jour des exemples pour supprimer le forçage de contexte public et utiliser des UUID publics.
+- Ajout des pages prestataires médias, billing, sync ERP, paiements, allocations et webhooks.
+- Mise à jour du parcours assurance: plan, membre, souscription, bénéficiaire, suspension, renouvellement et claim review.
+
+## 2026-05-15 - Première publication
+
+Première publication de la documentation d'intégration Azurance:
+
+- espace dédié aux ERP prestataires;
+- espace dédié aux ERP assurances;
+- conventions API communes;
+- authentification par clé API;
+- pages d'erreurs et de statuts;
+- documentation initiale des endpoints publics Azurance.

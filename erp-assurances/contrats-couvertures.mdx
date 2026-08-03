@@ -1,0 +1,102 @@
+---
+title: "Contrats et couvertures"
+description: "Gérer les plans, garanties et calculs de remboursement côté ERP assurance."
+icon: "file-text"
+---
+
+Les ERP assurances manipulent les plans et règles de couverture avec des codes publics comme `plan_code` et `coverage_code`.
+
+## Plans
+
+```http
+GET /api/v1/plans?page=1&per_page=20
+POST /api/v1/plans
+GET /api/v1/plans/{planCode}
+PUT /api/v1/plans/{planCode}
+DELETE /api/v1/plans/{planCode}
+```
+
+Création:
+
+```json
+{
+  "plan_code": "STANDARD-SBX",
+  "plan_name": "Plan Standard Sandbox",
+  "plan_type": "STANDARD",
+  "description": "Couverture standard sandbox",
+  "base_premium": 25000,
+  "premium_frequency": "MONTHLY",
+  "annual_coverage_limit": 1500000,
+  "dependent_age_limit": 21,
+  "waiting_period_days": 0,
+  "grace_period_days": 30,
+  "effective_date": "2026-01-01",
+  "is_active": true
+}
+```
+
+Réponse:
+
+```json
+{
+  "data": {
+    "plan_code": "STANDARD-SBX",
+    "plan_name": "Plan Standard Sandbox",
+    "plan_type": "STANDARD",
+    "is_active": true
+  }
+}
+```
+
+## Types de couvertures
+
+```http
+GET /api/v1/coverage-types
+```
+
+Réponse:
+
+```json
+{
+  "data": [
+    {
+      "code": "CONSULTATION_GP",
+      "label": "Consultation médecine générale",
+      "category": "OUTPATIENT"
+    }
+  ]
+}
+```
+
+## Calcul de remboursement
+
+```http
+POST /api/v1/reimbursement/calculate
+```
+
+```json
+{
+  "plan_code": "STANDARD-SBX",
+  "coverage_code": "CONSULTATION_GP",
+  "billed_amount": 15000,
+  "patient_age": 34,
+  "context": {
+    "service_date": "2026-05-15"
+  }
+}
+```
+
+Réponse:
+
+```json
+{
+  "data": {
+    "decision": "APPROVE",
+    "reimbursement_amount": 12000,
+    "copay_amount": 3000,
+    "requires_authorization": false
+  }
+}
+```
+
+Ce calcul peut être utilisé par l'ERP assureur pour simuler ou auditer ses règles de remboursement.

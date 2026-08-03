@@ -1,0 +1,193 @@
+---
+title: "Claims prestataires"
+description: "Soumettre une prestation officielle et suivre sa décision depuis un ERP prestataire."
+icon: "receipt-text"
+---
+
+Un claim représente une prestation officiellement soumise à l'assureur. Une pré-vérification d'éligibilité refusée ne doit pas créer de claim. À chaque soumission, Azurance refait une vérification finale d'éligibilité; si cette vérification refuse, l'API retourne `422` et aucun claim n'est enregistré.
+
+Pour les ERP, les créations doivent être idempotentes:
+
+```http
+Idempotency-Key: erp-claim-2026-0001
+```
+
+Le champ `provider_reference` doit aussi être unique par prestataire pour éviter les doublons en cas de retry ou de timeout.
+
+## Soumettre un claim
+
+```http
+POST /api/v1/claims
+```
+
+### Body
+
+```json
+{
+  "subscription_id": "sub-sandbox-001",
+  "policyholder_id": "insured-sandbox-001",
+  "service_execution_uid": "svc-exec-sandbox-001",
+  "covered_person_type": "beneficiary",
+  "covered_person_uid": "beneficiary-sandbox-001",
+  "consent_ref": "40000000-0000-4000-8000-000000000001",
+  "coverage_type_code": "CONSULTATION_GP",
+  "service_date": "2026-05-15",
+  "amount_claimed": 15000,
+  "currency": "XOF",
+  "provider_reference": "ERP-CLAIM-2026-0001",
+  "precheck_eligibility_uuid": "01HY6Q5V9QZ4J7B0J6C2P8T9RK",
+  "items": [
+    {
+      "description": "Consultation médecin généraliste",
+      "quantity": 1,
+      "unit_price": 15000
+    }
+  ],
+  "documents": [
+    {
+      "document_type": "CONSULTATION_REPORT",
+      "media_uid": "med-sandbox-001",
+      "file_name": "consultation.pdf"
+    }
+  ],
+  "notes": "Consultation initiale"
+}
+```
+
+| Champ | Requis | Description |
+| --- | --- | --- |
+| `subscription_id` | Oui | UUID public ou identifiant public de la souscription. |
+| `policyholder_id` | Oui | Identifiant public de l'assuré ou bénéficiaire. |
+| `service_execution_uid` | Non | Prestation réellement effectuée, créée via `POST /api/v1/service-executions`. |
+| `covered_person_type` | Non | `policyholder` ou `beneficiary`. Obligatoire si le flux utilise `covered_person`. |
+| `covered_person_uid` | Non | UUID public de la personne couverte. |
+| `consent_ref` | Non | Référence de consentement fort N2/N3. Obligatoire pour les données/actions soumises à consentement. |
+| `coverage_type_code` | Oui | Garantie demandée. |
+| `service_date` | Oui | Date de prestation. |
+| `amount_claimed` | Oui | Montant total réclamé. |
+| `items` | Oui | Lignes facturées. |
+| `provider_reference` | Recommandé | Référence claim ERP, unique par prestataire. |
+| `precheck_eligibility_uuid` | Non | UUID de la pré-vérification ERP, conservé en trace. |
+| `documents` | Selon règle | Références de médias déjà uploadés ou documents joints. Certaines garanties imposent des pièces obligatoires. |
+
+```ts
+const response = await fetch("https://provider-api.elenami.com/api/v1/claims", {
+  method: "POST",
+  headers: {
+    Accept: "application/json",
+    "Content-Type": "application/json",
+    "X-Api-Key": process.env.AZURANCE_PROVIDER_API_KEY!
+  },
+  body: JSON.stringify(claimRequest)
+})
+
+const claim = await response.json()
+```
+
+### Réponse acceptée
+
+```json
+{
+  "data": {
+    "uuid": "claim-sandbox-001",
+    "status": "SUBMITTED",
+    "amount_claimed": 15000,
+    "amount_approved": 12000,
+    "submission_eligibility_uuid": "01HY6Q9Y5TQ4S2APJAGYJ7NJ2N",
+    "requires_validation": false,
+    "limit_reservation_uid": "0bae5af4-8e95-48ae-9b47-958be3ed1440",
+    "required_documents": {
+      "required": ["PRESCRIPTION", "INVOICE"],
+      "any_of": []
+    },
+    "missing_documents": [],
+    "consent_snapshot": {
+      "consent_ref": "40000000-0000-4000-8000-000000000001",
+      "method": "OTP",
+      "assurance_level": "N2",
+      "scopes": ["claims.create", "eligibility.check"],
+      "granted_at": "2026-05-26T15:00:00Z",
+      "expires_at": "2026-05-26T15:30:00Z"
+    }
+  }
+}
+```
+
+Si une autorisation préalable est requise, le claim est créé en `UNDER_REVIEW` avec `authorization_request_uid`, les snapshots réseau, éligibilité et remboursement.
+
+## Plafonds et statut
+
+Azurance réserve la part assureur à la soumission du claim. La réservation protège les plafonds contre les doubles soumissions concurrentes.
+
+| Statut | Effet plafond |
+| --- | --- |
+| `SUBMITTED` | Réservation active. |
+| `UNDER_REVIEW` | Réservation active. |
+| `INFO_NEEDED` | Réservation active, documents ou informations en attente. |
+| `APPROVED` | Réservation consommée. |
+| `REJECTED` | Réservation libérée. |
+| `PAID` | Aucun recalcul de plafond. |
+
+## Justificatifs requis
+
+Les règles de justificatifs viennent de l'assureur et de la couverture. Exemples v1:
+
+| Couverture | Pièces attendues |
+| --- | --- |
+| Pharmacie `PHARMACY_DRUG` | `PRESCRIPTION` + `INVOICE`. |
+| Laboratoire `LAB_ANALYSIS` | `INVOICE` + `PRESCRIPTION` ou `LAB_RESULT` selon règle. |
+| Hospitalisation | `MEDICAL_REPORT` + `INVOICE`. |
+
+Si une pièce obligatoire manque, l'API retourne `422 REQUIRED_DOCUMENT_MISSING` ou place le claim en `INFO_NEEDED` selon la règle opérationnelle applicable.
+
+## Lister les claims
+
+```http
+GET /api/v1/claims?page=1&per_page=20
+```
+
+Filtres courants: `status`, `service_date_from`, `service_date_to`, `updated_after`.
+
+## Détail d'un claim
+
+```http
+GET /api/v1/claims/{claimId}
+```
+
+## Joindre un document à un claim
+
+```http
+POST /api/v1/claims/{claimId}/documents
+```
+
+```json
+{
+  "document_type": "LAB_RESULT",
+  "media_uid": "med-sandbox-002",
+  "file_name": "resultat-labo.pdf",
+  "metadata": {
+    "source": "ERP_LAB"
+  }
+}
+```
+
+## Statuts attendus
+
+| Statut | Sens côté ERP |
+| --- | --- |
+| `SUBMITTED` | Claim reçu, éligibilité finale acceptée. |
+| `UNDER_REVIEW` | Validation conseil médical ou assureur requise. |
+| `INFO_NEEDED` | Informations ou justificatifs complémentaires requis. |
+| `APPROVED` | Montant validé, peut entrer dans un bordereau payable. |
+| `REJECTED` | Claim rejeté. Afficher le motif. |
+| `PAID` | Paiement totalement rapproché côté billing. |
+
+## Erreurs idempotence
+
+| Code | Sens |
+| --- | --- |
+| `DUPLICATE_PROVIDER_REFERENCE` | La référence ERP existe déjà pour ce prestataire. |
+| `IDEMPOTENCY_CONFLICT` | La même `Idempotency-Key` a été rejouée avec un corps de requête différent. |
+| `REQUIRED_DOCUMENT_MISSING` | Une pièce obligatoire manque. |
+| `CONSENT_SCOPE_MISSING` | Le consentement ne couvre pas l'action demandée. |
+| `LIMIT_EXCEEDED` | Réservation de plafond impossible. |
