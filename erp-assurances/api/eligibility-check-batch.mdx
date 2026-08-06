@@ -4,3 +4,113 @@ description: "Exécute plusieurs contrôles d'éligibilité dans une même requ�
 openapi: "/openapi/insurer-api.openapi.yml POST /api/v1/eligibility/check-batch"
 ---
 
+Cet endpoint exécute plusieurs contrôles d'éligibilité en une seule requête. Il est adapté aux flux de pré-admission ou aux imports en masse.
+
+## Scope requis
+
+`eligibility.check`
+
+## Champs du body
+
+| Champ | Type | Requis | Description |
+| --- | --- | --- | --- |
+| `checks` | array | oui | Liste des contrôles à exécuter (jusqu'à 20). Chaque élément suit le même schéma que `POST /api/v1/eligibility/check`. |
+| `checks[].identifier` | string | oui | Identifiant de la personne assurée (numéro de police ou équivalent). |
+| `checks[].coverage_code` | string | oui | Code de la couverture à vérifier. |
+| `checks[].amount` | number | non | Montant du soin à évaluer. |
+| `checks[].provider_id` | integer | non* | Identifiant numérique du prestataire. Requis si `provider_uuid` absent. |
+| `checks[].provider_uuid` | string | non* | UUID du prestataire. Requis si `provider_id` absent. |
+| `checks[].beneficiary_id` | string | non | Bénéficiaire si le soin ne concerne pas le souscripteur. |
+| `checks[].service_date` | string | non | Date du soin au format `YYYY-MM-DD`. |
+| `checks[].purpose` | string | non | `PRECHECK` (défaut) ou `CLAIM_SUBMISSION`. |
+
+\* `provider_id` ou `provider_uuid` est obligatoire pour chaque contrôle.
+
+## Réponse
+
+| Champ | Type | Description |
+| --- | --- | --- |
+| `data` | array | Résultats dans le même ordre que les contrôles envoyés. |
+| `data[].eligibility_check_uuid` | string (uuid) | Identifiant de la vérification. |
+| `data[].eligible` | boolean | Éligibilité du contrôle. |
+| `data[].status` | string | `ELIGIBLE` ou `INELIGIBLE`. |
+| `data[].error_code` | string | `null` si éligible, sinon un code d'erreur. |
+| `data[].reason` | string | Message lisible si non éligible. |
+| `data[].member` | object | Informations de la personne assurée. |
+| `data[].subscription` | object | Souscription active. |
+| `data[].coverage` | object | Garantie vérifiée. |
+| `data[].reimbursement` | object | Présent si `amount` était fourni. |
+
+## Cas d'usage
+
+- Vérifier l'éligibilité d'un groupe d'assurés avant un séjour hospitalier.
+- Contrôler un import de prestations planifiées.
+- Automatiser la pré-admission en établissement.
+
+## Bonnes pratiques
+
+Limitez la taille du lot aux plafonds indiqués dans le contrat OpenAPI. Un contrôle individuel en échec ne fait pas échouer le lot : chaque résultat est indépendant. Fournissez un `Idempotency-Key` pour éviter les doublons en cas de retry.
+
+## Exemple de réponse
+
+```json
+{
+  "data": [
+    {
+      "eligibility_check_uuid": "9a1b2c3d-4e5f-4061-8f2a-1b2c3d4e5f60",
+      "eligible": true,
+      "status": "ELIGIBLE",
+      "error_code": null,
+      "reason": null,
+      "purpose": "PRECHECK",
+      "read_only": true,
+      "valid_until": "2026-08-04T10:20:00Z",
+      "provider_network": null,
+      "member": {
+        "uuid": "5f6e7d8c-0000-4000-8000-000000000099",
+        "policy_number": "POL-2026-004821",
+        "full_name": "Awa Diarra",
+        "status": "ACTIVE"
+      },
+      "subscription": {
+        "uuid": "1a2b3c4d-0000-4000-8000-000000000055",
+        "subscription_number": "SUB-2026-001122",
+        "plan_code": "PLAN_ESSENTIAL",
+        "status": "ACTIVE",
+        "effective_date": "2026-01-01",
+        "expiry_date": "2026-12-31"
+      },
+      "coverage": {
+        "code": "OUTPATIENT_PHARMACY",
+        "name": "Pharmacie ambulatoire",
+        "base_rate": 0.8,
+        "annual_limit": 500000,
+        "remaining_limit": 455000
+      },
+      "reimbursement": {
+        "eligible": true,
+        "reimbursement_amount": 36000,
+        "decision": "APPROVED",
+        "decision_reason": null
+      },
+      "contract_context": {}
+    },
+    {
+      "eligibility_check_uuid": "9a1b2c3d-4e5f-4061-8f2a-1b2c3d4e5f61",
+      "eligible": false,
+      "status": "INELIGIBLE",
+      "error_code": "NO_ACTIVE_SUBSCRIPTION",
+      "reason": "Aucun contrat actif pour la date de prestation",
+      "purpose": "PRECHECK",
+      "read_only": true,
+      "valid_until": "2026-08-04T10:20:00Z",
+      "provider_network": null,
+      "member": null,
+      "subscription": null,
+      "coverage": null,
+      "reimbursement": null,
+      "contract_context": null
+    }
+  ]
+}
+```

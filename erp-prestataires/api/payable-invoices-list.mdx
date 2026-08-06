@@ -4,3 +4,50 @@ description: "Liste les bordereaux de remboursement visibles par l'ERP prestatai
 openapi: "/openapi/provider-api.openapi.yml GET /api/v1/payable-invoices"
 ---
 
+Cet endpoint liste les bordereaux de remboursement (payable invoices) visibles par le prestataire authentifié. Chaque bordereau regroupe les claims remboursables émis pour ce prestataire et sert de base au rapprochement comptable.
+
+## Scope requis
+
+`billing.payable_invoices.view`
+
+## Paramètres
+
+L'endpoint accepte les paramètres standards de pagination (`page`, `per_page`) ainsi que l'header `X-Request-Id` pour la corrélation. Aucun identifiant prestataire n'est à fournir : le contexte est déduit de `X-Api-Key`.
+
+## Réponse
+
+La réponse est paginée et contient un tableau `data` de bordereaux avec leur statut, leur montant total, la devise et les références de claims associés. Pour consulter le détail des lignes d'un bordereau, appelez `GET /api/v1/payable-invoices/{uuid}/items`.
+
+## Flux incrémental
+
+Pour éviter un polling massif, abonnez-vous aux webhooks billing (`payable_invoice.issued`, `payable_invoice.paid`) ou utilisez `GET /api/v1/billing/sync` avec un curseur pour récupérer les évolutions de manière incrémentale.
+
+## Exemple de réponse
+
+```json
+{
+  "data": [
+    {
+      "uuid": "inv_sandbox_001",
+      "invoice_number": "INV-2025-001234",
+      "status": "payable",
+      "provider_uid": "prov_sandbox_001",
+      "insurer_uid": "ins_sandbox_001",
+      "billing_period_start": "2025-01-01",
+      "billing_period_end": "2025-01-31",
+      "total_amount": 1500000,
+      "currency": "XOF",
+      "claim_count": 30,
+      "service_execution_count": 30,
+      "due_date": "2025-02-15",
+      "created_at": "2025-02-01T00:00:00Z"
+    }
+  ],
+  "meta": {
+    "current_page": 1,
+    "per_page": 20,
+    "total_count": 5,
+    "total_pages": 1
+  }
+}
+```

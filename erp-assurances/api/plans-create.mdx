@@ -4,3 +4,84 @@ description: "Crée un plan d'assurance et ses paramètres principaux."
 openapi: "/openapi/insurer-api.openapi.yml POST /api/v1/plans"
 ---
 
+Cet endpoint crée un nouveau plan d'assurance avec ses paramètres principaux : prime, plafonds de couverture et garanties incluses.
+
+## Scope requis
+
+`insurer.policies.manage`
+
+## Champs du body
+
+| Champ | Type | Requis | Description |
+| --- | --- | --- | --- |
+| `plan_code` | string | oui | Code du plan. |
+| `plan_name` | string | oui | Nom du plan. |
+| `plan_type` | string | non | Type (`INDIVIDUAL`, `FAMILY`, `GROUP`). |
+| `description` | string | non | Description commerciale. |
+| `base_premium` | number | oui | Prime de référence. |
+| `premium_frequency` | string | non | Fréquence (`MONTHLY`, `QUARTERLY`, `YEARLY`). |
+| `annual_coverage_limit` | number | non | Plafond annuel. |
+| `lifetime_coverage_limit` | number | non | Plafond à vie. |
+| `dependent_age_limit` | integer | non | Âge limite des ayant droit. |
+| `waiting_period_days` | integer | non | Délai de carence en jours. |
+| `grace_period_days` | integer | non | Délai de grâce en jours. |
+| `effective_date` | string | non | Date d'effet au format `YYYY-MM-DD`. |
+| `expiry_date` | string | non | Date d'expiration au format `YYYY-MM-DD`. |
+| `coverages` | array | non | Garanties incluses. |
+| `exclusions` | array | non | Exclusions. |
+
+## Réponse
+
+| Champ | Type | Description |
+| --- | --- | --- |
+| `uuid` | string | Identifiant du plan créé. |
+| `plan_code` | string | Code du plan. |
+| `plan_name` | string | Nom du plan. |
+| `plan_type` | string | Type de plan. |
+| `base_premium` | number | Prime de référence. |
+| `premium_frequency` | string | Fréquence de prime. |
+| `annual_coverage_limit` | number | Plafond annuel. |
+| `is_active` | boolean | Indique si le plan est actif. |
+| `effective_date` | string | Date d'effet. |
+| `expiry_date` | string | Date d'expiration. |
+| `created_at` | string | Date de création au format ISO 8601. |
+
+## Cas d'usage
+
+- Créer un nouveau produit d'assurance.
+- Configurer un plan dédié à un segment de clientèle.
+- Préparer un plan pour une campagne commerciale.
+
+## Bonnes pratiques
+
+Vérifiez les codes de garantie dans `coverage-types-list` avant l'appel. Fournissez un `Idempotency-Key` pour éviter les doublons. Validez le plan en environnement sandbox avant de le basculer en production.
+
+## Exemple de réponse
+
+```json
+{
+  "data": {
+    "uuid": "plan_sandbox_002",
+    "plan_code": "PLATINUM",
+    "plan_name": "Platinum Plan",
+    "plan_type": "INDIVIDUAL",
+    "description": "Premium coverage with enhanced benefits",
+    "base_premium": 75000.00,
+    "premium_frequency": "MONTHLY",
+    "annual_coverage_limit": 2000000.00,
+    "lifetime_coverage_limit": 10000000.00,
+    "dependent_age_limit": 26,
+    "waiting_period_days": 15,
+    "grace_period_days": 30,
+    "cnss_compliant": true,
+    "arch_compatible": true,
+    "cipres_approved": true,
+    "effective_date": "2026-01-15",
+    "expiry_date": null,
+    "is_active": true,
+    "coverages": [],
+    "exclusions": [],
+    "created_at": "2026-01-15T14:30:00.000Z"
+  }
+}
+```

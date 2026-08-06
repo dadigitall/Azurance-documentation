@@ -3,3 +3,80 @@ title: "Créer une pré-autorisation"
 description: "Soumet une demande de pré-autorisation pour un acte médical."
 openapi: "/openapi/provider-api.openapi.yml POST /api/v1/prior-authorizations"
 ---
+
+Cet endpoint crée une demande formelle de prévalidation avant l'exécution d'une prestation, par exemple une proforma de kinésithérapie ou la fourniture de matériel médical. La demande est créée en statut `PENDING_REVIEW` et reste en attente de décision par l'assureur.
+
+## Scope requis
+
+`prior_authorizations.create`
+
+## Champs du body
+
+| Champ | Type | Requis | Description |
+| --- | --- | --- | --- |
+| `subscription_uid` | string | oui | Identifiant de la souscription concernée. |
+| `covered_person_type` | string | oui | `policyholder` ou `beneficiary`. |
+| `covered_person_uid` | string | oui | Identifiant de la personne couverte. |
+| `coverage_type_code` | string | oui | Code de garantie visée (ex. `PHYSIOTHERAPY`). |
+| `estimated_amount` | number | oui | Montant estimé de la prestation. |
+| `currency` | string | non | Devise, `XOF` par défaut. |
+| `priority` | string | non | `URGENT`, `STANDARD` ou `DEFERRED`. |
+| `service_date_from` | date | non | Date de début prévue. |
+| `service_date_to` | date | non | Date de fin prévue. |
+| `reason` | string | non | Motif médical ou contexte. |
+| `provider_reference` | string | non | Référence interne prestataire. |
+| `consent_ref` | uuid | oui | Référence de consentement fort valide. |
+| `items` | array | oui | Lignes de prestation (`description`, `quantity`, `unit_price`). |
+| `documents` | array | non | Pièces jointes (`document_type`, `media_uid`). |
+
+## Workflow
+
+1. Vérifier l'éligibilité via `POST /api/v1/eligibility/check`.
+2. Uploader les justificatifs via `POST /api/v1/media/uploads`.
+3. Créer la pré-autorisation avec les `items` et `documents`.
+4. Suivre le statut via `GET /api/v1/prior-authorizations/{uid}`.
+5. Ajouter des pièces complémentaires via `POST /api/v1/prior-authorizations/{uid}/documents` si l'assureur demande `INFO_NEEDED`.
+
+## Réponse
+
+La réponse `201` contient un objet `PriorAuthorization` avec son `uuid`, son `status` (`PENDING_REVIEW`) et les identifiants de réservation de plafond lorsqu'ils existent. Un `422` indique un précheck d'éligibilité refusé ou un payload invalide.
+
+## Exemple de réponse
+
+```json
+{
+  "data": {
+    "uid": "pa_sandbox_001",
+    "authorization_number": "PA-2025-001234",
+    "status": "pending",
+    "covered_person_type": "policyholder",
+    "covered_person_uid": "mbr_sandbox_001",
+    "subscription_uid": "sub_sandbox_001",
+    "policy_number": "NSIA-POL-2025-001",
+    "provider_uid": "prov_sandbox_001",
+    "insurer_uid": "ins_sandbox_001",
+    "coverage_type_code": "HOSPITALIZATION",
+    "requested_at": "2025-01-15T10:00:00Z",
+    "estimated_amount": 500000,
+    "currency": "XOF",
+    "requested_procedures": [
+      {
+        "procedure_code": "PROC-001",
+        "procedure_name": "Chirurgie orthopédique",
+        "estimated_cost": 500000
+      }
+    ],
+    "documents": [
+      {
+        "uid": "doc_sandbox_001",
+        "document_type": "MEDICAL_REPORT",
+        "media_uid": "media_sandbox_001"
+      }
+    ],
+    "consent_snapshot": {
+      "consent_ref": "cref_sandbox_001",
+      "assured_at": "2025-01-15T10:32:00Z"
+    }
+  }
+}
+```

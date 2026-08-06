@@ -4,3 +4,71 @@ description: "Vérifie l'appartenance réseau d'un prestataire."
 openapi: "/openapi/insurer-api.openapi.yml GET /api/v1/providers/{providerId}/network-check"
 ---
 
+Cet endpoint vérifie rapidement le niveau réseau d'un prestataire. Le BFF transmet la requête au provider-service et retourne son résultat sans transformation métier.
+
+## Scope requis
+
+`insurer.providers.view`
+
+## Paramètres de chemin
+
+| Paramètre | Type | Requis | Description |
+| --- | --- | --- | --- |
+| `providerId` | uuid | oui | UUID du prestataire. |
+
+## Réponse
+
+| Champ | Type | Description |
+| --- | --- | --- |
+| `in_network` | boolean | Indique si le prestataire est dans le réseau (`IN_NETWORK` ou `PREFERRED`). |
+| `tier` | string | Niveau de réseau (`PREFERRED`, `IN_NETWORK`, `OUT_OF_NETWORK`). |
+| `provider` | object | Détail public du prestataire retourné par `ProviderResource`. |
+| `provider.uuid` | uuid | Identifiant public du prestataire. |
+| `provider.name` | string | Nom du prestataire. |
+| `provider.type` | string | Type de prestataire. |
+| `provider.status` | string | Statut du prestataire. |
+| `provider.tier` | string | Niveau réseau du prestataire. |
+| `provider.accreditation_number` | string\|null | Numéro d'accréditation. |
+| `provider.tax_id` | string\|null | Identifiant fiscal. |
+| `provider.phone` | string\|null | Téléphone. |
+| `provider.email` | string\|null | E-mail. |
+| `provider.address` | string\|null | Adresse. |
+| `provider.city` | string\|null | Ville. |
+| `provider.country` | string\|null | Pays. |
+| `provider.metadata` | object | Métadonnées publiques du prestataire. |
+
+## Cas d'usage
+
+- Vérifier le conventionnement avant un contrôle d'éligibilité.
+- Informer un assuré du caractère conventionné d'un établissement.
+- Détecter un prestataire hors réseau avant soumission d'un claim.
+
+## Bonnes pratiques
+
+Ce contrôle est rapide et synchrone. Pour lister l'ensemble des relations réseau côté assureur, utilisez `provider-network-relationships`.
+
+## Exemple de réponse
+
+```json
+{
+  "in_network": true,
+  "tier": "IN_NETWORK",
+  "provider": {
+    "uuid": "3d2e1a00-0000-4000-8000-000000000077",
+    "name": "Clinique Santé Plus",
+    "type": "CLINIC",
+    "status": "ACTIVE",
+    "tier": "IN_NETWORK",
+    "accreditation_number": "ACC-2026-001",
+    "tax_id": "TAX-123456",
+    "phone": "+2250700000000",
+    "email": "contact@cliniquesanteplus.example",
+    "address": "Plateau, Abidjan",
+    "city": "Abidjan",
+    "country": "CI",
+    "metadata": {},
+    "created_at": "2026-01-01T00:00:00.000000Z",
+    "updated_at": "2026-01-01T00:00:00.000000Z"
+  }
+}
+```

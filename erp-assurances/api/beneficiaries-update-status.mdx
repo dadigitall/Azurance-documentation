@@ -4,3 +4,59 @@ description: "Met à jour le statut d'un bénéficiaire rattaché à une souscri
 openapi: "/openapi/insurer-api.openapi.yml PATCH /api/v1/subscriptions/{subscriptionId}/beneficiaries/{beneficiaryId}/status"
 ---
 
+Cet endpoint modifie le statut d'un bénéficiaire rattaché à une souscription. Utilisez-le pour activer ou désactiver un ayant droit sans le supprimer.
+
+## Scope requis
+
+`insurer.members.manage`
+
+## Paramètres de chemin
+
+| Paramètre | Type | Requis | Description |
+| --- | --- | --- | --- |
+| `subscriptionId` | string | oui | Identifiant de la souscription. |
+| `beneficiaryId` | string | oui | Identifiant du bénéficiaire. |
+
+## Champs du body
+
+| Champ | Type | Requis | Description |
+| --- | --- | --- | --- |
+| `status` | string | oui | Statut cible (`ACTIVE`, `INACTIVE`). |
+| `reason` | string | non | Motif du changement de statut. |
+
+## Cas d'usage
+
+- Désactiver un bénéficiaire ayant atteint l'âge limite de couverture.
+- Réactiver un bénéficiaire suite à une erreur de saisie.
+- Suspendre un bénéficiaire en attente de vérification documentaire.
+
+## Bonnes pratiques
+
+Fournissez un `reason` pour la traçabilité. Préférez la désactivation à la suppression : un bénéficiaire inactif conserve son historique et peut être réactivé ultérieurement.
+
+## Exemple de réponse
+
+```json
+{
+  "data": {
+    "uuid": "ben_sandbox_001",
+    "tenant_id": "tenant_sandbox_001",
+    "subscription_uuid": "sub_sandbox_001",
+    "beneficiary_number": "BEN-001",
+    "identity_uid": "id_sandbox_003",
+    "national_id": "CI1122334455",
+    "first_name": "Aya",
+    "last_name": "Kouassi",
+    "date_of_birth": "2015-03-10",
+    "gender": "FEMALE",
+    "relationship": "CHILD",
+    "is_dependent": true,
+    "coverage_start_date": "2024-01-15",
+    "coverage_end_date": "2025-01-15",
+    "status": "INACTIVE",
+    "metadata": {},
+    "created_at": "2024-01-15T00:00:00.000Z",
+    "updated_at": "2026-01-15T14:30:00.000Z"
+  }
+}
+```

@@ -4,6 +4,93 @@ description: "Consulte le statut d'une demande OTP, TOTP ou Face Match."
 openapi: "/openapi/provider-api.openapi.yml GET /api/v1/consent-requests/{consentRequestUid}"
 ---
 
+## Scope requis
+
+`consent_requests.create`
+
 Utilisez cet endpoint pour suivre une demande de consentement après sa création, notamment lorsque le niveau demandé est `3` et que la validation Face Match se fait dans l'application assurée.
 
-Les statuts possibles indiquent si le challenge est en attente, envoyé, validé, expiré, révoqué ou échoué. Quand la demande est validée, la réponse peut inclure le `consent_ref` et le snapshot de consentement à utiliser dans la suite du parcours.
+Les statuts possibles indiquent si le challenge est en attente, envoyé, validé, expiré, révoqué ou échoué. Quand la demande est validée, la réponse inclut le `consent_ref` et le `consent_snapshot` à utiliser dans la suite du parcours.
+
+## Réponse
+
+La réponse contient les informations de la demande : `id` (UUID), `status`, `channel`, niveaux d'assurance requis et atteint, personne couverte, et métadonnées Face Match. Si la demande est `verified`, la réponse inclut en plus `consent_ref`, `scopes`, `expires_at` et `consent_snapshot`.
+
+## Exemple de réponse (en attente)
+
+```json
+{
+  "data": {
+    "id": "c0d1e2f3-0000-4000-8000-0000000000a1",
+    "status": "pending",
+    "channel": "sms",
+    "assurance_level_required": 2,
+    "assurance_level_achieved": null,
+    "covered_person_type": "policyholder",
+    "covered_person_uid": "5f6e7d8c-0000-4000-8000-000000000099",
+    "subscription_uid": "1a2b3c4d-0000-4000-8000-000000000055",
+    "validated_by_type": "self",
+    "validator_user_uid": "user_001",
+    "face_match_session_id": null,
+    "liveness_required": false,
+    "liveness_performed": false,
+    "face_match_score": null,
+    "face_match_provider_status": null,
+    "failure_reason": null,
+    "expires_at": "2026-08-15T10:10:00.000000Z",
+    "verified_at": null
+  }
+}
+```
+
+## Exemple de réponse (vérifiée)
+
+```json
+{
+  "data": {
+    "id": "c0d1e2f3-0000-4000-8000-0000000000a1",
+    "status": "verified",
+    "channel": "sms",
+    "assurance_level_required": 2,
+    "assurance_level_achieved": 2,
+    "covered_person_type": "policyholder",
+    "covered_person_uid": "5f6e7d8c-0000-4000-8000-000000000099",
+    "subscription_uid": "1a2b3c4d-0000-4000-8000-000000000055",
+    "validated_by_type": "self",
+    "validator_user_uid": "user_001",
+    "face_match_session_id": null,
+    "liveness_required": false,
+    "liveness_performed": false,
+    "face_match_score": null,
+    "face_match_provider_status": null,
+    "failure_reason": null,
+    "expires_at": "2026-08-15T10:10:00.000000Z",
+    "verified_at": "2026-08-15T10:32:00.000000Z",
+    "consent_ref": "d4e5f6a7-0000-4000-8000-0000000000c1",
+    "assurance_level": 2,
+    "scopes": [
+      "claims.create",
+      "eligibility.check"
+    ],
+    "consent_snapshot": {
+      "consent_ref": "d4e5f6a7-0000-4000-8000-0000000000c1",
+      "consent_request_uid": "c0d1e2f3-0000-4000-8000-0000000000a1",
+      "method": "sms",
+      "assurance_level": 2,
+      "scopes": [
+        "claims.create",
+        "eligibility.check"
+      ],
+      "validated_by_type": "self",
+      "validator_user_uid": "user_001",
+      "face_match_session_uid": null,
+      "liveness_required": false,
+      "liveness_performed": false,
+      "face_match_score": null,
+      "face_match_provider_status": null,
+      "granted_at": "2026-08-15T10:32:00.000000Z",
+      "expires_at": "2026-08-15T11:32:00.000000Z"
+    }
+  }
+}
+```

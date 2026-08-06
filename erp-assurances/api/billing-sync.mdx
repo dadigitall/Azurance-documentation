@@ -3,3 +3,65 @@ title: "Synchroniser la facturation"
 description: "Flux incrémental des événements de facturation."
 openapi: "/openapi/insurer-api.openapi.yml GET /api/v1/billing/sync"
 ---
+
+Cet endpoint expose un flux incrémental des événements de facturation (création de factures, paiements, confirmations). Utilisez-le pour synchroniser un SI tiers sans recharger l'ensemble du référentiel.
+
+## Scope requis
+
+`insurer.billing.view`
+
+## Paramètres de requête
+
+| Paramètre | Type | Requis | Description |
+| --- | --- | --- | --- |
+| `cursor` | string | non | Curseur de pagination renvoyé par la page précédente. |
+| `updated_after` | string | non | Borne temporelle pour ne récupérer que les événements modifiés après cette date. |
+
+## Réponse
+
+| Champ | Type | Description |
+| --- | --- | --- |
+| `data` | array | Page d'événements de facturation. |
+| `data[].cursor` | string | Curseur de l'événement. |
+| `data[].event_id` | string | Identifiant unique de l'événement. |
+| `data[].event_type` | string | Type (`payment.created`, `payment.succeeded`, `payable_invoice.issued`, etc.). |
+| `data[].aggregate_type` | string | Type de ressource (`Payment`, `PayableInvoice`). |
+| `data[].aggregate_uuid` | string | Identifiant de la ressource concernée. |
+| `data[].payload` | object | Snapshot de la ressource au moment de l'événement. |
+| `data[].updated_at` | string | Date de l'événement au format ISO 8601. |
+| `meta.next_cursor` | string | Curseur à passer au prochain appel. Absent s'il n'y a plus de page. |
+
+## Cas d'usage
+
+- Synchroniser un SI comptable en temps quasi réel.
+- Reprendre une synchronisation après une interruption.
+- Alimenter un entrepôt de données pour le reporting.
+
+## Bonnes pratiques
+
+Conservez le dernier `cursor` traité et passez-le dans `cursor` au prochain appel. Ne supposez pas qu'une page contient tous les événements : tant que `meta.next_cursor` est présent, paginez. Pour un suivi temps réel, préférez les webhooks à ce flux incrémental.
+
+## Exemple de réponse
+
+```json
+{
+  "data": [
+    {
+      "cursor": 1,
+      "event_id": "evt_sandbox_001",
+      "event_type": "payment.created",
+      "aggregate_type": "Payment",
+      "aggregate_uuid": "pay_sandbox_001",
+      "payload": {
+        "uuid": "pay_sandbox_001",
+        "status": "SUCCEEDED",
+        "amount": 150000.00
+      },
+      "updated_at": "2026-02-01T10:10:00.000000Z"
+    }
+  ],
+  "meta": {
+    "next_cursor": 2
+  }
+}
+```

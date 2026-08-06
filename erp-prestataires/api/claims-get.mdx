@@ -4,3 +4,72 @@ description: "Retourne le claim, ses documents, snapshots, réservations et déc
 openapi: "/openapi/provider-api.openapi.yml GET /api/v1/claims/{claimId}"
 ---
 
+Cet endpoint retourne le détail complet d'un claim : statut, montants, lignes de prestation, documents rattachés, snapshots d'éligibilité, réservations de plafond et décisions de l'assureur. Il est utilisé pour le suivi du remboursement côté ERP.
+
+## Scope requis
+
+`claims.view`
+
+## Paramètre de chemin
+
+| Paramètre | Type | Description |
+| --- | --- | --- |
+| `claimId` | string | Identifiant du claim. |
+
+## Réponse
+
+La réponse contient le claim avec :
+
+- les lignes `items` et les montants (`amount_claimed`, montant éligible, montant remboursé) ;
+- la liste des documents justificatifs ;
+- les snapshots d'éligibilité et les réservations de plafond ;
+- l'historique des décisions et le statut courant.
+
+Si le claim n'existe pas ou n'est pas visible par le prestataire, l'API retourne une erreur `404`. Pour lister l'ensemble des claims, utilisez `GET /api/v1/claims`.
+
+## Exemple de réponse
+
+```json
+{
+  "data": {
+    "uuid": "claim_sandbox_001",
+    "claim_number": "CLM-2025-001234",
+    "status": "approved",
+    "service_execution_uid": "se_sandbox_001",
+    "covered_person_type": "policyholder",
+    "covered_person_uid": "mbr_sandbox_001",
+    "subscription_uid": "sub_sandbox_001",
+    "policy_number": "NSIA-POL-2025-001",
+    "provider_uid": "prov_sandbox_001",
+    "insurer_uid": "ins_sandbox_001",
+    "coverage_type_code": "AMBULATORY",
+    "service_date": "2025-01-15",
+    "submitted_at": "2025-01-15T10:30:00Z",
+    "processed_at": "2025-01-16T09:00:00Z",
+    "amount_claimed": 50000,
+    "amount_approved": 45000,
+    "amount_paid": null,
+    "currency": "XOF",
+    "rejection_reason": null,
+    "documents": [
+      {
+        "uid": "doc_sandbox_001",
+        "document_type": "prescription",
+        "media_uid": "media_sandbox_001",
+        "file_name": "ordonance_scan.pdf",
+        "uploaded_at": "2025-01-15T10:30:00Z"
+      }
+    ],
+    "consent_snapshot": {
+      "consent_ref": "cref_sandbox_001",
+      "assured_at": "2025-01-15T10:32:00Z"
+    },
+    "audit": {
+      "created_by": "prov_sandbox_001",
+      "created_at": "2025-01-15T10:30:00Z",
+      "updated_by": "ins_sandbox_001",
+      "updated_at": "2025-01-16T09:00:00Z"
+    }
+  }
+}
+```

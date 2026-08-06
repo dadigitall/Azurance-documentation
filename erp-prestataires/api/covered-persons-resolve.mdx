@@ -4,3 +4,65 @@ description: "Recherche bornée d'une personne couverte avant consentement."
 openapi: "/openapi/provider-api.openapi.yml POST /api/v1/covered-persons/resolve"
 ---
 
+Cet endpoint résout une personne couverte à partir d'un identifiant métier, sans exposer de données médicales. Il est utilisé avant l'initiation d'un consentement pour récupérer l'identifiant stable de la personne à autoriser.
+
+## Scope requis
+
+`covered_persons.resolve`
+
+## Champs du body
+
+| Champ | Type | Requis | Description |
+| --- | --- | --- | --- |
+| `identifier_type` | string | oui | Type d'identifiant (voir ci-dessous). |
+| `identifier` | string | oui | Valeur de l'identifiant recherché. |
+| `subscription_uid` | uuid | non | Identifiant de souscription pour restreindre la recherche. |
+| `limit` | integer | non | Nombre de candidats, maximum 10. |
+
+## Types d'identifiants
+
+| `identifier_type` | Usage |
+| --- | --- |
+| `npi` | Numéro d'identification personnel. |
+| `phone_number` | Numéro de téléphone. |
+| `policy_number` | Numéro de police. |
+| `subscription_number` | Numéro de souscription. |
+| `member_number` | Numéro de membre. |
+| `beneficiary_number` | Numéro de bénéficiaire. |
+| `policyholder_uid` | Identifiant public du titulaire. |
+| `beneficiary_uid` | Identifiant public du bénéficiaire. |
+
+## Réponse
+
+La réponse contient une liste bornée de candidats `covered_person` avec leur type, leur uid et les métadonnées minimales. Une recherche non indexée, un wildcard ou un identifiant trop court renvoie une erreur `400` ; un rate limit dépassé renvoie `429`.
+
+## Exemple de réponse
+
+```json
+{
+  "data": [
+    {
+      "covered_person_type": "policyholder",
+      "covered_person_uid": "mbr_sandbox_001",
+      "subscription_uid": "sub_sandbox_001",
+      "subscription_number": "S-NSIA-2025-001",
+      "policy_number": "NSIA-POL-2025-001",
+      "insurer_uid": "ins_sandbox_001",
+      "insurer_name": "NSIA Assurance CI",
+      "coverage_status": "active",
+      "display_name": "K. Y.",
+      "date_of_birth": "1985-05-15",
+      "gender": "M"
+    }
+  ],
+  "meta": {
+    "match_type": "single",
+    "limit": 10,
+    "searched_tenants": 1,
+    "successful_tenants": 1,
+    "failed_tenants": 0,
+    "partial_results": false,
+    "tenant_errors": []
+  }
+}
+```

@@ -3,3 +3,64 @@ title: "Lister les pré-autorisations"
 description: "Liste les pré-autorisations du prestataire."
 openapi: "/openapi/provider-api.openapi.yml GET /api/v1/prior-authorizations"
 ---
+
+Cet endpoint liste les pré-autorisations du prestataire authentifié, avec possibilité de filtrer par statut. Il est utilisé pour piloter le back-office prestataire et suivre les demandes en cours.
+
+## Scope requis
+
+`prior_authorizations.create` (ou scope de lecture équivalent selon la configuration de la clé).
+
+## Paramètres de requête
+
+| Paramètre | Type | Description |
+| --- | --- | --- |
+| `status` | string | Filtre par statut (voir ci-dessous). |
+
+## Statuts possibles
+
+| `status` | Usage |
+| --- | --- |
+| `PENDING_REVIEW` | En attente de revue par l'assureur. |
+| `INFO_NEEDED` | Pièces complémentaires attendues. |
+| `APPROVED` | Accord préalable accordé. |
+| `REJECTED` | Demande refusée. |
+| `EXPIRED` | Accord expiré sans consommation. |
+| `CANCELLED` | Demande annulée par le prestataire. |
+| `CONSUMED` | Utilisée par un claim approuvé. |
+
+## Réponse
+
+La réponse est paginée et contient un tableau d'objets `PriorAuthorization`. Pour consulter le détail d'une demande, appelez `GET /api/v1/prior-authorizations/{uid}`.
+
+## Exemple de réponse
+
+```json
+{
+  "data": [
+    {
+      "uid": "pa_sandbox_001",
+      "authorization_number": "PA-2025-001234",
+      "status": "approved",
+      "covered_person_type": "policyholder",
+      "covered_person_uid": "mbr_sandbox_001",
+      "subscription_uid": "sub_sandbox_001",
+      "policy_number": "NSIA-POL-2025-001",
+      "provider_uid": "prov_sandbox_001",
+      "insurer_uid": "ins_sandbox_001",
+      "coverage_type_code": "HOSPITALIZATION",
+      "requested_at": "2025-01-15T10:00:00Z",
+      "estimated_amount": 500000,
+      "currency": "XOF",
+      "approved_amount": 450000,
+      "approved_at": "2025-01-16T09:00:00Z",
+      "valid_until": "2025-02-15T23:59:59Z"
+    }
+  ],
+  "meta": {
+    "current_page": 1,
+    "per_page": 20,
+    "total_count": 15,
+    "total_pages": 1
+  }
+}
+```

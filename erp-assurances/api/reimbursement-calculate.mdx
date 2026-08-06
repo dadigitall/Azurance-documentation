@@ -4,3 +4,62 @@ description: "Simule le remboursement attendu pour un acte ou une prestation."
 openapi: "/openapi/insurer-api.openapi.yml POST /api/v1/reimbursement/calculate"
 ---
 
+Cet endpoint simule le remboursement attendu pour un acte ou une prestation, à partir du plan, du type de couverture et du montant facturé. Il ne crée aucun claim ni aucun paiement.
+
+## Scope requis
+
+`insurer.policies.view`
+
+## Champs du body
+
+| Champ | Type | Requis | Description |
+| --- | --- | --- | --- |
+| `plan_id` | string | oui | Identifiant du plan. |
+| `coverage_type` | string | oui | Code de garantie. |
+| `billed_amount` | number | oui | Montant facturé par le prestataire. |
+| `provider_id` | string | non | Identifiant du prestataire, pour appliquer les règles réseau. |
+| `service_date` | string | non | Date de prestation au format `YYYY-MM-DD`. |
+
+## Réponse
+
+| Champ | Type | Description |
+| --- | --- | --- |
+| `eligible` | boolean | Indique si l'acte est éligible au remboursement. |
+| `decision` | string | Décision (`APPROVE`, `REJECT`). |
+| `base_rate` | number | Taux de remboursement de base. |
+| `reimbursement_amount` | number | Montant remboursé estimé. |
+| `copay_amount` | number | Reste à charge estimé pour l'assuré. |
+| `currency` | string | Devise. |
+| `coverage` | object | Détail de la garantie (`coverage_code`, `reimbursement_rate`, `annual_limit`, `annual_used`, `remaining`). |
+
+## Cas d'usage
+
+- Estimer le remboursement avant soumission d'un claim.
+- Informer l'assuré du reste à charge attendu.
+- Comparer la prise en charge entre plusieurs plans.
+
+## Bonnes pratiques
+
+Le résultat est une simulation et ne préjuge pas de la décision finale du claim. Les plafonds restants et l'historique de consommation ne sont pas pris en compte dans cette simulation : pour un calcul réel, utilisez `eligibility-check`.
+
+## Exemple de réponse
+
+```json
+{
+  "data": {
+    "eligible": true,
+    "decision": "APPROVE",
+    "base_rate": 80.00,
+    "reimbursement_amount": 40000.00,
+    "copay_amount": 10000.00,
+    "currency": "XOF",
+    "coverage": {
+      "coverage_code": "CONSULT",
+      "reimbursement_rate": 80.00,
+      "annual_limit": 500000.00,
+      "annual_used": 150000.00,
+      "remaining": 350000.00
+    }
+  }
+}
+```

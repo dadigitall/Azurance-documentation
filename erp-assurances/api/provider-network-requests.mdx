@@ -1,0 +1,91 @@
+---
+title: "Lister les demandes d'adhésion réseau"
+description: "Liste les demandes d'adhésion au réseau reçues par la compagnie d'assurance."
+openapi: "/openapi/insurer-api.openapi.yml GET /api/v1/providers/network-requests"
+---
+
+Cet endpoint liste les demandes `care_network` adressées à la compagnie d'assurance authentifiée. Ces demandes sont initiées côté API prestataire via `POST /api/v1/network/request`.
+
+## Scope requis
+
+`insurer.providers.view`
+
+## Paramètres de requête
+
+| Paramètre | Type | Requis | Description |
+| --- | --- | --- | --- |
+| `status` | string | non | Filtrer par statut (`all`, `pending`, `active`, `rejected`, `ended`). Sans filtre, toutes les demandes sont retournées. |
+
+## Statuts
+
+| Statut | Description |
+| --- | --- |
+| `PENDING` | Demande en attente de décision. |
+| `ACTIVE` | Demande approuvée, relation réseau active. |
+| `REJECTED` | Demande rejetée. |
+| `ENDED` | Relation clôturée. |
+
+## Réponse
+
+La réponse n'est pas paginée : elle contient toutes les relations `care_network` filtrées côté BFF pour l'organisation assureur courante.
+
+| Champ | Type | Description |
+| --- | --- | --- |
+| `data` | array | Liste des demandes/relation réseau. |
+| `data[].relationship_uid` | uuid | Identifiant public de la demande. |
+| `data[].status` | string | Statut public (`PENDING`, `ACTIVE`, `REJECTED`, `ENDED`). |
+| `data[].initiated_by` | string\|null | Origine de la demande (`provider` pour les demandes initiées par un prestataire). |
+| `data[].rejected_reason` | string\|null | Motif de rejet si applicable. |
+| `data[].starts_at` | string\|null | Date de début si définie. |
+| `data[].ends_at` | string\|null | Date de fin si définie. |
+| `data[].metadata` | object | Informations métier transmises par le prestataire. |
+| `data[].provider` | object | Organisation prestataire candidate. |
+| `data[].provider.organization_uid` | uuid | UID de l'organisation prestataire. |
+| `data[].provider.name` | string\|null | Nom légal du prestataire. |
+| `data[].provider.type` | string\|null | Type d'organisation. |
+| `data[].provider.country_code` | string\|null | Pays du prestataire. |
+| `meta.insurer_uid` | string | Identifiant sujet de la clé API assureur. |
+| `meta.insurer_organization_uid` | uuid | UID de l'organisation assureur résolue. |
+| `meta.relationship_count` | integer | Nombre de relations retournées. |
+
+## Cas d'usage
+
+- Afficher une file d'attente des demandes d'adhésion réseau à traiter.
+- Filtrer les demandes `PENDING` avant validation administrative.
+- Suivre les demandes rejetées et les motifs transmis aux prestataires.
+
+## Exemple de réponse
+
+```json
+{
+  "data": [
+    {
+      "relationship_uid": "98000000-0000-4000-8000-000000000021",
+      "status": "PENDING",
+      "initiated_by": "provider",
+      "rejected_reason": null,
+      "starts_at": null,
+      "ends_at": null,
+      "metadata": {
+        "requested_network_tier": "standard",
+        "service_families": [
+          "OUTPATIENT",
+          "PHARMACY"
+        ],
+        "message": "Demande d'adhésion au réseau soins ambulatoires."
+      },
+      "provider": {
+        "organization_uid": "3d2e1a00-0000-4000-8000-000000000077",
+        "name": "Pharmacie du Plateau",
+        "type": "pharmacy",
+        "country_code": "CI"
+      }
+    }
+  ],
+  "meta": {
+    "insurer_uid": "5d000000-0000-4000-8000-000000000010",
+    "insurer_organization_uid": "5d000000-0000-4000-8000-000000000010",
+    "relationship_count": 1
+  }
+}
+```

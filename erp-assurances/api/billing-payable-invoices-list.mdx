@@ -3,3 +3,79 @@ title: "Factures à payer"
 description: "Liste les factures en attente de paiement."
 openapi: "/openapi/insurer-api.openapi.yml GET /api/v1/billing/payable-invoices"
 ---
+
+Cet endpoint liste les factures à payer, c'est-à-dire les factures émises par les prestataires et en attente de règlement par l'assureur.
+
+## Scope requis
+
+`insurer.billing.view`
+
+## Paramètres de requête
+
+| Paramètre | Type | Requis | Description |
+| --- | --- | --- | --- |
+| `page` | integer | non | Numéro de page. Défaut : `1`. |
+| `per_page` | integer | non | Nombre d'éléments par page. Défaut : `20`. |
+
+## Réponse
+
+| Champ | Type | Description |
+| --- | --- | --- |
+| `data` | array | Liste des factures. |
+| `data[].uuid` | string | Identifiant unique de la facture. |
+| `data[].invoice_number` | string | Numéro de facture. |
+| `data[].beneficiary_type` | string | Type de bénéficiaire (`PROVIDER`). |
+| `data[].beneficiary_uuid` | string | Identifiant du prestataire. |
+| `data[].beneficiary_name` | string | Nom du prestataire. |
+| `data[].status` | string | Statut (`ISSUED`, `PAID`, `DISPUTED`). |
+| `data[].total_amount` | number | Montant total. |
+| `data[].paid_amount` | number | Montant réglé. |
+| `data[].remaining_amount` | number | Reste à régler. |
+| `data[].currency` | string | Devise. |
+| `data[].period_start` | string | Début de période. |
+| `data[].period_end` | string | Fin de période. |
+| `data[].issued_at` | string | Date d'émission. |
+| `meta` | object | Métadonnées de pagination (`next_cursor`). |
+
+## Cas d'usage
+
+- Lister les factures à régler pour le back-office comptable.
+- Identifier les factures proches de l'échéance.
+- Préparer un lot de paiements pour validation.
+
+## Bonnes pratiques
+
+Pour le détail d'une facture, utilisez `billing-payable-invoice-get`. Pour consulter les lignes, utilisez `billing-payable-invoice-items`. Pour un suivi incrémental des factures, utilisez `billing-sync`.
+
+## Exemple de réponse
+
+```json
+{
+  "data": [
+    {
+      "uuid": "inv_sandbox_001",
+      "invoice_number": "INV-2026-001",
+      "tenant_id": "tenant_sandbox_001",
+      "beneficiary_type": "PROVIDER",
+      "beneficiary_uuid": "prov_sandbox_001",
+      "beneficiary_name": "Clinique Santé Plus",
+      "provider_uuid": "prov_sandbox_001",
+      "provider_name": "Clinique Santé Plus",
+      "status": "ISSUED",
+      "total_amount": 150000.00,
+      "paid_amount": 0.00,
+      "remaining_amount": 150000.00,
+      "currency": "XOF",
+      "period_start": "2026-01-01",
+      "period_end": "2026-01-31",
+      "issued_at": "2026-02-01T10:00:00.000000Z",
+      "metadata": {},
+      "created_at": "2026-02-01T10:00:00.000000Z",
+      "updated_at": "2026-02-01T10:00:00.000000Z"
+    }
+  ],
+  "meta": {
+    "next_cursor": 42
+  }
+}
+```

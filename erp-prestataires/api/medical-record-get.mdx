@@ -3,3 +3,85 @@ title: "Dossier médical"
 description: "Récupère le dossier médical d'un assuré."
 openapi: "/openapi/provider-api.openapi.yml GET /api/v1/insured/{insuredUid}/medical-record"
 ---
+
+Cet endpoint retourne le dossier médical complet d'un assuré : groupe sanguin, taille, poids, allergies, pathologies chroniques, antécédents chirurgicaux, vaccinations, antécédents familiaux, mode de vie et traitements en cours.
+
+## Scope requis
+
+`clinical.records.view`
+
+Selon le contexte, un consentement fort de l'assuré peut être requis avant la lecture.
+
+## Paramètres de chemin
+
+| Paramètre | Type | Description |
+| --- | --- | --- |
+| `insuredUid` | string | Identifiant de l'assuré. |
+
+## Chiffrement
+
+Les réponses de cet endpoint sont chiffrées via JWE. Récupérez la clé publique RSA via `GET /api/v1/auth/encryption-key` pour déchiffrer la réponse.
+
+## Exemple de réponse
+
+```json
+{
+  "data": {
+    "tenant_id": "tenant_sandbox_001",
+    "insured_uid": "ins_sandbox_abc456",
+    "blood_type": "A+",
+    "height_cm": 175,
+    "weight_kg": 72,
+    "family_history": "Father with type 2 diabetes, mother with hypertension",
+    "lifestyle_notes": "Non-smoker, moderate alcohol consumption, exercises 3x/week",
+    "current_medications": "Metformin 500mg daily, Lisinopril 10mg daily",
+    "allergies": [
+      {
+        "substance": "Penicillin",
+        "reaction": "Anaphylaxis",
+        "severity": "severe"
+      },
+      {
+        "substance": "Peanuts",
+        "reaction": "Hives, itching",
+        "severity": "moderate"
+      }
+    ],
+    "chronic_conditions": [
+      {
+        "condition_name": "Type 2 Diabetes Mellitus",
+        "icd10_code": "E11.9",
+        "diagnosed_at": "2020-03-15",
+        "current_treatment": "Metformin, diet control"
+      },
+      {
+        "condition_name": "Essential Hypertension",
+        "icd10_code": "I10",
+        "diagnosed_at": "2019-07-22",
+        "current_treatment": "Lisinopril, low sodium diet"
+      }
+    ],
+    "surgical_history": [
+      {
+        "procedure_name": "Appendectomy",
+        "performed_at": "2015-08-10",
+        "hospital_name": "Central Hospital",
+        "notes": "Laparoscopic, uncomplicated"
+      }
+    ],
+    "immunizations": [
+      {
+        "vaccine_name": "COVID-19 Pfizer",
+        "administered_at": "2023-09-15",
+        "next_dose_at": "2024-09-15"
+      },
+      {
+        "vaccine_name": "Influenza",
+        "administered_at": "2023-10-20",
+        "next_dose_at": "2024-10-20"
+      }
+    ],
+    "updated_at": "2024-01-15T10:30:00.000000Z"
+  }
+}
+```

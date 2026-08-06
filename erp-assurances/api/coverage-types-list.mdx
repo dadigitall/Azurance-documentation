@@ -4,3 +4,63 @@ description: "Retourne le catalogue des garanties et catégories de soins."
 openapi: "/openapi/insurer-api.openapi.yml GET /api/v1/coverage-types"
 ---
 
+Cet endpoint retourne le catalogue des types de couverture disponibles pour l'assureur. Utilisez-le pour référencer les codes de garantie lors de la création de plans.
+
+## Scope requis
+
+`insurer.policies.view`
+
+## Paramètres de requête
+
+Aucun filtre public n'est transmis par l'API assureur pour cet endpoint. Le contexte tenant est déduit de `X-Api-Key`.
+
+## Réponse
+
+| Champ | Type | Description |
+| --- | --- | --- |
+| `data` | array | Liste des types de couverture. |
+| `data[].uuid` | string | Identifiant du type. |
+| `data[].coverage_code` | string | Code de la garantie. |
+| `data[].coverage_name` | string | Libellé de la garantie. |
+| `data[].description` | string\|null | Description de la garantie. |
+| `data[].category` | string | Catégorie de soins (`OUTPATIENT`, `INPATIENT`, etc.). |
+| `data[].is_active` | boolean | Indique si la garantie est active. |
+
+## Cas d'usage
+
+- Référencer les codes de garantie lors de la création d'un plan.
+- Afficher le catalogue des garanties dans un back-office.
+- Vérifier la catégorie d'un acte avant un contrôle d'éligibilité.
+
+## Bonnes pratiques
+
+Ce catalogue évolue rarement : mettez en cache le résultat. Pour consulter un code précis, utilisez `coverage-types-get`.
+
+## Exemple de réponse
+
+```json
+{
+  "data": [
+    {
+      "uuid": "ctype_sandbox_001",
+      "coverage_code": "CONSULT",
+      "coverage_name": "Consultation générale",
+      "description": "General medical consultation",
+      "category": "OUTPATIENT",
+      "is_active": true,
+      "created_at": "2024-01-01T00:00:00.000Z",
+      "updated_at": "2024-01-01T00:00:00.000Z"
+    },
+    {
+      "uuid": "ctype_sandbox_002",
+      "coverage_code": "PHARMACY",
+      "coverage_name": "Pharmacie",
+      "description": "Prescription medication",
+      "category": "OUTPATIENT",
+      "is_active": true,
+      "created_at": "2024-01-01T00:00:00.000Z",
+      "updated_at": "2024-01-01T00:00:00.000Z"
+    }
+  ]
+}
+```

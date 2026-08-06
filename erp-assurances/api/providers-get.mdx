@@ -4,3 +4,83 @@ description: "Retourne le détail d'un prestataire du réseau."
 openapi: "/openapi/insurer-api.openapi.yml GET /api/v1/providers/{providerId}"
 ---
 
+Cet endpoint retourne le détail complet d'un prestataire : nom, type, coordonnées et statut.
+
+## Scope requis
+
+`insurer.providers.view`
+
+## Paramètres de chemin
+
+| Paramètre | Type | Requis | Description |
+| --- | --- | --- | --- |
+| `providerId` | string | oui | Identifiant du prestataire. |
+
+## Réponse
+
+| Champ | Type | Description |
+| --- | --- | --- |
+| `id` | integer | Identifiant interne du prestataire. |
+| `uuid` | string | Identifiant public du prestataire. |
+| `name` | string | Nom du prestataire. |
+| `type` | string | Type d'établissement (`HOSPITAL`, `CLINIC`, `PHARMACY`, `LABORATORY`). |
+| `status` | string | Statut (`ACTIVE`, `INACTIVE`). |
+| `tier` | string | Niveau de réseau (`IN_NETWORK`, `OUT_OF_NETWORK`). |
+| `accreditation_number` | string | Numéro d'accréditation. |
+| `tax_id` | string | Identifiant fiscal. |
+| `phone` | string | Numéro de téléphone. |
+| `email` | string | Adresse e-mail. |
+| `address` | string | Adresse postale. |
+| `city` | string | Ville. |
+| `country` | string | Pays. |
+| `specialties` | array | Spécialités du prestataire. |
+| `contacts` | array | Contacts du prestataire. |
+| `created_at` | string | Date de création. |
+| `updated_at` | string | Date de dernière mise à jour. |
+
+## Cas d'usage
+
+- Afficher la fiche détaillée d'un prestataire dans un back-office.
+- Récupérer les coordonnées avant un envoi postal.
+- Vérifier le statut avant une opération de conventionnement.
+
+## Bonnes pratiques
+
+Cet endpoint est lecture seule. Pour consulter les spécialités d'un prestataire, utilisez `provider-specialties`. Pour vérifier l'appartenance réseau, utilisez `provider-network-check`.
+
+## Exemple de réponse
+
+```json
+{
+  "id": 1,
+  "uuid": "prov_sandbox_001",
+  "tenant_id": "tenant_sandbox_001",
+  "name": "Clinique Santé Plus",
+  "type": "CLINIC",
+  "status": "ACTIVE",
+  "tier": "IN_NETWORK",
+  "accreditation_number": "ACC-2026-001",
+  "tax_id": "TAX-123456",
+  "phone": "+237 600 000 000",
+  "email": "contact@cliniquesanteplus.cm",
+  "address": "123 Rue de la Santé",
+  "city": "Douala",
+  "country": "CM",
+  "metadata": {},
+  "created_at": "2026-01-01T00:00:00.000000Z",
+  "updated_at": "2026-01-01T00:00:00.000000Z",
+  "specialties": [
+    {
+      "id": 1,
+      "specialty": "Cardiologie",
+      "is_primary": true
+    },
+    {
+      "id": 2,
+      "specialty": "Médecine Générale",
+      "is_primary": false
+    }
+  ],
+  "contacts": []
+}
+```

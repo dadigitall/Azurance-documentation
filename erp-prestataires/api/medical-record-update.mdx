@@ -3,3 +3,171 @@ title: "Mettre à jour le dossier médical"
 description: "Met à jour le dossier médical d'un assuré."
 openapi: "/openapi/provider-api.openapi.yml PUT /api/v1/insured/{insuredUid}/medical-record"
 ---
+
+Cet endpoint met à jour le dossier médical d'un assuré. La mise à jour est un merge partiel : seuls les champs fournis dans le body sont modifiés, les autres sont conservés.
+
+## Scope requis
+
+`clinical.records.manage`
+
+## Paramètres de chemin
+
+| Paramètre | Type | Description |
+| --- | --- | --- |
+| `insuredUid` | string | Identifiant UUID de l'assuré. |
+
+## Champs modifiables
+
+| Champ | Type | Description |
+| --- | --- | --- |
+| `blood_type` | string | Groupe sanguin (`A+`, `A-`, `B+`, `B-`, `AB+`, `AB-`, `O+`, `O-`, `unknown`). |
+| `height_cm` | number | Taille en centimètres. |
+| `weight_kg` | number | Poids en kilogrammes. |
+| `allergies` | array | Allergies connues (voir ci-dessous). |
+| `chronic_conditions` | array | Pathologies chroniques (voir ci-dessous). |
+| `surgical_history` | array | Antécédents chirurgicaux (voir ci-dessous). |
+| `immunizations` | array | Vaccinations (voir ci-dessous). |
+| `family_history` | string | Antécédents familiaux (max 2000). |
+| `lifestyle_notes` | string | Notes sur le mode de vie (max 1000). |
+| `current_medications` | string | Traitements en cours, en texte libre (max 2000). |
+| `updated_by_provider_uid` | string | Identifiant UUID du prestataire auteur de la modification. |
+
+### Allergies
+
+| Champ | Type | Requis | Description |
+| --- | --- | --- | --- |
+| `substance` | string | oui | Substance allergène (max 200). |
+| `reaction` | string | non | Réaction observée (max 500). |
+| `severity` | string | non | Sévérité (`mild`, `moderate`, `severe`, `unknown`). |
+
+### Pathologies chroniques
+
+| Champ | Type | Requis | Description |
+| --- | --- | --- | --- |
+| `condition_name` | string | oui | Nom de la pathologie (max 200). |
+| `icd10_code` | string | non | Code CIM-10 (max 20). |
+| `diagnosed_at` | string | non | Date de diagnostic (max 50). |
+| `current_treatment` | string | non | Traitement actuel (max 300). |
+
+### Antécédents chirurgicaux
+
+| Champ | Type | Requis | Description |
+| --- | --- | --- | --- |
+| `procedure_name` | string | oui | Nom de la procédure (max 300). |
+| `performed_at` | string | non | Date de l'intervention (max 50). |
+| `hospital_name` | string | non | Établissement (max 200). |
+| `notes` | string | non | Notes complémentaires (max 500). |
+
+### Vaccinations
+
+| Champ | Type | Requis | Description |
+| --- | --- | --- | --- |
+| `vaccine_name` | string | oui | Nom du vaccin (max 200). |
+| `administered_at` | string | non | Date d'administration (max 50). |
+| `next_dose_at` | string | non | Date de la prochaine dose (max 50). |
+
+## Chiffrement
+
+Les réponses de cet endpoint sont chiffrées via JWE. Récupérez la clé publique RSA via `GET /api/v1/auth/encryption-key` pour déchiffrer la réponse.
+
+## Exemple de requête
+
+```json
+{
+  "blood_type": "A+",
+  "height_cm": 175,
+  "weight_kg": 73,
+  "allergies": [
+    {
+      "substance": "Pénicilline",
+      "reaction": "Anaphylaxie",
+      "severity": "severe"
+    },
+    {
+      "substance": "Arachides",
+      "reaction": "Urticaire",
+      "severity": "moderate"
+    }
+  ],
+  "chronic_conditions": [
+    {
+      "condition_name": "Diabète type 2",
+      "icd10_code": "E11.9",
+      "diagnosed_at": "2020-03-15",
+      "current_treatment": "Metformine 500mg"
+    }
+  ],
+  "surgical_history": [
+    {
+      "procedure_name": "Appendicectomie",
+      "performed_at": "2015-08-10",
+      "hospital_name": "Centre Hospitalier",
+      "notes": "Cœlioscopie, sans complication"
+    }
+  ],
+  "immunizations": [
+    {
+      "vaccine_name": "COVID-19 Pfizer",
+      "administered_at": "2023-09-15",
+      "next_dose_at": "2024-09-15"
+    }
+  ],
+  "family_history": "Père diabète type 2, mère hypertension",
+  "lifestyle_notes": "Non-fumeur, alcool modéré, activité physique 3x/semaine",
+  "current_medications": "Metformine 500mg, Lisinopril 10mg",
+  "updated_by_provider_uid": "3d2e1a00-0000-4000-8000-000000000077"
+}
+```
+
+## Exemple de réponse
+
+```json
+{
+  "data": {
+    "tenant_id": "01J5X4QZ",
+    "insured_uid": "9a1b2c3d-4e5f-4061-8f2a-1b2c3d4e5f60",
+    "blood_type": "A+",
+    "height_cm": 175,
+    "weight_kg": 73,
+    "family_history": "Père diabète type 2, mère hypertension",
+    "lifestyle_notes": "Non-fumeur, alcool modéré, activité physique 3x/semaine",
+    "current_medications": "Metformine 500mg, Lisinopril 10mg",
+    "allergies": [
+      {
+        "substance": "Pénicilline",
+        "reaction": "Anaphylaxie",
+        "severity": "severe"
+      },
+      {
+        "substance": "Arachides",
+        "reaction": "Urticaire",
+        "severity": "moderate"
+      }
+    ],
+    "chronic_conditions": [
+      {
+        "condition_name": "Diabète type 2",
+        "icd10_code": "E11.9",
+        "diagnosed_at": "2020-03-15",
+        "current_treatment": "Metformine 500mg"
+      }
+    ],
+    "surgical_history": [
+      {
+        "procedure_name": "Appendicectomie",
+        "performed_at": "2015-08-10",
+        "hospital_name": "Centre Hospitalier",
+        "notes": "Cœlioscopie, sans complication"
+      }
+    ],
+    "immunizations": [
+      {
+        "vaccine_name": "COVID-19 Pfizer",
+        "administered_at": "2023-09-15",
+        "next_dose_at": "2024-09-15"
+      }
+    ],
+    "updated_at": "2026-08-15T11:45:00.000000Z"
+  }
+}
+```

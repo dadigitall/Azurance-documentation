@@ -1,5 +1,84 @@
 ---
 title: "Détail d'une notification"
 description: "Récupère le détail d'une notification."
-openapi: "/openapi/insurer-api.openapi.yml GET /api/v1/notifications/{notificationId}"
+openapi: "/openapi/insurer-api.openapi.yml GET /api/v1/notifications/{id}"
 ---
+
+Cet endpoint récupère le détail d'une notification : type, contenu, statut de lecture et date de création.
+
+## Scope requis
+
+`insurer.notifications.view`
+
+## Paramètres de chemin
+
+| Paramètre | Type | Requis | Description |
+| --- | --- | --- | --- |
+| `id` | string | oui | Identifiant de la notification. |
+
+## Réponse
+
+| Champ | Type | Description |
+| --- | --- | --- |
+| `data.id` | integer | Identifiant de la notification. |
+| `data.uid` | string | Identifiant public de la notification. |
+| `data.event_type` | string | Type d'événement (`CLAIM_APPROVED`, `CLAIM_REJECTED`, etc.). |
+| `data.channel` | string | Canal (`EMAIL`, `SMS`, `PUSH`). |
+| `data.status` | string | Statut d'envoi (`SENT`, `DELIVERED`, `FAILED`). |
+| `data.subject` | string | Sujet de la notification. |
+| `data.body` | string | Contenu. |
+| `data.recipient_email` | string | E-mail du destinataire. |
+| `data.recipient_phone` | string | Téléphone du destinataire. |
+| `data.variables` | object | Variables de templating. |
+| `data.provider` | string | Fournisseur d'envoi. |
+| `data.provider_message_id` | string | Identifiant message chez le fournisseur. |
+| `data.sent_at` | string | Date d'envoi. |
+| `data.read_at` | string\|null | Date de lecture, présente si lue. |
+| `data.created_at` | string | Date de création. |
+
+## Cas d'usage
+
+- Afficher le contenu complet d'une notification.
+- Consulter les métadonnées associées à une alerte.
+- Vérifier le statut de lecture avant un marquage.
+
+## Bonnes pratiques
+
+Cet endpoint est lecture seule et ne modifie pas le statut de lecture. Pour marquer comme lue, utilisez `notifications-mark-read`.
+
+## Exemple de réponse
+
+```json
+{
+  "data": {
+    "id": 1,
+    "uid": "notif_sandbox_001",
+    "tenant_id": "tenant_sandbox_001",
+    "request_id": "req_sandbox_001",
+    "recipient_id": "user_sandbox_001",
+    "recipient_email": "user@example.com",
+    "recipient_phone": "+2250707070707",
+    "device_token": null,
+    "event_type": "CLAIM_APPROVED",
+    "channel": "EMAIL",
+    "status": "SENT",
+    "subject": "Your claim has been approved",
+    "body": "Your claim #CLM-001 has been approved.",
+    "variables": {
+      "claim_number": "CLM-001",
+      "amount": 50000
+    },
+    "metadata": {
+      "request_id": "req_sandbox_001"
+    },
+    "provider": "sendgrid",
+    "provider_message_id": "msg_sandbox_001",
+    "error_message": null,
+    "critical": false,
+    "sent_at": "2026-01-15T10:30:00.000Z",
+    "read_at": null,
+    "created_at": "2026-01-15T10:30:00.000Z",
+    "updated_at": "2026-01-15T10:30:00.000Z"
+  }
+}
+```

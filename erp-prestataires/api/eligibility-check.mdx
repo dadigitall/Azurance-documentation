@@ -4,3 +4,57 @@ description: "Pré-vérification ou vérification finale avec calcul des plafond
 openapi: "/openapi/provider-api.openapi.yml POST /api/v1/eligibility/check"
 ---
 
+Cet endpoint effectue un précheck d'éligibilité sans création de claim. Il calcule la couverture applicable, les plafonds restants et renvoie un UUID réutilisable lors de la soumission du claim via `precheck_eligibility_uuid`.
+
+## Scope requis
+
+`eligibility.check`
+
+## Champs du body
+
+| Champ | Type | Requis | Description |
+| --- | --- | --- | --- |
+| `coverage_type_code` | string | oui | Code de garantie visée. |
+| `amount` | number | oui | Montant à vérifier. |
+| `subscription_uid` | uuid | non | Identifiant de la souscription. |
+| `covered_person_type` | string | non | `policyholder` ou `beneficiary`. |
+| `covered_person_uid` | string | non | Identifiant de la personne couverte. |
+| `consent_ref` | uuid | non | Référence de consentement fort. |
+| `service_date` | date | non | Date de la prestation prévue. |
+
+## Cas d'usage
+
+- Vérifier la couverture avant d'enregistrer une prestation ou une pré-autorisation.
+- Obtenir un `precheck_eligibility_uuid` à réutiliser dans `POST /api/v1/claims` pour le check final.
+- Estimer le montant éligible et les plafonds restants avant dispensation.
+
+## Réponse
+
+La réponse `200` contient le résultat d'éligibilité : statut, montant éligible, plafonds restants et UUID du précheck. Une erreur `401` indique une clé absente ou invalide ; `403` un scope insuffisant.
+
+## Exemple de réponse
+
+```json
+{
+  "data": {
+    "eligible": true,
+    "coverage_type_code": "AMBULATORY",
+    "coverage_name": "Soins ambulatoires",
+    "coverage_status": "active",
+    "policy_number": "NSIA-POL-2025-001",
+    "subscription_uid": "sub_sandbox_001",
+    "covered_person_type": "policyholder",
+    "covered_person_uid": "mbr_sandbox_001",
+    "insurer_uid": "ins_sandbox_001",
+    "insurer_name": "NSIA Assurance CI",
+    "amount_eligible": 50000,
+    "amount_remaining": 450000,
+    "currency": "XOF",
+    "purpose": "PRECHECK",
+    "checked_at": "2025-01-15T10:30:00Z",
+    "conditions": [
+      "Préautorisation requise pour montant > 100000 XOF"
+    ]
+  }
+}
+```

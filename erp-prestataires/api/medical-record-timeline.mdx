@@ -3,3 +3,86 @@ title: "Chronologie du dossier médical"
 description: "Récupère la chronologie des événements du dossier médical."
 openapi: "/openapi/provider-api.openapi.yml GET /api/v1/insured/{insuredUid}/medical-record/timeline"
 ---
+
+Cet endpoint retourne la chronologie médicale complète d'un assuré : consultations, ordonnances et actes médicaux, triés par date décroissante. Il est utile pour reconstituer le parcours de soins ou générer un historique pour le patient.
+
+## Scope requis
+
+`clinical.records.view`
+
+## Paramètres
+
+| Paramètre | Type | Requis | Description |
+| --- | --- | --- | --- |
+| `insuredUid` | string | oui | Identifiant de l'assuré (path). |
+| `page` | integer | non | Numéro de page. |
+| `per_page` | integer | non | Résultats par page. |
+
+## Réponse
+
+La réponse contient une liste paginée d'événements médicaux. Chaque événement inclut son type (consultation, ordonnance, acte), sa date, un libellé et un identifiant permettant de récupérer le détail via l'endpoint correspondant.
+
+## Chiffrement
+
+Les réponses de cet endpoint sont chiffrées via JWE. Récupérez la clé publique RSA via `GET /api/v1/auth/encryption-key` pour déchiffrer la réponse.
+
+## Exemple de réponse
+
+```json
+{
+  "data": [
+    {
+      "type": "encounter",
+      "date": "2024-01-10",
+      "encounter_type": "consultation",
+      "provider_uid": "3d2e1a00-0000-4000-8000-000000000077",
+      "tenant_id": "01J5X4QZ",
+      "icd10_codes": ["E11.9", "I10"],
+      "medical_acts_count": 3,
+      "prescriptions_count": 2,
+      "documents_count": 1,
+      "documents": [
+        {
+          "media_uid": "8b7c6d5e-0000-4000-8000-000000000020",
+          "document_type": "discharge_summary",
+          "title": "Compte-rendu de sortie - Janvier 2024",
+          "status": "final",
+          "produced_at": "2024-01-10T14:30:00.000000Z",
+          "produced_by_provider_uid": "3d2e1a00-0000-4000-8000-000000000077",
+          "related_type": "prescription",
+          "related_uid": "8b9c0d1e-0000-4000-8000-000000000051"
+        }
+      ],
+      "uid": "7a8b9c0d-0000-4000-8000-000000000041"
+    },
+    {
+      "type": "encounter",
+      "date": "2023-12-05",
+      "encounter_type": "consultation",
+      "provider_uid": "3d2e1a00-0000-4000-8000-000000000077",
+      "tenant_id": "01J5X4QZ",
+      "icd10_codes": ["E11.9"],
+      "medical_acts_count": 2,
+      "prescriptions_count": 1,
+      "documents_count": 1,
+      "documents": [
+        {
+          "media_uid": "8b7c6d5e-0000-4000-8000-000000000021",
+          "document_type": "lab_result",
+          "title": "Résultats HbA1c",
+          "status": "final",
+          "produced_at": "2023-12-05T16:45:00.000000Z",
+          "produced_by_provider_uid": "3d2e1a00-0000-4000-8000-000000000077",
+          "related_type": "medical_act",
+          "related_uid": "5e6f7a8b-0000-4000-8000-000000000031"
+        }
+      ],
+      "uid": "7a8b9c0d-0000-4000-8000-000000000042"
+    }
+  ],
+  "meta": {
+    "total": 25,
+    "page": 1
+  }
+}
+```

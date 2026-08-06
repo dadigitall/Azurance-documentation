@@ -4,3 +4,75 @@ description: "Met à jour les paramètres d'un plan d'assurance."
 openapi: "/openapi/insurer-api.openapi.yml PUT /api/v1/plans/{planId}"
 ---
 
+Cet endpoint met à jour les paramètres d'un plan d'assurance existant. La mise à jour est globale : envoyez l'ensemble des champs modifiables.
+
+## Scope requis
+
+`insurer.policies.manage`
+
+## Paramètres de chemin
+
+| Paramètre | Type | Requis | Description |
+| --- | --- | --- | --- |
+| `planId` | string | oui | Identifiant du plan. |
+
+## Champs du body
+
+| Champ | Type | Requis | Description |
+| --- | --- | --- | --- |
+| `plan_code` | string | oui | Code du plan. |
+| `plan_name` | string | oui | Nom du plan. |
+| `plan_type` | string | non | Type (`INDIVIDUAL`, `FAMILY`, `GROUP`). |
+| `description` | string | non | Description commerciale. |
+| `base_premium` | number | oui | Prime de référence. |
+| `premium_frequency` | string | non | Fréquence (`MONTHLY`, `QUARTERLY`, `YEARLY`). |
+| `annual_coverage_limit` | number | non | Plafond annuel. |
+| `lifetime_coverage_limit` | number | non | Plafond à vie. |
+| `dependent_age_limit` | integer | non | Âge limite des ayant droit. |
+| `waiting_period_days` | integer | non | Délai de carence en jours. |
+| `grace_period_days` | integer | non | Délai de grâce en jours. |
+| `effective_date` | string | non | Date d'effet au format `YYYY-MM-DD`. |
+| `expiry_date` | string | non | Date d'expiration au format `YYYY-MM-DD`. |
+| `is_active` | boolean | non | Indique si le plan est actif. |
+| `coverages` | array | non | Garanties incluses. |
+| `exclusions` | array | non | Exclusions. |
+
+## Cas d'usage
+
+- Revaloriser la prime d'un plan existant.
+- Ajouter ou retirer une garantie à un plan.
+- Désactiver un plan en fin de commercialisation.
+
+## Bonnes pratiques
+
+La méthode `PUT` remplace l'ensemble des champs modifiables : récupérez d'abord le plan avec `plans-get`, modifiez les champs nécessaires, puis renvoyez l'objet complet. Une modification de prime n'impacte pas les souscriptions existantes.
+
+## Exemple de réponse
+
+```json
+{
+  "data": {
+    "uuid": "plan_sandbox_001",
+    "plan_code": "GOLD",
+    "plan_name": "Gold Plan Updated",
+    "plan_type": "INDIVIDUAL",
+    "description": "Comprehensive coverage for individuals - updated",
+    "base_premium": 55000.00,
+    "premium_frequency": "MONTHLY",
+    "annual_coverage_limit": 1200000.00,
+    "lifetime_coverage_limit": 6000000.00,
+    "dependent_age_limit": 25,
+    "waiting_period_days": 30,
+    "grace_period_days": 15,
+    "cnss_compliant": true,
+    "arch_compatible": true,
+    "cipres_approved": true,
+    "effective_date": "2024-01-01",
+    "expiry_date": null,
+    "is_active": true,
+    "coverages": [],
+    "exclusions": [],
+    "created_at": "2024-01-01T00:00:00.000Z"
+  }
+}
+```

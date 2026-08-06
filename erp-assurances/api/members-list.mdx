@@ -4,3 +4,83 @@ description: "Retourne les membres visibles par la clé API assurance."
 openapi: "/openapi/insurer-api.openapi.yml GET /api/v1/members"
 ---
 
+Cet endpoint retourne la liste paginée des assurés visibles par la clé API. Utilisez-le pour synchroniser votre référentiel ou alimenter un écran de recherche.
+
+## Scope requis
+
+`insurer.members.view`
+
+## Paramètres de requête
+
+| Paramètre | Type | Requis | Description |
+| --- | --- | --- | --- |
+| `page` | integer | non | Numéro de page. Défaut : `1`. |
+| `per_page` | integer | non | Nombre d'éléments par page. Défaut : `20`. |
+| `search` | string | non | Recherche sur le nom, le prénom ou l'identifiant externe. |
+
+## Réponse
+
+| Champ | Type | Description |
+| --- | --- | --- |
+| `data` | array | Liste des membres. |
+| `data[].uuid` | string | Identifiant du membre. |
+| `data[].policy_number` | string | Numéro de police. |
+| `data[].first_name` | string | Prénom. |
+| `data[].last_name` | string | Nom. |
+| `data[].full_name` | string | Nom complet. |
+| `data[].date_of_birth` | string | Date de naissance. |
+| `data[].gender` | string | Sexe. |
+| `data[].status` | string | Statut (`ACTIVE`, `INACTIVE`). |
+| `data[].kyc_status` | string | Statut KYC. |
+| `meta` | object | Métadonnées de pagination. |
+
+## Cas d'usage
+
+- Synchroniser le référentiel assurés vers un SI tiers.
+- Rechercher un assuré par nom avant d'ouvrir sa fiche détaillée.
+- Alimenter un sélecteur d'assuré dans un back-office.
+
+## Bonnes pratiques
+
+Utilisez `per_page` pour limiter le volume transféré. Pour une synchronisation initiale importante, paginez séquentiellement plutôt que d'augmenter `per_page` au-delà des limites recommandées.
+
+## Exemple de réponse
+
+```json
+{
+  "data": [
+    {
+      "uuid": "mbr_sandbox_001",
+      "tenant_id": "tenant_sandbox_001",
+      "policy_number": "POL-001",
+      "identity_uid": "id_sandbox_001",
+      "national_id": "CI1234567890",
+      "cnss_number": "CNSS001",
+      "first_name": "Jean",
+      "last_name": "Kouassi",
+      "full_name": "Jean Kouassi",
+      "date_of_birth": "1985-05-15",
+      "age": 40,
+      "gender": "MALE",
+      "phone_primary": "+2250707070707",
+      "email": "jean.kouassi@example.com",
+      "address": "123 Rue de la République",
+      "city": "Abidjan",
+      "country": "CI",
+      "status": "ACTIVE",
+      "kyc_status": "VERIFIED",
+      "registration_date": "2024-01-15",
+      "metadata": {},
+      "subscriptions": [],
+      "created_at": "2024-01-15T00:00:00.000Z",
+      "updated_at": "2024-01-15T00:00:00.000Z"
+    }
+  ],
+  "meta": {
+    "current_page": 1,
+    "per_page": 20,
+    "total": 980,
+    "last_page": 49
+  }
+}
+```

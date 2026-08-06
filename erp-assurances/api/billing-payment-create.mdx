@@ -3,3 +3,119 @@ title: "Enregistrer un paiement"
 description: "Crée un paiement pour une ou plusieurs factures."
 openapi: "/openapi/insurer-api.openapi.yml POST /api/v1/billing/payments"
 ---
+
+Cet endpoint crée un paiement et peut le répartir sur une ou plusieurs factures via les allocations. La réponse attendue côté billing-service indique un paiement créé en statut `CREATED`; confirmez ensuite le paiement avec `billing-payment-confirm` après exécution du règlement.
+
+## Scope requis
+
+`insurer.billing.manage`
+
+## Champs du body
+
+| Champ | Type | Requis | Description |
+| --- | --- | --- | --- |
+| `idempotency_key` | string | oui | Clé d'idempotence pour éviter les doublons. |
+| `payment_method` | string | oui | Moyen de paiement (`MANUAL`, `MOBILE_MONEY`, `BANK_TRANSFER`, `CHECK`). |
+| `payment_provider` | string | non | Fournisseur de paiement. |
+| `beneficiary_type` | string | oui | Type de bénéficiaire. |
+| `beneficiary_uuid` | string | oui | Identifiant du bénéficiaire. |
+| `beneficiary_name` | string | non | Nom du bénéficiaire. |
+| `amount` | number | oui | Montant total du paiement. |
+| `currency` | string | non | Devise. Défaut courant : `XOF`. |
+| `requested_by` | string | non | Auteur de la demande. |
+| `allocations` | array | non | Répartition sur les factures. Le BFF accepte l'omission, mais le service billing peut appliquer ses propres règles de validation. |
+| `allocations[].payable_invoice_uuid` | string | oui | Identifiant de la facture si une allocation est fournie. |
+| `allocations[].payable_invoice_item_uuid` | string | non | Identifiant de la ligne, si l'allocation cible une ligne précise. |
+| `allocations[].amount` | number | oui | Montant alloué. |
+| `allocations[].metadata` | object | non | Métadonnées de l'allocation. |
+| `metadata` | object | non | Métadonnées libres. |
+
+## Exemple de requête
+
+```json
+{
+  "idempotency_key": "pay-91000000-000000000001-20260804",
+  "payment_method": "BANK_TRANSFER",
+  "payment_provider": "MANUAL",
+  "beneficiary_type": "PROVIDER",
+  "beneficiary_uuid": "3d2e1a00-0000-4000-8000-000000000077",
+  "beneficiary_name": "Clinique Santé Plus",
+  "amount": 150000,
+  "currency": "XOF",
+  "requested_by": "finance-team",
+  "allocations": [
+    {
+      "payable_invoice_uuid": "inv_sandbox_001",
+      "payable_invoice_item_uuid": "item_sandbox_001",
+      "amount": 150000,
+      "metadata": {
+        "batch": "AUG-2026"
+      }
+    }
+  ],
+  "metadata": {
+    "payment_batch": "BATCH-2026-08"
+  }
+}
+```
+
+## Réponse
+
+| Champ | Type | Description |
+| --- | --- | --- |
+| `uuid` | string | Identifiant unique du paiement. |
+| `payment_number` | string | Numéro du paiement. |
+| `beneficiary_type` | string | Type de bénéficiaire. |
+| `beneficiary_uuid` | string | Identifiant du bénéficiaire. |
+| `beneficiary_name` | string | Nom du bénéficiaire. |
+| `payment_method` | string | Moyen de paiement. |
+| `payment_provider` | string | Fournisseur de paiement. |
+| `status` | string | Statut initial (`CREATED`). |
+| `amount` | number | Montant total. |
+| `allocated_amount` | number | Montant alloué. |
+| `currency` | string | Devise. |
+| `requested_by` | string | Auteur de la demande. |
+| `requested_at` | string | Date de demande au format ISO 8601. |
+| `allocations` | array | Répartitions du paiement. |
+| `created_at` | string | Date de création au format ISO 8601. |
+
+## Cas d'usage
+
+- Régler une facture prestataire.
+- Payer plusieurs factures d'un même prestataire en un seul virement.
+- Enregistrer un paiement suite à une validation comptable.
+
+## Bonnes pratiques
+
+Fournissez toujours un `idempotency_key` pour éviter les doublons en cas de retry. Confirmez le paiement avec `billing-payment-confirm` après exécution du virement.
+
+## Exemple de réponse
+
+```json
+{
+  "uuid": "pay_sandbox_001",
+  "payment_number": "PAY-2026-001",
+  "tenant_id": "tenant_sandbox_001",
+  "beneficiary_type": "PROVIDER",
+  "beneficiary_uuid": "prov_sandbox_001",
+  "beneficiary_name": "Clinique Santé Plus",
+  "payment_method": "BANK_TRANSFER",
+  "payment_provider": "MANUAL",
+  "status": "CREATED",
+  "amount": 150000.00,
+  "allocated_amount": 0.00,
+  "currency": "XOF",
+  "external_reference": null,
+  "requested_by": "finance-team",
+  "requested_at": "2026-02-01T10:00:00.000000Z",
+  "processing_at": null,
+  "succeeded_at": null,
+  "failed_at": null,
+  "failure_reason": null,
+  "proof_document_uid": null,
+  "metadata": {},
+  "created_at": "2026-02-01T10:00:00.000000Z",
+  "updated_at": "2026-02-01T10:00:00.000000Z",
+  "allocations": []
+}
+```

@@ -3,3 +3,48 @@ title: "Lignes d'une facture"
 description: "Liste les lignes d'une facture à payer."
 openapi: "/openapi/provider-api.openapi.yml GET /api/v1/payable-invoices/{uuid}/items"
 ---
+
+Cet endpoint liste les lignes d'un bordereau payable : chaque ligne correspond à un claim ou une prestation remboursable rattaché au bordereau. Il est utilisé pour le rapprochement fin entre les prestations effectuées et les remboursements reçus.
+
+## Scope requis
+
+`billing.payable_invoices.view`
+
+## Paramètre de chemin
+
+| Paramètre | Type | Description |
+| --- | --- | --- |
+| `uuid` | uuid | Identifiant du bordereau payable. |
+
+## Réponse
+
+La réponse contient un tableau de lignes avec, pour chacune, la référence du claim, le montant éligible, le taux appliqué et le montant remboursé. Si le bordereau n'existe pas ou n'est pas visible par le prestataire, l'API retourne une erreur `404`.
+
+## Exemple de réponse
+
+```json
+{
+  "data": [
+    {
+      "uid": "inv_item_sandbox_001",
+      "invoice_uid": "inv_sandbox_001",
+      "claim_uid": "claim_sandbox_001",
+      "claim_number": "CLM-2025-001234",
+      "service_execution_uid": "se_sandbox_001",
+      "covered_person_uid": "mbr_sandbox_001",
+      "policy_number": "NSIA-POL-2025-001",
+      "service_date": "2025-01-15",
+      "amount_claimed": 50000,
+      "amount_approved": 45000,
+      "amount_payable": 45000,
+      "currency": "XOF"
+    }
+  ],
+  "meta": {
+    "current_page": 1,
+    "per_page": 50,
+    "total_count": 30,
+    "total_pages": 1
+  }
+}
+```

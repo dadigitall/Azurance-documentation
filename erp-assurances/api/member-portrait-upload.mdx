@@ -4,3 +4,85 @@ description: "Envoie ou remplace la photo de référence d'un assuré."
 openapi: "/openapi/insurer-api.openapi.yml PUT /api/v1/members/{memberId}/portrait"
 ---
 
+Cet endpoint téléverse ou remplace la photo de référence d'un assuré. La photo est d'abord déposée dans media-service, puis activée dans policy-service comme portrait biométrique du membre.
+
+## Scope requis
+
+`insurer.members.manage`
+
+## Paramètres de chemin
+
+| Paramètre | Type | Requis | Description |
+| --- | --- | --- | --- |
+| `memberId` | string | oui | Identifiant du membre. |
+
+## Champs multipart
+
+| Champ | Type | Requis | Description |
+| --- | --- | --- | --- |
+| `file` | binary | oui | Fichier JPEG ou PNG, 1 Mo maximum. Extensions acceptées : `.jpg`, `.jpeg`, `.png`. |
+| `source` | string | oui | Source du portrait (`insurer_contract`, `kyc_refresh`, `member_update`, `other`). |
+| `captured_at` | string | non | Date de capture au format ISO 8601. |
+| `metadata` | object|string | non | Objet JSON ou chaîne JSON valide. Les champs de contexte forcé sont ignorés par le BFF. |
+
+## Contraintes du fichier
+
+| Contrainte | Valeur |
+| --- | --- |
+| Format | `multipart/form-data` |
+| Formats acceptés | JPEG, PNG |
+| Types MIME acceptés | `image/jpeg`, `image/png` |
+| Taille maximale | 1 Mo |
+| Champ du fichier | `file` |
+
+## Exemple de requête multipart
+
+```bash
+curl --request PUT \
+  --url "https://insurer-api-sandbox.elenami.com/api/v1/members/mbr_sandbox_001/portrait" \
+  --header "X-Api-Key: $AZURANCE_INSURER_API_KEY" \
+  --form "file=@portrait.jpg;type=image/jpeg" \
+  --form "source=insurer_contract" \
+  --form "captured_at=2026-01-15T14:30:00Z" \
+  --form 'metadata={"onboarding_batch":"batch-2026-01"}'
+```
+
+## Réponse
+
+| Champ | Type | Description |
+| --- | --- | --- |
+| `data.subject_type` | string | Type de sujet (`MEMBER`). |
+| `data.subject_uuid` | string | Identifiant du membre. |
+| `data.media_uid` | string | Identifiant du média créé. |
+| `data.mime_type` | string | Type MIME de l'image. |
+| `data.source` | string | Source validée du portrait. |
+| `data.captured_at` | string\|null | Date de capture au format ISO 8601. |
+| `data.activated_at` | string | Date d'activation au format ISO 8601. |
+| `data.updated_at` | string | Date de mise à jour au format ISO 8601. |
+
+## Cas d'usage
+
+- Ajouter une photo lors de l'onboarding d'un nouvel assuré.
+- Remplacer une photo devenue obsolète.
+- Compléter un dossier avant une prestation nécessitant une vérification d'identité.
+
+## Bonnes pratiques
+
+Interrogez `member-portrait-status` pour confirmer la disponibilité du portrait après activation. Ne stockez pas l'image côté client : utilisez uniquement le statut et le `media_uid` pour piloter votre interface.
+
+## Exemple de réponse
+
+```json
+{
+  "data": {
+    "subject_type": "MEMBER",
+    "subject_uuid": "mbr_sandbox_001",
+    "media_uid": "media_sandbox_001",
+    "mime_type": "image/jpeg",
+    "source": "insurer_contract",
+    "captured_at": "2026-01-15T14:30:00.000Z",
+    "activated_at": "2026-01-15T14:30:00.000Z",
+    "updated_at": "2026-01-15T14:30:00.000Z"
+  }
+}
+```

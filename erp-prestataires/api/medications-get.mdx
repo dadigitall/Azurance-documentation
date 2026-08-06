@@ -1,5 +1,101 @@
 ---
-title: "Détail d'un médicament"
+title: "Fiche médicament"
 description: "Récupère le détail d'un médicament du référentiel."
 openapi: "/openapi/provider-api.openapi.yml GET /api/v1/reference/medications/{uid}"
 ---
+
+Cet endpoint retourne la fiche complète d'un produit médicament du référentiel pivot Azurance, incluant les présentations et les mappings cliniques (ATC, RxCUI) lorsqu'ils sont disponibles.
+
+## Scope requis
+
+`reference.medications.view`
+
+## Paramètres de chemin
+
+| Paramètre | Type | Description |
+| --- | --- | --- |
+| `uid` | uuid | Identifiant public du produit médicament. |
+
+## Paramètres de requête
+
+| Paramètre | Type | Défaut | Description |
+| --- | --- | --- | --- |
+| `include_presentations` | boolean | `true` | Inclut les présentations (formes, dosages, conditionnements). |
+| `include_mappings` | boolean | `true` | Inclut les mappings cliniques ATC/RxCUI. |
+
+## Champs de réponse (`MedicationProduct`)
+
+| Champ | Type | Description |
+| --- | --- | --- |
+| `uid` | uuid | Identifiant public du produit médicament. |
+| `country_code` | string | Pays du référentiel produit. |
+| `market_status` | string | Statut commercial (`LOCAL_AUTHORIZED`, `CANDIDATE`, `UNVERIFIED`, `WITHDRAWN`, `REJECTED`). |
+| `source` | string | Source d'import (`ABMED_BENIN`, `BDPM_FR`, `MEDICAMENTS_API_FR`, `CSV`). |
+| `source_details` | object | Détails de la source (`code`, `label`, `confidence`). |
+| `designation` | string | Désignation officielle ou importée du produit. |
+| `display_name` | string | Nom d'affichage. |
+| `dci_raw` | string | DCI/substances. |
+| `inn_name` | string | Dénomination commune internationale. |
+| `marketing_authorization_holder` | string | Titulaire de l'AMM. |
+| `origin_country` | string | Pays d'origine. |
+| `public_price` | number | Prix public. |
+| `authorization_number` | string | Numéro AMM. |
+| `authorization_expires_at` | date | Date d'expiration de l'autorisation. |
+| `source_url` | string | URL source. |
+| `is_active` | boolean | Produit actif. |
+| `presentations` | array | Présentations (formes, dosages, conditionnements). |
+| `clinical_mapping` | object | Mapping clinique ATC/RxCUI principal. |
+| `mappings` | array | Mappings cliniques complets. |
+
+## Exemple de réponse
+
+```json
+{
+  "data": {
+    "uid": "60000000-0000-4000-8000-000000000001",
+    "country_code": "BJ",
+    "market_status": "LOCAL_AUTHORIZED",
+    "source": "ABMED_BENIN",
+    "source_details": {
+      "code": "ABMED_BENIN",
+      "label": "ABMed Bénin",
+      "confidence": "official_local"
+    },
+    "designation": "Paracétamol 500mg, comprimé",
+    "display_name": "Paracétamol 500mg, comprimé",
+    "dci_raw": "Paracétamol",
+    "inn_name": "Paracétamol",
+    "marketing_authorization_holder": "PharmaLab BJ",
+    "origin_country": "BJ",
+    "public_price": 500,
+    "authorization_number": "AMM-BJ-2018-0042",
+    "authorization_expires_at": "2028-12-31",
+    "source_url": null,
+    "is_active": true,
+    "presentations": [
+      {
+        "form": "comprimé",
+        "dosage": "500mg",
+        "packaging": "boîte de 16"
+      }
+    ],
+    "clinical_mapping": {
+      "atc_code": "N02BE01",
+      "atc_label": "Paracétamol",
+      "rxcui": "161"
+    },
+    "mappings": [
+      {
+        "system": "ATC",
+        "code": "N02BE01",
+        "label": "Paracétamol"
+      },
+      {
+        "system": "RxCUI",
+        "code": "161",
+        "label": "Acetaminophen"
+      }
+    ]
+  }
+}
+```

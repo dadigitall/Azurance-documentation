@@ -4,3 +4,45 @@ description: "Valide X-Api-Key et retourne le contexte prestataire."
 openapi: "/openapi/provider-api.openapi.yml GET /api/v1/auth/verify"
 ---
 
+Cet endpoint valide la clé API prestataire (`X-Api-Key`) et retourne le contexte autorisé : environnement, organisation, sujet partenaire et scopes effectifs. Il ne nécessite pas de scope métier spécifique et ne renvoie jamais la clé brute.
+
+## Scope requis
+
+Aucun scope métier : une clé API valide suffit.
+
+## Cas d'usage
+
+- Vérifier qu'une clé est active avant un batch d'intégration.
+- Récupérer la liste des scopes effectifs pour adapter le comportement de l'ERP.
+- Distinguer une clé sandbox d'une clé de production.
+- Diagnostiquer une erreur `403` en contrôlant les scopes réellement accordés.
+
+## Réponse
+
+La réponse contient le contexte partenaire : environnement (`sandbox` ou `production`), identifiants d'organisation, sujet partenaire et tableau des scopes. Si la clé est absente ou invalide, l'API retourne une erreur `401`.
+
+## Bonnes pratiques
+
+Appelez cet endpoint au démarrage de l'intégration ERP pour valider la configuration, puis à chaque rotation de clé. N'utilisez pas cet endpoint depuis un frontend ou une application mobile : la clé API ne doit jamais être exposée côté client.
+
+## Exemple de réponse
+
+```json
+{
+  "valid": true,
+  "environment": "sandbox",
+  "tenant_uid": "tenant_sandbox_001",
+  "tenant_slug": "provider-sandbox",
+  "tenant_name": "Sandbox Provider",
+  "subject_type": "provider",
+  "subject_uid": "prov_sandbox_001",
+  "subject_name": "Clinique Santé Plus",
+  "scopes": [
+    "covered_persons.resolve",
+    "consent_requests.create",
+    "eligibility.check",
+    "claims.create",
+    "claims.view"
+  ]
+}
+```

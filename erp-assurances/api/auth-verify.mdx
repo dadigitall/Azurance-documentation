@@ -4,3 +4,58 @@ description: "Valide X-Api-Key et retourne le contexte assureur."
 openapi: "/openapi/insurer-api.openapi.yml GET /api/v1/auth/verify"
 ---
 
+Cet endpoint valide la clé API envoyée dans le header `X-Api-Key` et retourne le contexte d'authentification de l'assureur. Il est utile pour vérifier qu'une clé est active et inspecter les scopes qu'elle accorde.
+
+## Scope requis
+
+Aucun scope métier : une clé API valide de type `INSURER` suffit.
+
+## Paramètres
+
+Aucun paramètre de requête ni de body. La clé est transmise via le header `X-Api-Key`.
+
+## Réponse
+
+| Champ | Type | Description |
+| --- | --- | --- |
+| `valid` | boolean | Indique si la clé est valide. |
+| `environment` | string | Environnement (`sandbox` ou `production`). |
+| `tenant_uid` | string | Identifiant du tenant assureur. |
+| `tenant_slug` | string | Slug du tenant. |
+| `tenant_name` | string | Nom du tenant. |
+| `subject_type` | string | Type de sujet (`INSURER`). |
+| `subject_uid` | string | Identifiant technique du porteur de clé. |
+| `subject_name` | string | Nom du porteur de clé. |
+| `scopes` | array | Liste des scopes accordés à la clé. |
+
+## Cas d'usage
+
+- Vérifier qu'une clé sandbox ou production est valide avant une intégration.
+- Diagnostiquer un problème de permissions en listant les scopes effectifs.
+- Contrôler la date d'expiration d'une clé pour planifier son renouvellement.
+
+## Bonnes pratiques
+
+Appelez cet endpoint au démarrage de vos scripts d'intégration pour échouer rapidement en cas de clé invalide. Ne l'appelez pas à chaque requête : le résultat change rarement et cela consomme du quota inutilement.
+
+## Exemple de réponse
+
+```json
+{
+  "valid": true,
+  "environment": "sandbox",
+  "tenant_uid": "tenant_sandbox_001",
+  "tenant_slug": "azurance-sandbox",
+  "tenant_name": "Azurance Sandbox",
+  "subject_type": "INSURER",
+  "subject_uid": "insurer_sandbox_001",
+  "subject_name": "Test Insurance Company",
+  "scopes": [
+    "insurer.claims.view",
+    "insurer.claims.manage",
+    "insurer.members.view",
+    "insurer.members.manage",
+    "insurer.analytics.view"
+  ]
+}
+```

@@ -3,3 +3,78 @@ title: "Lignes d'une facture"
 description: "Liste les lignes d'une facture à payer."
 openapi: "/openapi/insurer-api.openapi.yml GET /api/v1/billing/payable-invoices/{uuid}/items"
 ---
+
+Cet endpoint liste les lignes d'une facture à payer. Chaque ligne correspond à un acte ou une prestation facturée par le prestataire.
+
+## Scope requis
+
+`insurer.billing.view`
+
+## Paramètres de chemin
+
+| Paramètre | Type | Requis | Description |
+| --- | --- | --- | --- |
+| `uuid` | string | oui | Identifiant unique de la facture. |
+
+## Réponse
+
+| Champ | Type | Description |
+| --- | --- | --- |
+| `data` | array | Liste des lignes. |
+| `data[].uuid` | string | Identifiant de la ligne. |
+| `data[].payable_invoice_uuid` | string | Identifiant de la facture rattachée. |
+| `data[].claim_uuid` | string | Identifiant du claim associé. |
+| `data[].claim_number` | string | Numéro du claim. |
+| `data[].provider_invoice_ref` | string | Référence facture prestataire. |
+| `data[].provider_invoice_line_ref` | string | Référence ligne prestataire. |
+| `data[].provider_patient_ref` | string | Référence patient prestataire. |
+| `data[].service_date` | string | Date de prestation. |
+| `data[].status` | string | Statut de la ligne (`ISSUED`). |
+| `data[].approved_amount` | number | Montant approuvé. |
+| `data[].paid_amount` | number | Montant réglé. |
+| `data[].remaining_amount` | number | Reste à régler. |
+| `data[].currency` | string | Devise. |
+| `meta` | object | Métadonnées de pagination. |
+
+## Cas d'usage
+
+- Vérifier le détail des actes avant de valider un paiement.
+- Contrôler la cohérence entre lignes et claims associés.
+- Préparer une contestation sur une ligne incorrecte.
+
+## Bonnes pratiques
+
+Le total des lignes doit correspondre au montant de la facture. En cas d'écart, ouvrez un litige plutôt que de payer un montant incohérent. Pour le détail de la facture, utilisez `billing-payable-invoice-get`.
+
+## Exemple de réponse
+
+```json
+{
+  "data": [
+    {
+      "uuid": "item_sandbox_001",
+      "payable_invoice_uuid": "inv_sandbox_001",
+      "tenant_id": "tenant_sandbox_001",
+      "claim_uuid": "claim_sandbox_001",
+      "claim_number": "CLM-2026-001",
+      "provider_invoice_ref": "FAC-001",
+      "provider_invoice_line_ref": "LIG-001",
+      "provider_patient_ref": "PAT-001",
+      "service_date": "2026-01-15",
+      "status": "ISSUED",
+      "approved_amount": 150000.00,
+      "paid_amount": 0.00,
+      "remaining_amount": 150000.00,
+      "currency": "XOF",
+      "metadata": {},
+      "created_at": "2026-02-01T10:00:00.000000Z",
+      "updated_at": "2026-02-01T10:00:00.000000Z"
+    }
+  ],
+  "meta": {
+    "current_page": 1,
+    "per_page": 100,
+    "total": 1
+  }
+}
+```

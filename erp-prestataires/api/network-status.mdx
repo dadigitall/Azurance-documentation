@@ -4,3 +4,39 @@ description: "Retourne le statut réseau global du prestataire authentifié."
 openapi: "/openapi/provider-api.openapi.yml GET /api/v1/network/status"
 ---
 
+Cet endpoint retourne le statut réseau global du prestataire authentifié via `X-Api-Key`. Il indique si le prestataire est actif, son niveau de réseau (`PREFERRED`, `IN_NETWORK`, `OUT_OF_NETWORK`) et les relations actives avec les assureurs.
+
+## Scope requis
+
+`providers.network.view`
+
+## Cas d'usage
+
+- Vérifier au démarrage de l'ERP que la clé API est valide et le prestataire actif.
+- Afficher le statut de conventionnement dans l'interface prestataire.
+- Détecter un changement de statut réseau avant d'initier un parcours de soins.
+
+## Réponse
+
+La réponse contient le statut réseau, le niveau de conventionnement et un résumé des relations actives. Aucun paramètre de requête n'est requis : le contexte est déduit de la clé API.
+
+## Exemple de réponse
+
+```json
+{
+  "data": {
+    "provider_uid": "prov_sandbox_001",
+    "network_active": true,
+    "relationship_count": 3,
+    "active_relationships": 3,
+    "insurers": [
+      {
+        "insurer_uid": "ins_sandbox_001",
+        "insurer_name": "NSIA Assurance CI",
+        "status": "active",
+        "claim_submission_enabled": true
+      }
+    ]
+  }
+}
+```

@@ -1,12 +1,60 @@
 ---
 title: "Vérifier une demande de consentement"
 description: "Valide le challenge et retourne le consentement traçable."
-openapi: "/openapi/provider-api.openapi.yml POST /api/v1/consent-requests/{consentRequestUid}/verify"
+openapi: "/openapi/provider-api.openapi.yml POST /api/v1/consent-requests/{uid}/verify"
 ---
+
+## Scope requis
+
+`consent_requests.verify`
 
 Cet endpoint finalise une demande déjà créée.
 
 - Pour `sms`, `email`, `whatsapp` ou `totp`, envoyez `method` et `code`.
 - Pour `face_match`, envoyez `method: "face_match"` et `face_match_session_id` lorsque la session biométrique est terminée.
 
-La réponse retourne un `consent_ref` court et expirant. Il est lié au prestataire, à la personne couverte, à la souscription, au motif, aux scopes et au niveau d'assurance atteint.
+La réponse retourne un `consent_ref` (UUID) lié au prestataire, à la personne couverte, à la souscription, au motif, aux scopes et au niveau d'assurance atteint. Le `consent_snapshot` contient l'horodatage, le mode de validation et les métadonnées Face Match (si applicable).
+
+## Exemple de requête
+
+```json
+{
+  "method": "sms",
+  "code": "123456"
+}
+```
+
+## Exemple de réponse
+
+```json
+{
+  "data": {
+    "consent_ref": "d4e5f6a7-0000-4000-8000-0000000000c1",
+    "assurance_level": 2,
+    "scopes": [
+      "claims.create",
+      "eligibility.check"
+    ],
+    "expires_at": "2026-08-15T11:32:00.000000Z",
+    "consent_snapshot": {
+      "consent_ref": "d4e5f6a7-0000-4000-8000-0000000000c1",
+      "consent_request_uid": "c0d1e2f3-0000-4000-8000-0000000000a1",
+      "method": "sms",
+      "assurance_level": 2,
+      "scopes": [
+        "claims.create",
+        "eligibility.check"
+      ],
+      "validated_by_type": "self",
+      "validator_user_uid": "user_001",
+      "face_match_session_uid": null,
+      "liveness_required": false,
+      "liveness_performed": false,
+      "face_match_score": null,
+      "face_match_provider_status": null,
+      "granted_at": "2026-08-15T10:32:00.000000Z",
+      "expires_at": "2026-08-15T11:32:00.000000Z"
+    }
+  }
+}
+```

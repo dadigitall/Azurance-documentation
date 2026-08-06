@@ -4,3 +4,107 @@ description: "Retourne le détail d'un membre du portefeuille."
 openapi: "/openapi/insurer-api.openapi.yml GET /api/v1/members/{memberId}"
 ---
 
+Cet endpoint retourne le détail complet d'un assuré : informations administratives, coordonnées et statut.
+
+## Scope requis
+
+`insurer.members.view`
+
+## Paramètres de chemin
+
+| Paramètre | Type | Requis | Description |
+| --- | --- | --- | --- |
+| `memberId` | string | oui | Identifiant du membre. |
+
+## Réponse
+
+| Champ | Type | Description |
+| --- | --- | --- |
+| `uuid` | string | Identifiant du membre. |
+| `policy_number` | string | Numéro de police. |
+| `identity_uid` | string | Identifiant d'identité. |
+| `national_id` | string | Identifiant national. |
+| `first_name` | string | Prénom. |
+| `last_name` | string | Nom. |
+| `full_name` | string | Nom complet. |
+| `date_of_birth` | string | Date de naissance. |
+| `gender` | string | Sexe. |
+| `phone_primary` | string | Téléphone principal. |
+| `email` | string | Adresse e-mail. |
+| `address` | string | Adresse postale. |
+| `city` | string | Ville. |
+| `country` | string | Pays. |
+| `status` | string | Statut (`ACTIVE`, `INACTIVE`). |
+| `kyc_status` | string | Statut KYC. |
+| `subscriptions` | array | Souscriptions rattachées. |
+| `created_at` | string | Date de création. |
+| `updated_at` | string | Date de dernière mise à jour. |
+
+## Cas d'usage
+
+- Afficher la fiche détaillée d'un assuré dans un back-office.
+- Récupérer les coordonnées avant un envoi postal.
+- Vérifier le statut avant une opération de souscription.
+
+## Bonnes pratiques
+
+Cet endpoint expose des données personnelles : ne journalisez pas la réponse complète. Préférez stocker l'identifiant et ne récupérer le détail qu'à l'affichage.
+
+## Exemple de réponse
+
+```json
+{
+  "data": {
+    "uuid": "mbr_sandbox_001",
+    "tenant_id": "tenant_sandbox_001",
+    "policy_number": "POL-001",
+    "identity_uid": "id_sandbox_001",
+    "national_id": "CI1234567890",
+    "cnss_number": "CNSS001",
+    "first_name": "Jean",
+    "last_name": "Kouassi",
+    "full_name": "Jean Kouassi",
+    "date_of_birth": "1985-05-15",
+    "age": 40,
+    "gender": "MALE",
+    "phone_primary": "+2250707070707",
+    "email": "jean.kouassi@example.com",
+    "address": "123 Rue de la République",
+    "city": "Abidjan",
+    "country": "CI",
+    "status": "ACTIVE",
+    "kyc_status": "VERIFIED",
+    "registration_date": "2024-01-15",
+    "metadata": {},
+    "subscriptions": [
+      {
+        "uuid": "sub_sandbox_001",
+        "tenant_id": "tenant_sandbox_001",
+        "policyholder_uuid": "mbr_sandbox_001",
+        "subscription_number": "SUB-001",
+        "plan_code": "GOLD",
+        "plan_name": "Gold Plan",
+        "status": "ACTIVE",
+        "effective_date": "2024-01-15",
+        "expiry_date": "2025-01-15",
+        "premium_amount": 50000.00,
+        "premium_frequency": "MONTHLY",
+        "annual_coverage_limit": 1000000.00,
+        "annual_used_amount": 250000.00,
+        "remaining_coverage": 750000.00,
+        "lifetime_used_amount": 500000.00,
+        "last_premium_payment_date": "2026-01-01",
+        "renewed_from_uuid": null,
+        "metadata": {},
+        "policyholder": null,
+        "beneficiaries": [],
+        "status_histories": [],
+        "created_at": "2024-01-15T00:00:00.000Z",
+        "updated_at": "2026-01-15T00:00:00.000Z"
+      }
+    ],
+    "created_at": "2024-01-15T00:00:00.000Z",
+    "updated_at": "2026-01-15T00:00:00.000Z"
+  }
+}
+```

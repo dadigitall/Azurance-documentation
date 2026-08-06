@@ -3,3 +3,67 @@ title: "Taux de sinistralité"
 description: "Taux de sinistralité par plan d'assurance."
 openapi: "/openapi/insurer-api.openapi.yml GET /api/v1/analytics/loss-ratio"
 ---
+
+Cet endpoint calcule le taux de sinistralité (ratio sinistres sur primes) par plan d'assurance sur la période demandée.
+
+## Scope requis
+
+`insurer.analytics.view`
+
+## Paramètres de requête
+
+| Paramètre | Type | Requis | Description |
+| --- | --- | --- | --- |
+| `period` | string | non | Code de période (`month`, `quarter`, `year`). Défaut : `year`. |
+| `from` | string | non | Date de début au format `YYYY-MM-DD`. |
+| `to` | string | non | Date de fin au format `YYYY-MM-DD`. |
+| `plan_id` | string | non | Identifiant du plan à isoler. |
+
+## Indicateurs retournés
+
+| Champ | Type | Description |
+| --- | --- | --- |
+| `period_start` | string | Date de début de la période. |
+| `period_end` | string | Date de fin de la période. |
+| `total_premiums` | number | Primes acquises sur la période. |
+| `total_claims_paid` | number | Sinistres payés sur la période. |
+| `loss_ratio` | number | Taux de sinistralité global. |
+| `by_plan` | array | Détail par plan (`plan_code`, `premiums`, `claims_paid`, `loss_ratio`). |
+
+## Cas d'usage
+
+- Détecter les plans déficitaires nécessitant une revalorisation tarifaire.
+- Comparer la sinistralité entre plans à périmètre comparable.
+- Préparer les dossiers de tarification pour les instances régulateurs.
+
+## Bonnes pratiques
+
+Un taux de sinistralité se calcule sur des primes acquises et des sinistres encourus : ne comparez pas ces valeurs avec les indicateurs de `analytics-portfolio-summary` qui reposent sur des primes encaissées. Utilisez une période annuelle pour lisser la saisonnalité.
+
+## Exemple de réponse
+
+```json
+{
+  "data": {
+    "period_start": "2026-01-01",
+    "period_end": "2026-01-31",
+    "total_premiums": 58500000.00,
+    "total_claims_paid": 98000000.00,
+    "loss_ratio": 1.68,
+    "by_plan": [
+      {
+        "plan_code": "GOLD",
+        "premiums": 27000000.00,
+        "claims_paid": 52000000.00,
+        "loss_ratio": 1.93
+      },
+      {
+        "plan_code": "SILVER",
+        "premiums": 26000000.00,
+        "claims_paid": 38000000.00,
+        "loss_ratio": 1.46
+      }
+    ]
+  }
+}
+```

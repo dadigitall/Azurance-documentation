@@ -1,6 +1,103 @@
 ---
 title: "Consulter un plan"
-description: "Retourne le détail d'un plan d'assurance."
+description: "Retourne le détail d'un plan d'assurance par son code métier."
 openapi: "/openapi/insurer-api.openapi.yml GET /api/v1/plans/{planId}"
 ---
 
+Cet endpoint retourne le détail complet d'un plan d'assurance. Côté BFF, le paramètre de chemin est transmis comme `code` au policy-service : utilisez donc le `plan_code` du plan, par exemple `GOLD` ou `PLAN_ESSENTIAL`.
+
+## Scope requis
+
+`insurer.policies.view`
+
+## Paramètres de chemin
+
+| Paramètre | Type | Requis | Description |
+| --- | --- | --- | --- |
+| `planId` | string | oui | Code métier du plan (`plan_code`). Le nom du paramètre reste `planId` dans l'OpenAPI pour partager le même path item que `PUT` et `DELETE`, mais le GET attend un code. |
+
+## Réponse
+
+| Champ | Type | Description |
+| --- | --- | --- |
+| `data.uuid` | string | Identifiant du plan. |
+| `data.plan_code` | string | Code métier du plan. |
+| `data.plan_name` | string | Nom du plan. |
+| `data.plan_type` | string | Type du plan. |
+| `data.description` | string | Description commerciale. |
+| `data.base_premium` | number | Prime de référence. |
+| `data.premium_frequency` | string | Fréquence de prime. |
+| `data.annual_coverage_limit` | number | Plafond annuel. |
+| `data.lifetime_coverage_limit` | number | Plafond à vie. |
+| `data.dependent_age_limit` | integer | Âge limite des ayant droit. |
+| `data.waiting_period_days` | integer | Délai de carence en jours. |
+| `data.grace_period_days` | integer | Délai de grâce en jours. |
+| `data.effective_date` | string | Date d'effet. |
+| `data.expiry_date` | string\|null | Date d'expiration. |
+| `data.is_active` | boolean | Indique si le plan est actif. |
+| `data.coverages` | array | Garanties incluses. |
+| `data.exclusions` | array | Exclusions. |
+| `data.created_at` | string | Date de création. |
+
+## Cas d'usage
+
+- Afficher le détail d'un plan dans un back-office.
+- Vérifier les plafonds avant un contrôle d'éligibilité.
+- Consulter les garanties incluses lors d'une souscription.
+
+## Bonnes pratiques
+
+Pour récupérer un plan, passez son `plan_code`. Pour modifier ou supprimer un plan, utilisez `plans-update` ou `plans-delete` avec l'identifiant attendu par ces opérations.
+
+## Exemple de réponse
+
+```json
+{
+  "data": {
+    "uuid": "plan_sandbox_001",
+    "plan_code": "GOLD",
+    "plan_name": "Gold Plan",
+    "plan_type": "INDIVIDUAL",
+    "description": "Comprehensive coverage for individuals",
+    "base_premium": 50000.00,
+    "premium_frequency": "MONTHLY",
+    "annual_coverage_limit": 1000000.00,
+    "lifetime_coverage_limit": 5000000.00,
+    "dependent_age_limit": 25,
+    "waiting_period_days": 30,
+    "grace_period_days": 15,
+    "cnss_compliant": true,
+    "arch_compatible": true,
+    "cipres_approved": true,
+    "effective_date": "2024-01-01",
+    "expiry_date": null,
+    "is_active": true,
+    "coverages": [
+      {
+        "uuid": "cov_sandbox_001",
+        "coverage_type": {
+          "uuid": "ctype_sandbox_001",
+          "coverage_code": "CONSULT",
+          "coverage_name": "Consultation générale",
+          "description": "General medical consultation",
+          "category": "OUTPATIENT"
+        },
+        "reimbursement_rate": 80.00,
+        "copayment_percentage": 20.00,
+        "copayment_fixed_amount": null,
+        "annual_limit": 500000.00,
+        "per_incident_limit": 50000.00,
+        "max_sessions_per_year": 20,
+        "prior_authorization_required": false,
+        "network_restriction": "PREFERRED",
+        "reference_tariff_type": "CNAM",
+        "effective_date": "2024-01-01",
+        "expiry_date": null,
+        "is_active": true
+      }
+    ],
+    "exclusions": [],
+    "created_at": "2024-01-01T00:00:00.000Z"
+  }
+}
+```

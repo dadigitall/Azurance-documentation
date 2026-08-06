@@ -1,0 +1,96 @@
+---
+title: "Demander une adhésion réseau"
+description: "Initie une demande d'adhésion au réseau d'une compagnie d'assurance."
+openapi: "/openapi/provider-api.openapi.yml POST /api/v1/network/request"
+---
+
+Cet endpoint crée une demande d'adhésion au réseau d'un assureur. La demande est créée en statut `pending` dans le registre réseau, avec l'assureur comme propriétaire du réseau (`source_uid`) et l'organisation du prestataire authentifié comme cible (`target_uid`).
+
+## Scope requis
+
+`providers.network.manage`
+
+## Workflow
+
+1. Listez les assureurs disponibles via `GET /api/v1/network/insurers`.
+2. Sélectionnez l'assureur cible et récupérez son `uid`.
+3. Appelez cet endpoint avec `insurer_org_uid` et les métadonnées utiles.
+4. L'assureur traite la demande via son API (`GET /api/v1/providers/network-requests`, puis approve/reject).
+5. Suivez le statut côté prestataire via `GET /api/v1/network/relationships`.
+
+## Champs du body
+
+| Champ | Type | Requis | Description |
+| --- | --- | --- | --- |
+| `insurer_org_uid` | uuid | oui | UID de l'organisation assureur retourné par `GET /api/v1/network/insurers`. |
+| `metadata` | object | non | Informations métier libres transmises à l'assureur (niveau demandé, familles de soins, message, pièces administratives déjà déposées, etc.). |
+
+## Réponse
+
+La réponse `201` retourne la relation `care_network` créée en statut `pending`. Une erreur `409` indique qu'une demande en attente ou une relation active existe déjà entre ces deux organisations.
+
+| Champ | Type | Description |
+| --- | --- | --- |
+| `data.uid` | uuid | Identifiant public de la demande/relation réseau. |
+| `data.source_uid` | uuid | UID de l'organisation assureur propriétaire du réseau. |
+| `data.target_uid` | uuid | UID de l'organisation prestataire candidate. |
+| `data.type` | string | Type de relation (`care_network`). |
+| `data.status` | string | Statut interne de la demande (`pending`). |
+| `data.initiated_by` | string | Origine de la demande (`provider`). |
+| `data.rejected_reason` | string\|null | Motif de rejet, null à la création. |
+| `data.starts_at` | string\|null | Date de début si définie. |
+| `data.ends_at` | string\|null | Date de fin si définie. |
+| `data.metadata` | object | Métadonnées envoyées avec la demande. |
+| `data.created_at` | date-time | Date de création. |
+| `data.updated_at` | date-time | Date de dernière mise à jour. |
+
+## Exemple de requête
+
+```json
+{
+  "insurer_org_uid": "5d000000-0000-4000-8000-000000000010",
+  "metadata": {
+    "requested_network_tier": "standard",
+    "service_families": [
+      "OUTPATIENT",
+      "PHARMACY"
+    ],
+    "message": "Demande d'adhésion au réseau soins ambulatoires."
+  }
+}
+```
+
+## Exemple de réponse
+
+```json
+{
+  "data": {
+    "uid": "98000000-0000-4000-8000-000000000021",
+    "source_uid": "5d000000-0000-4000-8000-000000000010",
+    "target_uid": "3d2e1a00-0000-4000-8000-000000000077",
+    "type": "care_network",
+    "status": "pending",
+    "initiated_by": "provider",
+    "rejected_reason": null,
+    "starts_at": null,
+    "ends_at": null,
+    "metadata": {
+      "requested_network_tier": "standard",
+      "service_families": [
+        "OUTPATIENT",
+        "PHARMACY"
+      ],
+      "message": "Demande d'adhésion au réseau soins ambulatoires."
+    },
+    "created_at": "2026-08-06T15:30:00Z",
+    "updated_at": "2026-08-06T15:30:00Z"
+  }
+}
+```
+
+## Erreurs fréquentes
+
+| Statut | Cause |
+| --- | --- |
+| `404` | Aucune organisation prestataire correspondante n'a été trouvée dans le registre réseau. |
+| `409` | Une relation `pending` ou `active` existe déjà entre le prestataire et cet assureur. |

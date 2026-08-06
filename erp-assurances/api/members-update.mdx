@@ -4,3 +4,73 @@ description: "Met à jour les informations d'un membre."
 openapi: "/openapi/insurer-api.openapi.yml PUT /api/v1/members/{memberId}"
 ---
 
+Cet endpoint met à jour les informations administratives et de contact d'un assuré existant. La mise à jour est globale : envoyez l'ensemble des champs modifiables.
+
+## Scope requis
+
+`insurer.members.manage`
+
+## Paramètres de chemin
+
+| Paramètre | Type | Requis | Description |
+| --- | --- | --- | --- |
+| `memberId` | string | oui | Identifiant du membre. |
+
+## Champs du body
+
+| Champ | Type | Requis | Description |
+| --- | --- | --- | --- |
+| `first_name` | string | oui | Prénom. |
+| `last_name` | string | oui | Nom. |
+| `date_of_birth` | string | oui | Date de naissance au format `YYYY-MM-DD`. |
+| `gender` | string | non | Sexe (`MALE`, `FEMALE`, `OTHER`). |
+| `email` | string | non | Adresse e-mail. |
+| `phone_primary` | string | non | Numéro de téléphone principal. |
+| `national_id` | string | non | Identifiant national. |
+| `address` | string | non | Adresse postale. |
+| `city` | string | non | Ville. |
+| `country` | string | non | Pays. |
+| `status` | string | non | Statut (`ACTIVE`, `INACTIVE`). |
+
+## Cas d'usage
+
+- Corriger une erreur de saisie lors de la création.
+- Mettre à jour les coordonnées après un déménagement.
+- Désactiver un assuré en passant le statut à `inactive`.
+
+## Bonnes pratiques
+
+La méthode `PUT` remplace l'ensemble des champs modifiables : récupérez d'abord le membre avec `members-get`, modifiez les champs nécessaires, puis renvoyez l'objet complet pour éviter d'écraser des valeurs par omission.
+
+## Exemple de réponse
+
+```json
+{
+  "data": {
+    "uuid": "mbr_sandbox_001",
+    "tenant_id": "tenant_sandbox_001",
+    "policy_number": "POL-001",
+    "identity_uid": "id_sandbox_001",
+    "national_id": "CI1234567890",
+    "cnss_number": "CNSS001",
+    "first_name": "Jean",
+    "last_name": "Kouassi",
+    "full_name": "Jean Kouassi",
+    "date_of_birth": "1985-05-15",
+    "age": 40,
+    "gender": "MALE",
+    "phone_primary": "+2250909090909",
+    "email": "jean.kouassi.new@example.com",
+    "address": "789 Nouvelle Adresse",
+    "city": "Abidjan",
+    "country": "CI",
+    "status": "ACTIVE",
+    "kyc_status": "VERIFIED",
+    "registration_date": "2024-01-15",
+    "metadata": {},
+    "subscriptions": [],
+    "created_at": "2024-01-15T00:00:00.000Z",
+    "updated_at": "2026-01-15T14:30:00.000Z"
+  }
+}
+```

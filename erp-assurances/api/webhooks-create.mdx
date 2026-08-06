@@ -3,3 +3,82 @@ title: "Créer un webhook"
 description: "Enregistre une URL de callback pour recevoir les événements assureur."
 openapi: "/openapi/insurer-api.openapi.yml POST /api/v1/webhooks"
 ---
+
+Cet endpoint enregistre une nouvelle URL de callback pour recevoir les événements assureur. Le `secret` est utilisé pour signer les payloads envoyés à votre URL.
+
+## Scope requis
+
+`insurer.webhooks.manage`
+
+## Champs du body
+
+| Champ | Type | Requis | Description |
+| --- | --- | --- | --- |
+| `name` | string | oui | Nom du webhook. |
+| `target_url` | string | oui | URL de callback valide. HTTPS est recommandé en production. |
+| `secret` | string | oui | Secret utilisé pour signer les payloads, minimum 16 caractères. |
+| `event_types` | array | oui | Types d'événements à recevoir. |
+| `is_active` | boolean | non | Activer immédiatement. Défaut côté service selon configuration. |
+| `metadata` | object | non | Métadonnées libres. |
+
+## Exemple de requête
+
+```json
+{
+  "name": "Payment Notifications",
+  "target_url": "https://example.com/webhooks/payments",
+  "secret": "sandbox-webhook-secret-2026",
+  "event_types": [
+    "payment.created",
+    "payment.succeeded",
+    "payment.failed"
+  ],
+  "is_active": true,
+  "metadata": {
+    "environment": "sandbox"
+  }
+}
+```
+
+## Réponse
+
+| Champ | Type | Description |
+| --- | --- | --- |
+| `uuid` | string | Identifiant unique du webhook. |
+| `name` | string | Nom du webhook. |
+| `target_url` | string | URL de callback. |
+| `event_types` | array | Types d'événements abonnés. |
+| `is_active` | boolean | Statut d'activation. |
+| `metadata` | object | Métadonnées libres. |
+| `created_at` | string | Date de création au format ISO 8601. |
+| `updated_at` | string | Date de mise à jour au format ISO 8601. |
+
+## Cas d'usage
+
+- Recevoir les notifications de création de claim.
+- Synchroniser un SI tiers sur les changements de statut de souscription.
+- Alimenter un système d'alerte sur les événements de fraude.
+
+## Bonnes pratiques
+
+Utilisez une URL HTTPS et choisissez un `secret` robuste. Ne réutilisez pas le `secret` d'un autre service. Limitez les `event_types` aux événements réellement nécessaires pour réduire le volume de callbacks.
+
+## Exemple de réponse
+
+```json
+{
+  "uuid": "web_sandbox_001",
+  "tenant_id": "tenant_sandbox_001",
+  "name": "Payment Notifications",
+  "target_url": "https://example.com/webhooks/payments",
+  "event_types": [
+    "payment.created",
+    "payment.succeeded",
+    "payment.failed"
+  ],
+  "is_active": true,
+  "metadata": {},
+  "created_at": "2026-02-01T10:00:00.000000Z",
+  "updated_at": "2026-02-01T10:00:00.000000Z"
+}
+```

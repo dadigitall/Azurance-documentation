@@ -4,3 +4,39 @@ description: "Retourne le profil de conventionnement du prestataire authentifié
 openapi: "/openapi/provider-api.openapi.yml GET /api/v1/network/profile"
 ---
 
+Cet endpoint retourne le profil complet du prestataire authentifié : nom, type d'établissement, spécialités, coordonnées et informations de conventionnement.
+
+## Scope requis
+
+`providers.network.view`
+
+## Cas d'usage
+
+- Récupérer les métadonnées du prestataire pour les afficher dans l'ERP.
+- Vérifier que les informations de conventionnement sont à jour.
+- Synchroniser le profil prestataire avec le système local.
+
+## Réponse
+
+La réponse contient le profil du prestataire (nom, type, spécialités, adresse, contact) et les informations de conventionnement. Aucun paramètre n'est requis : le contexte est déduit de la clé API.
+
+## Exemple de réponse
+
+```json
+{
+  "data": {
+    "uuid": "prov_sandbox_001",
+    "name": "Clinique Santé Plus",
+    "type": "clinic",
+    "status": "active",
+    "tier": "tier_2",
+    "metadata": {
+      "specialties": [
+        "general_medicine",
+        "pediatrics"
+      ],
+      "address": "Abidjan, Côte d'Ivoire"
+    }
+  }
+}
+```

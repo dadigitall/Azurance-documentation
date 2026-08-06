@@ -3,3 +3,72 @@ title: "Détail d'une pré-autorisation"
 description: "Récupère le détail d'une pré-autorisation."
 openapi: "/openapi/provider-api.openapi.yml GET /api/v1/prior-authorizations/{uid}"
 ---
+
+Cet endpoint retourne le détail d'une pré-autorisation : statut, montant estimé, montant autorisé, priorité, pièces jointes et identifiants de réservation de plafond. Il est utilisé pour décider de l'exécution de la prestation après décision de l'assureur.
+
+## Scope requis
+
+`prior_authorizations.create` (ou scope de lecture équivalent selon la configuration de la clé).
+
+## Paramètre de chemin
+
+| Paramètre | Type | Description |
+| --- | --- | --- |
+| `uid` | uuid | Identifiant de la pré-autorisation. |
+
+## Réponse
+
+La réponse contient un objet `PriorAuthorization` avec notamment :
+
+- `status` : statut courant (`PENDING_REVIEW`, `APPROVED`, `REJECTED`, etc.) ;
+- `estimated_amount` / `authorized_amount` : montants estimé et autorisé ;
+- `validation_request_uid` : référence de la demande de validation assureur ;
+- `limit_reservation_uid` : réservation de plafond lorsqu'elle existe.
+
+Si l'`uid` ne correspond à aucune demande visible par le prestataire, l'API retourne une erreur `404`.
+
+## Exemple de réponse
+
+```json
+{
+  "data": {
+    "uid": "pa_sandbox_001",
+    "authorization_number": "PA-2025-001234",
+    "status": "approved",
+    "covered_person_type": "policyholder",
+    "covered_person_uid": "mbr_sandbox_001",
+    "subscription_uid": "sub_sandbox_001",
+    "policy_number": "NSIA-POL-2025-001",
+    "provider_uid": "prov_sandbox_001",
+    "insurer_uid": "ins_sandbox_001",
+    "coverage_type_code": "HOSPITALIZATION",
+    "requested_at": "2025-01-15T10:00:00Z",
+    "estimated_amount": 500000,
+    "currency": "XOF",
+    "approved_amount": 450000,
+    "approved_at": "2025-01-16T09:00:00Z",
+    "valid_until": "2025-02-15T23:59:59Z",
+    "requested_procedures": [
+      {
+        "procedure_code": "PROC-001",
+        "procedure_name": "Chirurgie orthopédique",
+        "estimated_cost": 500000,
+        "approved_cost": 450000
+      }
+    ],
+    "documents": [
+      {
+        "uid": "doc_sandbox_001",
+        "document_type": "MEDICAL_REPORT",
+        "media_uid": "media_sandbox_001",
+        "file_name": "rapport_medical.pdf"
+      }
+    ],
+    "rejection_reason": null,
+    "consent_snapshot": {
+      "consent_ref": "cref_sandbox_001",
+      "assured_at": "2025-01-15T10:32:00Z"
+    }
+  }
+}
+```

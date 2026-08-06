@@ -3,3 +3,42 @@ title: "Répartitions d'un paiement"
 description: "Liste les répartitions d'un paiement sur les factures."
 openapi: "/openapi/provider-api.openapi.yml GET /api/v1/payments/{uuid}/allocations"
 ---
+
+Cet endpoint liste la répartition d'un paiement sur les bordereaux ou factures payables. Il indique, pour chaque allocation, le montant affecté et la référence du bordereau, afin de rapprocher le règlement reçu des prestations facturées.
+
+## Scope requis
+
+`billing.payments.view`
+
+## Paramètre de chemin
+
+| Paramètre | Type | Description |
+| --- | --- | --- |
+| `uuid` | uuid | Identifiant du paiement. |
+
+## Réponse
+
+La réponse contient un tableau d'allocations avec, pour chacune, le bordereau destinataire, le montant alloué et la devise. Si le paiement n'existe pas ou n'est pas visible par le prestataire, l'API retourne une erreur `404`.
+
+## Exemple de réponse
+
+```json
+{
+  "data": [
+    {
+      "uid": "alloc_sandbox_001",
+      "payment_uid": "pay_sandbox_001",
+      "invoice_uid": "inv_sandbox_001",
+      "allocated_amount": 1500000,
+      "currency": "XOF",
+      "allocated_at": "2025-02-10T10:00:00Z"
+    }
+  ],
+  "meta": {
+    "current_page": 1,
+    "per_page": 20,
+    "total_count": 1,
+    "total_pages": 1
+  }
+}
+```

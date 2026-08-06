@@ -4,3 +4,81 @@ description: "Ajoute un ayant droit ou bénéficiaire à une souscription."
 openapi: "/openapi/insurer-api.openapi.yml POST /api/v1/subscriptions/{subscriptionId}/beneficiaries"
 ---
 
+Cet endpoint ajoute un bénéficiaire (ayant droit) à une souscription existante. Le bénéficiaire bénéficie des garanties du plan selon les règles de parenté.
+
+## Scope requis
+
+`insurer.members.manage`
+
+## Paramètres de chemin
+
+| Paramètre | Type | Requis | Description |
+| --- | --- | --- | --- |
+| `subscriptionId` | string | oui | Identifiant de la souscription. |
+
+## Champs du body
+
+| Champ | Type | Requis | Description |
+| --- | --- | --- | --- |
+| `first_name` | string | oui | Prénom. |
+| `last_name` | string | oui | Nom. |
+| `date_of_birth` | string | oui | Date de naissance au format `YYYY-MM-DD`. |
+| `relationship` | string | oui | Lien avec l'assuré (`spouse`, `child`, `parent`, `other`). |
+| `gender` | string | non | Sexe (`male`, `female`, `other`). |
+| `national_id` | string | non | Identifiant national. |
+
+## Réponse
+
+| Champ | Type | Description |
+| --- | --- | --- |
+| `uuid` | string | Identifiant du bénéficiaire créé. |
+| `beneficiary_number` | string | Numéro du bénéficiaire. |
+| `identity_uid` | string | Identifiant d'identité rattaché. |
+| `national_id` | string | Identifiant national. |
+| `first_name` | string | Prénom. |
+| `last_name` | string | Nom. |
+| `date_of_birth` | string | Date de naissance. |
+| `gender` | string | Sexe. |
+| `relationship` | string | Lien avec l'assuré. |
+| `is_dependent` | boolean | Indique s'il s'agit d'un ayant droit à charge. |
+| `coverage_start_date` | string | Date de début de couverture. |
+| `coverage_end_date` | string | Date de fin de couverture. |
+| `status` | string | Statut initial (`ACTIVE`). |
+| `created_at` | string | Date de création au format ISO 8601. |
+
+## Cas d'usage
+
+- Ajouter un conjoint lors de la souscription.
+- Déclarer un nouveau-né après la naissance.
+- Rattacher un parent à charge en cours de contrat.
+
+## Bonnes pratiques
+
+Vérifiez les règles de parenté du plan avant l'ajout : certains plans limitent le nombre de bénéficiaires ou n'acceptent pas certaines catégories. Fournissez un `Idempotency-Key` pour éviter les doublons.
+
+## Exemple de réponse
+
+```json
+{
+  "data": {
+    "uuid": "ben_sandbox_003",
+    "tenant_id": "tenant_sandbox_001",
+    "subscription_uuid": "sub_sandbox_001",
+    "beneficiary_number": "BEN-003",
+    "identity_uid": "id_sandbox_005",
+    "national_id": "CI9988776655",
+    "first_name": "Yao",
+    "last_name": "Kouassi",
+    "date_of_birth": "2020-11-05",
+    "gender": "MALE",
+    "relationship": "CHILD",
+    "is_dependent": true,
+    "coverage_start_date": "2026-01-15",
+    "coverage_end_date": "2027-01-15",
+    "status": "ACTIVE",
+    "metadata": {},
+    "created_at": "2026-01-15T14:30:00.000Z",
+    "updated_at": "2026-01-15T14:30:00.000Z"
+  }
+}
+```

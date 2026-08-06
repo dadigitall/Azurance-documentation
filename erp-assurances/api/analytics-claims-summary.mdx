@@ -3,3 +3,74 @@ title: "Synthèse des sinistres"
 description: "Statistiques des sinistres par période, statut et plan."
 openapi: "/openapi/insurer-api.openapi.yml GET /api/v1/analytics/claims-summary"
 ---
+
+Cet endpoint agrège les sinistres du portefeuille par période, statut et plan d'assurance afin de piloter l'activité claims.
+
+## Scope requis
+
+`insurer.analytics.view`
+
+## Paramètres de requête
+
+| Paramètre | Type | Requis | Description |
+| --- | --- | --- | --- |
+| `period` | string | non | Code de période (`month`, `quarter`, `year`). Défaut : `month`. |
+| `from` | string | non | Date de début au format `YYYY-MM-DD`. |
+| `to` | string | non | Date de fin au format `YYYY-MM-DD`. |
+| `status` | string | non | Filtre par statut de claim (`pending`, `approved`, `rejected`, `paid`). |
+| `plan_id` | string | non | Identifiant du plan à filtrer. |
+
+## Indicateurs retournés
+
+| Champ | Type | Description |
+| --- | --- | --- |
+| `total_claims` | integer | Nombre total de sinistres sur la période. |
+| `by_status` | object | Répartition par statut (`SUBMITTED`, `UNDER_REVIEW`, `APPROVED`, `REJECTED`, `PAID`). |
+| `total_amount_claimed` | number | Montant total réclamé. |
+| `total_amount_approved` | number | Montant total approuvé. |
+| `total_amount_paid` | number | Montant total payé. |
+| `average_processing_days` | number | Délai moyen de traitement en jours. |
+| `by_coverage_type` | array | Répartition par garantie (`coverage_code`, `count`, `total_claimed`). |
+
+## Cas d'usage
+
+- Identifier les pics de sinistralité par plan.
+- Suivre les délais de traitement moyens par statut.
+- Alimenter un rapport de board sur l'évolution des sinistres.
+
+## Bonnes pratiques
+
+Combinez ce endpoint avec `analytics-loss-ratio` pour croiser sinistralité et primes perçues. Pour un suivi opérationnel fin, utilisez les filtres `status` et `plan_id` plutôt que de récupérer l'ensemble puis de filtrer côté client.
+
+## Exemple de réponse
+
+```json
+{
+  "data": {
+    "total_claims": 3420,
+    "by_status": {
+      "SUBMITTED": 120,
+      "UNDER_REVIEW": 85,
+      "APPROVED": 2890,
+      "REJECTED": 245,
+      "PAID": 80
+    },
+    "total_amount_claimed": 171000000.00,
+    "total_amount_approved": 142500000.00,
+    "total_amount_paid": 98000000.00,
+    "average_processing_days": 3.5,
+    "by_coverage_type": [
+      {
+        "coverage_code": "CONSULT",
+        "count": 1850,
+        "total_claimed": 55500000.00
+      },
+      {
+        "coverage_code": "PHARMACY",
+        "count": 920,
+        "total_claimed": 27600000.00
+      }
+    ]
+  }
+}
+```

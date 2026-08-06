@@ -1,5 +1,65 @@
 ---
 title: "Évaluation de fraude"
-description: "Crée ou met à jour une évaluation de fraude sur un sinistre."
+description: "Déclenche une évaluation de fraude sur un claim."
 openapi: "/openapi/insurer-api.openapi.yml POST /api/v1/claims/{claimId}/fraud-assessment"
 ---
+
+Cet endpoint déclenche une évaluation de fraude sur un claim. L'évaluation est asynchrone : la réponse confirme la mise en file ou retourne l'évaluation existante si la même `idempotency_key` a déjà été utilisée.
+
+## Scope requis
+
+`insurer.claims.manage`
+
+## Paramètres de chemin
+
+| Paramètre | Type | Requis | Description |
+| --- | --- | --- | --- |
+| `claimId` | string | oui | Identifiant du claim à évaluer. |
+
+## Champs du body
+
+| Champ | Type | Requis | Description |
+| --- | --- | --- | --- |
+| `trigger` | string | oui | Événement déclencheur (`CLAIM_SUBMITTED`, `CLAIM_UPDATED`, `VALIDATION_REQUESTED`, `MANUAL_REVIEW`). |
+| `priority` | string | non | Priorité (`NORMAL`, `HIGH`, `URGENT`). Défaut côté service : `NORMAL`. |
+| `idempotency_key` | string | oui | Clé d'idempotence pour éviter de relancer plusieurs fois la même évaluation. |
+
+## Exemple de requête
+
+```json
+{
+  "trigger": "CLAIM_SUBMITTED",
+  "priority": "NORMAL",
+  "idempotency_key": "fraud-assess-7c3f9e10-2b4a-4f61-9d3e-1a2b3c4d5e6f"
+}
+```
+
+## Réponse
+
+| Champ | Type | Description |
+| --- | --- | --- |
+| `data.assessment_uuid` | string | Identifiant unique de l'évaluation. |
+| `data.status` | string | Statut de l'évaluation (`QUEUED`). |
+| `data.accepted_at` | string | Date d'acceptation au format ISO 8601. |
+
+## Cas d'usage
+
+- Déclencher une analyse manuelle sur un claim suspect.
+- Relancer une évaluation après réception de nouvelles pièces.
+- Prioriser un claim remonté par une alerte système.
+
+## Bonnes pratiques
+
+Fournissez toujours une `idempotency_key` stable pour le même claim et le même déclencheur. Interrogez ensuite `fraud-assessment-get` pour suivre le résultat.
+
+## Exemple de réponse
+
+```json
+{
+  "data": {
+    "assessment_uuid": "fraud_sandbox_001",
+    "status": "QUEUED",
+    "accepted_at": "2026-01-15T14:30:00.000Z"
+  }
+}
+```

@@ -1,0 +1,53 @@
+---
+title: "Consulter un type de couverture"
+description: "Retourne le détail d'un type de couverture par code."
+openapi: "/openapi/insurer-api.openapi.yml GET /api/v1/coverage-types/{code}"
+---
+
+Cet endpoint retourne le détail d'un type de couverture du catalogue par son code métier. Utilisez `GET /api/v1/coverage-types` pour lister les codes disponibles.
+
+## Scope requis
+
+`insurer.policies.view`
+
+## Paramètres de chemin
+
+| Paramètre | Type | Requis | Description |
+| --- | --- | --- | --- |
+| `code` | string | oui | Code du type de couverture (`coverage_code`). |
+
+## Réponse
+
+| Champ | Type | Description |
+| --- | --- | --- |
+| `data.uuid` | string | Identifiant du type de couverture. |
+| `data.coverage_code` | string | Code métier de la garantie. |
+| `data.coverage_name` | string | Libellé de la garantie. |
+| `data.description` | string\|null | Description de la garantie. |
+| `data.category` | string | Catégorie de soins. |
+| `data.is_active` | boolean | Indique si la garantie est active. |
+| `data.created_at` | string | Date de création. |
+| `data.updated_at` | string | Date de dernière mise à jour. |
+
+## Cas d'usage
+
+- Vérifier le détail d'une garantie avant de créer ou modifier un plan.
+- Contrôler la catégorie associée à un `coverage_code`.
+- Afficher une fiche catalogue dans un back-office assurance.
+
+## Exemple de réponse
+
+```json
+{
+  "data": {
+    "uuid": "ctype_sandbox_001",
+    "coverage_code": "CONSULT",
+    "coverage_name": "Consultation générale",
+    "description": "General medical consultation",
+    "category": "OUTPATIENT",
+    "is_active": true,
+    "created_at": "2024-01-01T00:00:00.000Z",
+    "updated_at": "2024-01-01T00:00:00.000Z"
+  }
+}
+```

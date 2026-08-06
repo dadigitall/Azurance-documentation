@@ -3,3 +3,73 @@ title: "Modifier un webhook"
 description: "Met à jour la configuration d'un webhook existant."
 openapi: "/openapi/insurer-api.openapi.yml PATCH /api/v1/webhooks/{uuid}"
 ---
+
+Cet endpoint met à jour la configuration d'un webhook existant. La mise à jour est partielle : seuls les champs fournis sont modifiés.
+
+## Scope requis
+
+`insurer.webhooks.manage`
+
+## Paramètres de chemin
+
+| Paramètre | Type | Requis | Description |
+| --- | --- | --- | --- |
+| `uuid` | string | oui | Identifiant unique du webhook. |
+
+## Champs du body
+
+| Champ | Type | Requis | Description |
+| --- | --- | --- | --- |
+| `name` | string | non | Nom du webhook. |
+| `target_url` | string | non | URL de callback valide. HTTPS est recommandé en production. |
+| `secret` | string | non | Nouveau secret de signature, minimum 16 caractères si fourni. |
+| `event_types` | array | non | Types d'événements à recevoir. |
+| `is_active` | boolean | non | Activer ou désactiver. |
+| `metadata` | object | non | Métadonnées libres. |
+
+## Exemple de requête
+
+```json
+{
+  "target_url": "https://example.com/webhooks/payments/v2",
+  "secret": "sandbox-webhook-secret-rotated-2026",
+  "event_types": [
+    "payment.created",
+    "payment.succeeded",
+    "payment.failed",
+    "payment.cancelled"
+  ],
+  "is_active": false
+}
+```
+
+## Cas d'usage
+
+- Mettre à jour l'URL de callback après un changement d'infrastructure.
+- Ajouter ou retirer des types d'événements.
+- Désactiver temporairement un webhook en maintenance.
+
+## Bonnes pratiques
+
+Si vous modifiez le `secret`, mettez à jour simultanément la vérification côté récepteur pour éviter les rejets de signature. Préférez désactiver (`is_active` à `false`) plutôt que supprimer un webhook en maintenance.
+
+## Exemple de réponse
+
+```json
+{
+  "uuid": "web_sandbox_001",
+  "tenant_id": "tenant_sandbox_001",
+  "name": "Payment Notifications Updated",
+  "target_url": "https://example.com/webhooks/payments/v2",
+  "event_types": [
+    "payment.created",
+    "payment.succeeded",
+    "payment.failed",
+    "payment.cancelled"
+  ],
+  "is_active": false,
+  "metadata": {},
+  "created_at": "2026-02-01T10:00:00.000000Z",
+  "updated_at": "2026-02-01T11:00:00.000000Z"
+}
+```

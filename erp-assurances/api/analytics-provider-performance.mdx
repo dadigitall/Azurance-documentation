@@ -3,3 +3,76 @@ title: "Performance du réseau prestataire"
 description: "Indicateurs de performance par prestataire."
 openapi: "/openapi/insurer-api.openapi.yml GET /api/v1/analytics/provider-performance"
 ---
+
+Cet endpoint agrège les indicateurs de performance des prestataires du réseau : volume de claims traités, délais moyens et taux d'approbation.
+
+## Scope requis
+
+`insurer.analytics.view`
+
+## Paramètres de requête
+
+| Paramètre | Type | Requis | Description |
+| --- | --- | --- | --- |
+| `period` | string | non | Code de période (`month`, `quarter`, `year`). Défaut : `quarter`. |
+| `from` | string | non | Date de début au format `YYYY-MM-DD`. |
+| `to` | string | non | Date de fin au format `YYYY-MM-DD`. |
+| `provider_id` | string | non | Identifiant d'un prestataire à isoler. |
+
+## Indicateurs retournés
+
+| Champ | Type | Description |
+| --- | --- | --- |
+| `period_start` | string | Date de début de la période. |
+| `period_end` | string | Date de fin de la période. |
+| `total_providers` | integer | Nombre total de prestataires. |
+| `top_providers` | array | Prestataires les plus actifs (`provider_uuid`, `provider_name`, `claims_count`, `total_amount`, `average_claim_amount`, `approval_rate`). |
+| `by_tier` | array | Répartition par niveau réseau (`tier`, `provider_count`, `claims_count`, `total_amount`). |
+
+## Cas d'usage
+
+- Identifier les prestataires avec un taux d'approbation anormalement bas.
+- Comparer les délais de traitement entre établissements comparables.
+- Préparer les renégociations de conventionnement sur la base de données factuelles.
+
+## Bonnes pratiques
+
+Croisez ces indicateurs avec `analytics-claims-summary` pour replacer la performance d'un prestataire dans le contexte global du portefeuille. Un volume faible peut fausser les ratios : filtrez sur un seuil minimal de claims.
+
+## Exemple de réponse
+
+```json
+{
+  "data": {
+    "period_start": "2026-01-01",
+    "period_end": "2026-01-31",
+    "total_providers": 145,
+    "top_providers": [
+      {
+        "provider_uuid": "prov_sandbox_001",
+        "provider_name": "CHU de Cocody",
+        "claims_count": 520,
+        "total_amount": 26000000.00,
+        "average_claim_amount": 50000.00,
+        "approval_rate": 0.95
+      },
+      {
+        "provider_uuid": "prov_sandbox_002",
+        "provider_name": "PISAM",
+        "claims_count": 380,
+        "total_amount": 19000000.00,
+        "average_claim_amount": 50000.00,
+        "approval_rate": 0.92
+      }
+    ],
+    "by_tier": [
+      {
+        "tier": "TIER_1",
+        "provider_count": 45,
+        "claims_count": 1850,
+        "total_amount": 92500000.00
+      }
+    ]
+  }
+}
+```

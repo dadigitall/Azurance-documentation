@@ -3,3 +3,50 @@ title: "Documents de pré-autorisation"
 description: "Joindre des documents à une pré-autorisation."
 openapi: "/openapi/provider-api.openapi.yml POST /api/v1/prior-authorizations/{uid}/documents"
 ---
+
+Cet endpoint rattache une pièce complémentaire à une pré-autorisation existante. Il est utilisé lorsque l'assureur place la demande en statut `INFO_NEEDED` et réclame un justificatif supplémentaire (proforma, prescription, devis).
+
+## Scope requis
+
+`prior_authorizations.create`
+
+## Paramètre de chemin
+
+| Paramètre | Type | Description |
+| --- | --- | --- |
+| `uid` | uuid | Identifiant de la pré-autorisation. |
+
+## Champs du body
+
+Le body référence un média préalablement uploadé via `POST /api/v1/media/uploads` :
+
+| Champ | Type | Description |
+| --- | --- | --- |
+| `document_type` | string | Type de pièce (ex. `PROFORMA`, `PRESCRIPTION`, `DEVIS`). |
+| `media_uid` | string | Identifiant du média renvoyé par l'upload. |
+
+## Workflow
+
+1. Uploader le document via `POST /api/v1/media/uploads`.
+2. Rattacher le média à la pré-autorisation via cet endpoint.
+3. Reconsulter la pré-autorisation via `GET /api/v1/prior-authorizations/{uid}` pour vérifier le retour à `PENDING_REVIEW`.
+
+## Réponse
+
+La réponse `200` confirme l'ajout de la pièce et retourne la pré-autorisation mise à jour.
+
+## Exemple de réponse
+
+```json
+{
+  "data": {
+    "uid": "doc_sandbox_002",
+    "prior_authorization_uid": "pa_sandbox_001",
+    "document_type": "LAB_RESULT",
+    "media_uid": "media_sandbox_002",
+    "file_name": "analyse_sanguine.pdf",
+    "mime_type": "application/pdf",
+    "uploaded_at": "2025-01-15T11:00:00Z"
+  }
+}
+```

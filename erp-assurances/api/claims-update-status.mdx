@@ -4,3 +4,109 @@ description: "Met à jour le statut et la décision de traitement d'un claim."
 openapi: "/openapi/insurer-api.openapi.yml PATCH /api/v1/claims/{claimId}/status"
 ---
 
+Cet endpoint met à jour le statut d'un claim. Le BFF accepte `PATCH` et `PUT` sur le même chemin ; les deux verbes déclenchent exactement le même traitement côté API assureur.
+
+## Scope requis
+
+`insurer.claims.manage`
+
+## Paramètres de chemin
+
+| Paramètre | Type | Requis | Description |
+| --- | --- | --- | --- |
+| `claimId` | string | oui | Identifiant du claim. |
+
+## Champs du body
+
+| Champ | Type | Requis | Description |
+| --- | --- | --- | --- |
+| `status` | string | oui | Statut cible. Le BFF accepte `PENDING`, `UNDER_REVIEW`, `APPROVED`, `REJECTED`, `PAID` et leurs variantes minuscules, puis transmet la valeur en majuscules au service claims. |
+| `reason` | string | non | Motif principal transmis au service claims. Prioritaire sur les alias ci-dessous. |
+| `rejection_reason` | string | non | Alias historique de `reason`, utilisé seulement si `reason` est absent. |
+| `reviewer_notes` | string | non | Second alias de `reason`, utilisé seulement si `reason` et `rejection_reason` sont absents. |
+| `reviewed_by` | string | non | Identifiant de l'opérateur ayant pris la décision. |
+
+## Normalisation BFF
+
+Le BFF transmet au service claims un payload normalisé :
+
+- `status` est converti en majuscules ;
+- `reason` est choisi avec la priorité `reason` → `rejection_reason` → `reviewer_notes` ;
+- `reviewed_by` est transmis uniquement s'il est fourni.
+
+## Exemple de requête
+
+```json
+{
+  "status": "REJECTED",
+  "reason": "Documents justificatifs illisibles, à resoumettre.",
+  "reviewed_by": "insurer-ops-claims-team"
+}
+```
+
+## Cas d'usage
+
+- Approuver un claim après vérification des pièces.
+- Rejeter un claim non couvert par le plan.
+- Marquer un claim approuvé comme payé après règlement.
+
+## Bonnes pratiques
+
+Fournissez un `reason` clair lors d'un rejet ou d'une demande de correction. Préférez `reason` aux alias historiques `rejection_reason` et `reviewer_notes` pour éviter toute ambiguïté.
+
+## Exemple de réponse
+
+```json
+{
+  "data": {
+    "id": 1,
+    "uuid": "clm_sandbox_001",
+    "claim_number": "CLM-001",
+    "tenant_id": "tenant_sandbox_001",
+    "subscription_id": "sub_sandbox_001",
+    "policyholder_id": "mbr_sandbox_001",
+    "provider_uuid": "prov_sandbox_001",
+    "provider_reference": "REF-001",
+    "service_execution_uid": null,
+    "prior_authorization_uid": null,
+    "covered_person_type": "POLICYHOLDER",
+    "covered_person_uid": "mbr_sandbox_001",
+    "consent_ref": "consent_sandbox_001",
+    "provider_name": "CHU de Cocody",
+    "coverage_type_code": "CONSULT",
+    "precheck_eligibility_uuid": "elig_sandbox_001",
+    "submission_eligibility_uuid": "elig_sandbox_002",
+    "provider_network_snapshot": {},
+    "eligibility_snapshot": {},
+    "reimbursement_snapshot": {},
+    "requires_validation": false,
+    "limit_reservation_uid": null,
+    "authorization_request_uid": null,
+    "fraud_assessment_uuid": null,
+    "fraud_risk_level": null,
+    "fraud_flag_summary": [],
+    "fraud_assessed_at": null,
+    "required_documents": [],
+    "missing_documents": [],
+    "consent_snapshot": {},
+    "status": "REJECTED",
+    "amount_claimed": 50000.00,
+    "amount_approved": 0.00,
+    "amount_paid": 0.00,
+    "currency": "XOF",
+    "service_date": "2026-01-10",
+    "submitted_at": "2026-01-10T10:00:00.000Z",
+    "reviewed_at": "2026-01-15T14:30:00.000Z",
+    "paid_at": null,
+    "rejection_reason": "Documents justificatifs illisibles, à resoumettre.",
+    "notes": null,
+    "reviewed_by": "insurer-ops-claims-team",
+    "created_at": "2026-01-10T10:00:00.000Z",
+    "updated_at": "2026-01-15T14:30:00.000Z",
+    "documents_count": 1,
+    "documents": [],
+    "items": [],
+    "latest_history": null
+  }
+}
+```

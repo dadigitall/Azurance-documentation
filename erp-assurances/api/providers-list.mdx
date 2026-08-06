@@ -4,3 +4,81 @@ description: "Retourne les prestataires visibles dans le réseau de l'assureur."
 openapi: "/openapi/insurer-api.openapi.yml GET /api/v1/providers"
 ---
 
+Cet endpoint retourne la liste paginée des prestataires visibles dans le réseau de l'assureur. Utilisez-le pour synchroniser votre référentiel ou alimenter un écran de recherche.
+
+## Scope requis
+
+`insurer.providers.view`
+
+## Paramètres de requête
+
+| Paramètre | Type | Requis | Description |
+| --- | --- | --- | --- |
+| `page` | integer | non | Numéro de page. Défaut : `1`. |
+| `per_page` | integer | non | Nombre d'éléments par page. Défaut : `20`. |
+| `type` | string | non | Filtre par type (`HOSPITAL`, `CLINIC`, `PHARMACY`, `LABORATORY`). |
+
+## Réponse
+
+| Champ | Type | Description |
+| --- | --- | --- |
+| `data` | array | Liste des prestataires. |
+| `data[].id` | integer | Identifiant interne. |
+| `data[].uuid` | string | Identifiant public. |
+| `data[].name` | string | Nom du prestataire. |
+| `data[].type` | string | Type d'établissement. |
+| `data[].status` | string | Statut (`ACTIVE`, `INACTIVE`). |
+| `data[].tier` | string | Niveau de réseau. |
+| `data[].accreditation_number` | string | Numéro d'accréditation. |
+| `data[].phone` | string | Téléphone. |
+| `data[].email` | string | E-mail. |
+| `data[].city` | string | Ville. |
+| `data[].country` | string | Pays. |
+| `data[].specialties` | array | Spécialités. |
+| `meta` | object | Métadonnées de pagination. |
+
+## Cas d'usage
+
+- Synchroniser le référentiel prestataires vers un SI tiers.
+- Lister les établissements par type pour un annulaire réseau.
+- Alimenter un sélecteur de prestataire dans un back-office.
+
+## Bonnes pratiques
+
+Utilisez le filtre `type` pour limiter le volume transféré. Pour vérifier l'appartenance réseau d'un prestataire précis, utilisez `provider-network-check`.
+
+## Exemple de réponse
+
+```json
+{
+  "data": [
+    {
+      "id": 1,
+      "uuid": "prov_sandbox_001",
+      "tenant_id": "tenant_sandbox_001",
+      "name": "CHU de Cocody",
+      "type": "HOSPITAL",
+      "status": "ACTIVE",
+      "tier": "TIER_1",
+      "accreditation_number": "ACC-001",
+      "tax_id": "TAX-001",
+      "phone": "+2250101010101",
+      "email": "contact@chu-cocody.ci",
+      "address": "BP 12345",
+      "city": "Abidjan",
+      "country": "CI",
+      "metadata": {},
+      "created_at": "2024-01-01T00:00:00.000Z",
+      "updated_at": "2026-01-15T00:00:00.000Z",
+      "specialties": [],
+      "contacts": []
+    }
+  ],
+  "meta": {
+    "current_page": 1,
+    "per_page": 20,
+    "total": 145,
+    "last_page": 8
+  }
+}
+```

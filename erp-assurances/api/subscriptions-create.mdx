@@ -4,3 +4,81 @@ description: "Crée un contrat pour un membre du portefeuille."
 openapi: "/openapi/insurer-api.openapi.yml POST /api/v1/subscriptions"
 ---
 
+Cet endpoint crée un contrat (souscription) rattachant un assuré à un plan d'assurance pour une période donnée.
+
+## Scope requis
+
+`insurer.members.manage`
+
+## Champs du body
+
+| Champ | Type | Requis | Description |
+| --- | --- | --- | --- |
+| `policyholder_uuid` | string | oui | Identifiant de l'assuré. |
+| `plan_code` | string | oui | Code du plan souscrit. |
+| `effective_date` | string | oui | Date de début de couverture au format `YYYY-MM-DD`. |
+| `expiry_date` | string | non | Date de fin de couverture. Déduite du plan si absent. |
+| `premium_amount` | number | non | Montant de la prime. |
+| `premium_frequency` | string | non | Fréquence de prime (`MONTHLY`, `QUARTERLY`, `YEARLY`). |
+| `metadata` | object | non | Métadonnées libres. |
+
+## Réponse
+
+| Champ | Type | Description |
+| --- | --- | --- |
+| `uuid` | string | Identifiant de la souscription créée. |
+| `policyholder_uuid` | string | Identifiant de l'assuré. |
+| `subscription_number` | string | Numéro de souscription. |
+| `plan_code` | string | Code du plan. |
+| `plan_name` | string | Nom du plan. |
+| `status` | string | Statut initial (`ACTIVE`). |
+| `effective_date` | string | Date de début effective. |
+| `expiry_date` | string | Date de fin effective. |
+| `premium_amount` | number | Montant de la prime. |
+| `premium_frequency` | string | Fréquence de prime. |
+| `annual_coverage_limit` | number | Plafond annuel. |
+| `annual_used_amount` | number | Consommation annuelle. |
+| `remaining_coverage` | number | Couverture restante. |
+| `created_at` | string | Date de création au format ISO 8601. |
+
+## Cas d'usage
+
+- Souscrire un nouveau contrat lors de l'adhésion d'un client.
+- Activer une couverture suite à un avenant.
+- Créer un contrat retroactif pour une affaire en attente.
+
+## Bonnes pratiques
+
+Vérifiez que l'assuré et le plan existent avant l'appel. Fournissez un `Idempotency-Key` pour garantir l'idempotence et éviter les doublons en cas de retry.
+
+## Exemple de réponse
+
+```json
+{
+  "data": {
+    "uuid": "sub_sandbox_002",
+    "tenant_id": "tenant_sandbox_001",
+    "policyholder_uuid": "mbr_sandbox_001",
+    "subscription_number": "SUB-002",
+    "plan_code": "SILVER",
+    "plan_name": "Silver Plan",
+    "status": "ACTIVE",
+    "effective_date": "2026-01-15",
+    "expiry_date": "2027-01-15",
+    "premium_amount": 35000.00,
+    "premium_frequency": "MONTHLY",
+    "annual_coverage_limit": 750000.00,
+    "annual_used_amount": 0.00,
+    "remaining_coverage": 750000.00,
+    "lifetime_used_amount": 0.00,
+    "last_premium_payment_date": null,
+    "renewed_from_uuid": null,
+    "metadata": {},
+    "policyholder": null,
+    "beneficiaries": [],
+    "status_histories": [],
+    "created_at": "2026-01-15T14:30:00.000Z",
+    "updated_at": "2026-01-15T14:30:00.000Z"
+  }
+}
+```

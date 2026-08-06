@@ -4,3 +4,82 @@ description: "Retourne les contrats visibles par la clé API assurance."
 openapi: "/openapi/insurer-api.openapi.yml GET /api/v1/subscriptions"
 ---
 
+Cet endpoint retourne la liste paginée des souscriptions (contrats) visibles par la clé API. Utilisez-le pour synchroniser votre référentiel contracts ou alimenter un écran de gestion.
+
+## Scope requis
+
+`insurer.members.view`
+
+## Paramètres de requête
+
+| Paramètre | Type | Requis | Description |
+| --- | --- | --- | --- |
+| `page` | integer | non | Numéro de page. Défaut : `1`. |
+| `per_page` | integer | non | Nombre d'éléments par page. Défaut : `20`. |
+
+## Réponse
+
+| Champ | Type | Description |
+| --- | --- | --- |
+| `data` | array | Liste des souscriptions. |
+| `data[].uuid` | string | Identifiant de la souscription. |
+| `data[].policyholder_uuid` | string | Identifiant de l'assuré. |
+| `data[].subscription_number` | string | Numéro de souscription. |
+| `data[].plan_code` | string | Code du plan. |
+| `data[].plan_name` | string | Nom du plan. |
+| `data[].status` | string | Statut (`ACTIVE`, `SUSPENDED`, `EXPIRED`, `CANCELLED`). |
+| `data[].effective_date` | string | Date de début de couverture. |
+| `data[].expiry_date` | string | Date de fin de couverture. |
+| `data[].premium_amount` | number | Montant de la prime. |
+| `data[].remaining_coverage` | number | Couverture restante. |
+| `meta` | object | Métadonnées de pagination. |
+
+## Cas d'usage
+
+- Synchroniser le référentiel contrats vers un SI tiers.
+- Lister les contrats actifs pour un tableau de bord.
+- Identifier les contrats arrivant à échéance pour anticiper le renouvellement.
+
+## Bonnes pratiques
+
+Pour suivre les changements de statut en temps réel, abonnez-vous aux webhooks souscription plutôt que de scruter cette liste en continu.
+
+## Exemple de réponse
+
+```json
+{
+  "data": [
+    {
+      "uuid": "sub_sandbox_001",
+      "tenant_id": "tenant_sandbox_001",
+      "policyholder_uuid": "mbr_sandbox_001",
+      "subscription_number": "SUB-001",
+      "plan_code": "GOLD",
+      "plan_name": "Gold Plan",
+      "status": "ACTIVE",
+      "effective_date": "2024-01-15",
+      "expiry_date": "2025-01-15",
+      "premium_amount": 50000.00,
+      "premium_frequency": "MONTHLY",
+      "annual_coverage_limit": 1000000.00,
+      "annual_used_amount": 250000.00,
+      "remaining_coverage": 750000.00,
+      "lifetime_used_amount": 500000.00,
+      "last_premium_payment_date": "2026-01-01",
+      "renewed_from_uuid": null,
+      "metadata": {},
+      "policyholder": null,
+      "beneficiaries": [],
+      "status_histories": [],
+      "created_at": "2024-01-15T00:00:00.000Z",
+      "updated_at": "2026-01-15T00:00:00.000Z"
+    }
+  ],
+  "meta": {
+    "current_page": 1,
+    "per_page": 20,
+    "total": 1180,
+    "last_page": 59
+  }
+}
+```

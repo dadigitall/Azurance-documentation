@@ -3,3 +3,89 @@ title: "Détail d'un paiement"
 description: "Récupère le détail d'un paiement."
 openapi: "/openapi/insurer-api.openapi.yml GET /api/v1/billing/payments/{uuid}"
 ---
+
+Cet endpoint récupère le détail d'un paiement : montant, moyen de paiement, bénéficiaire et statut.
+
+## Scope requis
+
+`insurer.billing.view`
+
+## Paramètres de chemin
+
+| Paramètre | Type | Requis | Description |
+| --- | --- | --- | --- |
+| `uuid` | string | oui | Identifiant unique du paiement. |
+
+## Réponse
+
+| Champ | Type | Description |
+| --- | --- | --- |
+| `uuid` | string | Identifiant unique du paiement. |
+| `payment_number` | string | Numéro du paiement. |
+| `beneficiary_type` | string | Type de bénéficiaire. |
+| `beneficiary_uuid` | string | Identifiant du bénéficiaire. |
+| `beneficiary_name` | string | Nom du bénéficiaire. |
+| `payment_method` | string | Moyen de paiement. |
+| `payment_provider` | string | Fournisseur de paiement. |
+| `status` | string | Statut (`CREATED`, `PROCESSING`, `SUCCEEDED`, `FAILED`). |
+| `amount` | number | Montant total. |
+| `allocated_amount` | number | Montant alloué. |
+| `currency` | string | Devise. |
+| `external_reference` | string | Référence bancaire. |
+| `requested_by` | string | Auteur de la demande. |
+| `requested_at` | string | Date de demande. |
+| `succeeded_at` | string | Date de succès, présente si `SUCCEEDED`. |
+| `allocations` | array | Répartitions du paiement sur les factures. |
+
+## Cas d'usage
+
+- Afficher le détail d'un paiement dans un back-office comptable.
+- Vérifier le statut avant une relance.
+- Contrôler les métadonnées associées au règlement.
+
+## Bonnes pratiques
+
+Pour consulter la répartition du paiement sur les factures, utilisez `billing-payment-allocations`. Pour confirmer un paiement en statut `pending`, utilisez `billing-payment-confirm`.
+
+## Exemple de réponse
+
+```json
+{
+  "uuid": "pay_sandbox_001",
+  "payment_number": "PAY-2026-001",
+  "tenant_id": "tenant_sandbox_001",
+  "beneficiary_type": "PROVIDER",
+  "beneficiary_uuid": "prov_sandbox_001",
+  "beneficiary_name": "Clinique Santé Plus",
+  "payment_method": "BANK_TRANSFER",
+  "payment_provider": "MANUAL",
+  "status": "SUCCEEDED",
+  "amount": 150000.00,
+  "allocated_amount": 150000.00,
+  "currency": "XOF",
+  "external_reference": "REF-BANK-001",
+  "requested_by": "admin@elenami.com",
+  "requested_at": "2026-02-01T10:00:00.000000Z",
+  "processing_at": "2026-02-01T10:05:00.000000Z",
+  "succeeded_at": "2026-02-01T10:10:00.000000Z",
+  "failed_at": null,
+  "failure_reason": null,
+  "proof_document_uid": null,
+  "metadata": {},
+  "created_at": "2026-02-01T10:00:00.000000Z",
+  "updated_at": "2026-02-01T10:10:00.000000Z",
+  "allocations": [
+    {
+      "uuid": "alloc_sandbox_001",
+      "tenant_id": "tenant_sandbox_001",
+      "payment_uuid": "pay_sandbox_001",
+      "payable_invoice_uuid": "inv_sandbox_001",
+      "payable_invoice_item_uuid": "item_sandbox_001",
+      "amount": 150000.00,
+      "currency": "XOF",
+      "metadata": {},
+      "created_at": "2026-02-01T10:00:00.000000Z"
+    }
+  ]
+}
+```

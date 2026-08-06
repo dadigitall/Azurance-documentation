@@ -4,3 +4,86 @@ description: "Envoie ou remplace la photo de référence d'un bénéficiaire."
 openapi: "/openapi/insurer-api.openapi.yml PUT /api/v1/subscriptions/{subscriptionId}/beneficiaries/{beneficiaryId}/portrait"
 ---
 
+Cet endpoint téléverse ou remplace la photo de référence d'un bénéficiaire rattaché à une souscription. La photo est d'abord déposée dans media-service, puis activée dans policy-service comme portrait biométrique du bénéficiaire.
+
+## Scope requis
+
+`insurer.members.manage`
+
+## Paramètres de chemin
+
+| Paramètre | Type | Requis | Description |
+| --- | --- | --- | --- |
+| `subscriptionId` | string | oui | Identifiant de la souscription. |
+| `beneficiaryId` | string | oui | Identifiant du bénéficiaire. |
+
+## Champs multipart
+
+| Champ | Type | Requis | Description |
+| --- | --- | --- | --- |
+| `file` | binary | oui | Fichier JPEG ou PNG, 1 Mo maximum. Extensions acceptées : `.jpg`, `.jpeg`, `.png`. |
+| `source` | string | oui | Source du portrait (`insurer_contract`, `kyc_refresh`, `member_update`, `other`). |
+| `captured_at` | string | non | Date de capture au format ISO 8601. |
+| `metadata` | object|string | non | Objet JSON ou chaîne JSON valide. Les champs de contexte forcé sont ignorés par le BFF. |
+
+## Contraintes du fichier
+
+| Contrainte | Valeur |
+| --- | --- |
+| Format | `multipart/form-data` |
+| Formats acceptés | JPEG, PNG |
+| Types MIME acceptés | `image/jpeg`, `image/png` |
+| Taille maximale | 1 Mo |
+| Champ du fichier | `file` |
+
+## Exemple de requête multipart
+
+```bash
+curl --request PUT \
+  --url "https://insurer-api-sandbox.elenami.com/api/v1/subscriptions/sub_sandbox_001/beneficiaries/ben_sandbox_001/portrait" \
+  --header "X-Api-Key: $AZURANCE_INSURER_API_KEY" \
+  --form "file=@beneficiary-portrait.png;type=image/png" \
+  --form "source=kyc_refresh" \
+  --form "captured_at=2026-01-15T14:30:00Z" \
+  --form 'metadata={"refresh_reason":"annual_kyc"}'
+```
+
+## Réponse
+
+| Champ | Type | Description |
+| --- | --- | --- |
+| `data.subject_type` | string | Type de sujet (`BENEFICIARY`). |
+| `data.subject_uuid` | string | Identifiant du bénéficiaire. |
+| `data.media_uid` | string | Identifiant du média créé. |
+| `data.mime_type` | string | Type MIME de l'image. |
+| `data.source` | string | Source validée du portrait. |
+| `data.captured_at` | string\|null | Date de capture au format ISO 8601. |
+| `data.activated_at` | string | Date d'activation au format ISO 8601. |
+| `data.updated_at` | string | Date de mise à jour au format ISO 8601. |
+
+## Cas d'usage
+
+- Ajouter une photo lors de la déclaration d'un nouveau bénéficiaire.
+- Remplacer une photo devenue obsolète.
+- Compléter un dossier avant une prestation nécessitant une vérification d'identité.
+
+## Bonnes pratiques
+
+Interrogez `beneficiary-portrait-status` pour confirmer la disponibilité du portrait après activation. Ne stockez pas l'image côté client : utilisez uniquement le statut et le `media_uid` pour piloter votre interface.
+
+## Exemple de réponse
+
+```json
+{
+  "data": {
+    "subject_type": "BENEFICIARY",
+    "subject_uuid": "ben_sandbox_001",
+    "media_uid": "media_sandbox_002",
+    "mime_type": "image/png",
+    "source": "kyc_refresh",
+    "captured_at": "2026-01-15T14:30:00.000Z",
+    "activated_at": "2026-01-15T14:30:00.000Z",
+    "updated_at": "2026-01-15T14:30:00.000Z"
+  }
+}
+```

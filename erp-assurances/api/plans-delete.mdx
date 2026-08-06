@@ -1,6 +1,43 @@
 ---
 title: "Supprimer un plan"
-description: "Supprime ou désactive un plan selon les règles du service."
+description: "Supprime un plan selon les règles du service policy."
 openapi: "/openapi/insurer-api.openapi.yml DELETE /api/v1/plans/{planId}"
 ---
 
+Cet endpoint transmet la suppression d'un plan au policy-service. Le BFF ne transforme pas la réponse : le service retourne un message de confirmation lorsque la suppression est acceptée.
+
+## Scope requis
+
+`insurer.policies.manage`
+
+## Paramètres de chemin
+
+| Paramètre | Type | Requis | Description |
+| --- | --- | --- | --- |
+| `planId` | string | oui | UUID du plan ou identifiant accepté par le policy-service. |
+
+## Réponse
+
+La réponse attendue est `200 OK` avec un message de confirmation.
+
+| Champ | Type | Description |
+| --- | --- | --- |
+| `message` | string | Message de confirmation de suppression. |
+
+## Cas d'usage
+
+- Retirer un plan obsolète du catalogue.
+- Nettoyer les plans de test en environnement sandbox.
+- Supprimer un plan non commercialisé lorsque le service le permet.
+
+## Bonnes pratiques
+
+Vérifiez l'impact sur les souscriptions avant suppression. Pour arrêter la commercialisation sans supprimer l'historique, privilégiez une mise à jour du plan si le service métier le permet.
+
+## Exemple de réponse
+
+```json
+{
+  "message": "Plan deleted"
+}
+```

@@ -3,3 +3,40 @@ title: "Annuler une pré-autorisation"
 description: "Annule une pré-autorisation en attente."
 openapi: "/openapi/provider-api.openapi.yml POST /api/v1/prior-authorizations/{uid}/cancel"
 ---
+
+Cet endpoint annule une pré-autorisation en attente. L'annulation n'est possible que tant la demande n'a pas été consommée par un claim approuvé. Toute réservation de plafond associée est libérée.
+
+## Scope requis
+
+`prior_authorizations.create`
+
+## Paramètre de chemin
+
+| Paramètre | Type | Description |
+| --- | --- | --- |
+| `uid` | uuid | Identifiant de la pré-autorisation. |
+
+## Cas d'usage
+
+- Le patient renonce à la prestation avant exécution.
+- Le devis estimé n'est plus pertinent et une nouvelle demande sera créée.
+- L'assureur a demandé des informations complémentaires que le prestataire ne peut fournir.
+
+## Réponse
+
+La réponse `200` retourne la pré-autorisation avec son statut passé à `CANCELLED`. Si la demande est déjà `CONSUMED` ou `APPROVED` et consommée, l'annulation est refusée.
+
+## Exemple de réponse
+
+```json
+{
+  "data": {
+    "uid": "pa_sandbox_001",
+    "authorization_number": "PA-2025-001234",
+    "status": "cancelled",
+    "cancelled_at": "2025-01-16T14:00:00Z",
+    "cancellation_reason": "Procédure reportée",
+    "cancelled_by": "prov_sandbox_001"
+  }
+}
+```

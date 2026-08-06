@@ -3,3 +3,67 @@ title: "Vue d'ensemble portefeuille"
 description: "Synthèse du portefeuille : membres actifs, souscriptions, primes."
 openapi: "/openapi/insurer-api.openapi.yml GET /api/v1/analytics/portfolio-summary"
 ---
+
+Cet endpoint retourne une photographie agrégée du portefeuille de l'assureur : nombre de membres actifs, volume de souscriptions et primes collectées sur la période demandée.
+
+## Scope requis
+
+`insurer.analytics.view`
+
+## Paramètres de requête
+
+| Paramètre | Type | Requis | Description |
+| --- | --- | --- | --- |
+| `period` | string | non | Code de période (`month`, `quarter`, `year`). Défaut : `month`. |
+| `from` | string | non | Date de début au format `YYYY-MM-DD`. |
+| `to` | string | non | Date de fin au format `YYYY-MM-DD`. |
+
+## Indicateurs retournés
+
+| Champ | Type | Description |
+| --- | --- | --- |
+| `total_subscriptions` | integer | Nombre total de souscriptions. |
+| `active_subscriptions` | integer | Souscriptions en vigueur. |
+| `total_policyholders` | integer | Nombre de souscripteurs. |
+| `total_premiums` | number | Montant total des primes collectées. |
+| `by_plan` | array | Répartition par plan (`plan_code`, `count`, `total_premium`). |
+
+## Cas d'usage
+
+- Construire un tableau de bord de pilotage du portefeuille.
+- Comparer la croissance des souscriptions d'un mois sur l'autre.
+- Suivre l'évolution des primes collectées pour le reporting comptable.
+
+## Bonnes pratiques
+
+Appelez cet endpoint en fin de période pour figer les indicateurs. Pour un suivi temps réel, préférez les webhooks d'événements souscription afin de ne pas solliciter la synthèse en continu.
+
+## Exemple de réponse
+
+```json
+{
+  "data": {
+    "total_subscriptions": 1250,
+    "active_subscriptions": 1180,
+    "total_policyholders": 980,
+    "total_premiums": 58500000.00,
+    "by_plan": [
+      {
+        "plan_code": "GOLD",
+        "count": 450,
+        "total_premium": 27000000.00
+      },
+      {
+        "plan_code": "SILVER",
+        "count": 520,
+        "total_premium": 26000000.00
+      },
+      {
+        "plan_code": "BRONZE",
+        "count": 210,
+        "total_premium": 5500000.00
+      }
+    ]
+  }
+}
+```

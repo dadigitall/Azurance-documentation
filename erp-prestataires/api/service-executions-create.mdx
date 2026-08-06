@@ -4,3 +4,72 @@ description: "Enregistre la prestation réellement effectuée par le prestataire
 openapi: "/openapi/provider-api.openapi.yml POST /api/v1/service-executions"
 ---
 
+Cet endpoint enregistre une prestation réellement effectuée par le prestataire. Contrairement au précheck d'éligibilité, cet endpoint atteste que l'acte a eu lieu et sert de base au claim ultérieur.
+
+## Scope requis
+
+`service_executions.create`
+
+## Champs du body
+
+| Champ | Type | Requis | Description |
+| --- | --- | --- | --- |
+| `subscription_uid` | string (uuid) | oui | Identifiant de la souscription. |
+| `covered_person_type` | string | oui | `policyholder` ou `beneficiary`. |
+| `covered_person_uid` | string | oui | Identifiant de la personne couverte. |
+| `coverage_type_code` | string | oui | Code du type de couverture. |
+| `service_date` | date | oui | Date de la prestation. |
+| `provider_reference` | string | non | Référence interne du prestataire. |
+| `consent_ref` | string (uuid) | oui | Référence de consentement validée. |
+| `items` | array | oui | Lignes de prestation (médicaments, actes). |
+
+## Workflow
+
+1. Résoudre la personne couverte via `POST /api/v1/covered-persons/resolve`.
+2. Obtenir un consentement via `POST /api/v1/consent-requests` puis `POST /api/v1/consent-requests/{uid}/verify`.
+3. Enregistrer la prestation via cet endpoint avec le `consent_ref`.
+4. Soumettre le claim via `POST /api/v1/claims` en référençant le `service_execution_uid` retourné.
+
+## Exemple de réponse
+
+```json
+{
+  "data": {
+    "uuid": "se_sandbox_001",
+    "execution_number": "SE-2025-001234",
+    "status": "completed",
+    "covered_person_type": "policyholder",
+    "covered_person_uid": "mbr_sandbox_001",
+    "subscription_uid": "sub_sandbox_001",
+    "policy_number": "NSIA-POL-2025-001",
+    "provider_uid": "prov_sandbox_001",
+    "coverage_type_code": "AMBULATORY",
+    "service_date": "2025-01-15",
+    "executed_at": "2025-01-15T10:30:00Z",
+    "total_amount": 50000,
+    "currency": "XOF",
+    "items": [
+      {
+        "uid": "sei_sandbox_001",
+        "service_code": "CS-001",
+        "service_name": "Consultation générale",
+        "quantity": 1,
+        "unit_price": 15000,
+        "total_price": 15000
+      },
+      {
+        "uid": "sei_sandbox_002",
+        "service_code": "CS-002",
+        "service_name": "Analyse sanguine",
+        "quantity": 1,
+        "unit_price": 35000,
+        "total_price": 35000
+      }
+    ],
+    "consent_snapshot": {
+      "consent_ref": "cref_sandbox_001",
+      "assured_at": "2025-01-15T10:32:00Z"
+    }
+  }
+}
+```

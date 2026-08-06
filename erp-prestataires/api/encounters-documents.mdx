@@ -3,3 +3,129 @@ title: "Documents d'une consultation"
 description: "Joindre des documents à une consultation."
 openapi: "/openapi/provider-api.openapi.yml POST /api/v1/encounters/{encounterId}/documents"
 ---
+
+Cet endpoint attache un document clinique à une consultation. Le document doit d'abord être uploadé via `POST /api/v1/media/uploads` pour obtenir un `media_uid`, puis rattaché à la consultation avec cet endpoint.
+
+## Scope requis
+
+`clinical.documents.attach`
+
+## Paramètres de chemin
+
+| Paramètre | Type | Description |
+| --- | --- | --- |
+| `encounterId` | string | Identifiant UUID de la consultation. |
+
+## Workflow
+
+1. Upload du fichier via `POST /api/v1/media/uploads` → récupération du `media_uid`.
+2. Rattachement à la consultation via cet endpoint avec le `media_uid` et les métadonnées du document.
+
+## Champs du body
+
+| Champ | Type | Requis | Description |
+| --- | --- | --- | --- |
+| `media_uid` | string | oui | Identifiant du média obtenu après upload. |
+| `uploaded_by_provider_uid` | string | oui | Identifiant UUID du prestataire qui upload. |
+| `document_type` | string | non | Type de document (voir ci-dessous). |
+| `title` | string | non | Titre du document (max 160). |
+| `status` | string | non | Statut du document (voir ci-dessous). |
+| `produced_at` | date-time | non | Date de production du document. |
+| `produced_by_provider_uid` | string | non | Prestataire producteur du document. |
+| `related_type` | string | non | Type d'entité liée (requis si `related_uid` fourni). |
+| `related_uid` | string | non | Identifiant de l'entité liée (requis si `related_type` fourni). |
+| `source_system` | string | non | Système source (ex: `erp`, max 80). |
+| `external_reference` | string | non | Référence externe du document côté ERP (max 120). |
+| `description` | string | non | Description du contenu (max 500). |
+| `uploader_name` | string | non | Nom de la personne qui upload (max 150). |
+| `uploader_role` | string | non | Rôle de la personne (voir ci-dessous). |
+| `uploader_user_uid` | string | non | Identifiant de l'utilisateur qui upload. |
+
+## Types de document
+
+| `document_type` | Usage |
+| --- | --- |
+| `scan_prescription` | Scan d'une ordonnance papier. |
+| `lab_result` | Résultat d'examen de laboratoire. |
+| `imaging_report` | Compte-rendu d'imagerie. |
+| `discharge_summary` | Compte-rendu de sortie. |
+| `other` | Autre document clinique. |
+
+## Statuts de document
+
+| `status` | Usage |
+| --- | --- |
+| `draft` | Brouillon. |
+| `final` | Version finale. |
+| `amended` | Version amendée. |
+| `cancelled` | Document annulé. |
+
+## Types d'entité liée
+
+| `related_type` | Usage |
+| --- | --- |
+| `prescription` | Ordonnance. |
+| `medical_act` | Acte médical. |
+| `claim` | Claim. |
+| `lab_order` | Demande de laboratoire. |
+| `imaging_order` | Demande d'imagerie. |
+| `rehabilitation_request` | Demande de rééducation. |
+| `other` | Autre entité. |
+
+## Rôles d'uploader
+
+| `uploader_role` | Usage |
+| --- | --- |
+| `doctor` | Médecin. |
+| `nurse` | Infirmier. |
+| `radiologist` | Radiologue. |
+| `lab_technician` | Technicien de laboratoire. |
+| `pharmacist` | Pharmacien. |
+| `admin` | Administrateur. |
+
+## Chiffrement
+
+Les réponses de cet endpoint sont chiffrées via JWE. Récupérez la clé publique RSA via `GET /api/v1/auth/encryption-key` pour déchiffrer la réponse.
+
+## Exemple de requête
+
+```json
+{
+  "media_uid": "8b7c6d5e-0000-4000-8000-000000000020",
+  "document_type": "lab_result",
+  "title": "NFS et CRP",
+  "status": "final",
+  "produced_at": "2026-08-15T10:45:00Z",
+  "uploaded_by_provider_uid": "3d2e1a00-0000-4000-8000-000000000077",
+  "uploader_name": "Dr. KOUASSI",
+  "uploader_role": "doctor",
+  "related_type": "medical_act",
+  "related_uid": "5e6f7a8b-0000-4000-8000-000000000031"
+}
+```
+
+## Exemple de réponse
+
+```json
+{
+  "data": {
+    "id": 1,
+    "media_uid": "8b7c6d5e-0000-4000-8000-000000000020",
+    "document_type": "lab_result",
+    "title": "NFS et CRP",
+    "status": "final",
+    "produced_at": "2026-08-15T10:45:00.000000Z",
+    "produced_by_provider_uid": null,
+    "related_type": "medical_act",
+    "related_uid": "5e6f7a8b-0000-4000-8000-000000000031",
+    "source_system": null,
+    "external_reference": null,
+    "description": null,
+    "uploaded_by_provider_uid": "3d2e1a00-0000-4000-8000-000000000077",
+    "uploader_name": "Dr. KOUASSI",
+    "uploader_role": "doctor",
+    "uploader_user_uid": null,
+    "created_at": "2026-08-15T11:00:00.000000Z"
+  }
+}
+```

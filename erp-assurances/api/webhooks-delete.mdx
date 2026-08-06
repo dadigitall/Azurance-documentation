@@ -3,3 +3,29 @@ title: "Supprimer un webhook"
 description: "Supprime un webhook configuré par l'assureur."
 openapi: "/openapi/insurer-api.openapi.yml DELETE /api/v1/webhooks/{uuid}"
 ---
+
+Cet endpoint supprime un webhook configuré par l'assureur. La suppression est définitive : aucune livraison ne sera plus effectuée vers l'URL concernée.
+
+## Scope requis
+
+`insurer.webhooks.manage`
+
+## Paramètres de chemin
+
+| Paramètre | Type | Requis | Description |
+| --- | --- | --- | --- |
+| `uuid` | string | oui | Identifiant unique du webhook. |
+
+## Cas d'usage
+
+- Supprimer un webhook obsolète après décommissionnement d'un SI.
+- Retirer un webhook de test en environnement sandbox.
+- Nettoyer la configuration après une migration.
+
+## Bonnes pratiques
+
+Préférez la désactivation (`webhooks-update` avec `is_active` à `false`) si vous souhaitez conserver la configuration pour une réactivation ultérieure. La suppression est irréversible et supprime l'historique des livraisons.
+
+## Exemple de réponse
+
+Cet endpoint retourne `204 No Content` sans body.

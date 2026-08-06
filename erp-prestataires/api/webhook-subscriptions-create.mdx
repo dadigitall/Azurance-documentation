@@ -4,3 +4,57 @@ description: "Crée un webhook ERP pour recevoir les événements de suivi."
 openapi: "/openapi/provider-api.openapi.yml POST /api/v1/webhook-subscriptions"
 ---
 
+Cet endpoint crée une souscription webhook permettant à l'ERP prestataire de recevoir les événements billing en push plutôt que par polling. Azurance signe chaque livraison avec un secret partagé via HMAC-SHA256.
+
+## Scope requis
+
+`billing.webhooks.manage`
+
+## Champs du body
+
+| Champ | Type | Requis | Description |
+| --- | --- | --- | --- |
+| `name` | string | oui | Nom lisible de la souscription. |
+| `target_url` | string | oui | URL HTTPS de réception, sans identifiants dans l'URL. |
+| `secret` | string | oui | Secret partagé utilisé pour la signature (minimum 16 caractères). |
+| `event_types` | array | oui | Liste des événements souscrits (voir ci-dessous). |
+| `is_active` | boolean | non | Active ou désactive la souscription à la création. |
+
+## Event types disponibles
+
+| Event | Usage |
+| --- | --- |
+| `payable_invoice.issued` | Bordereau payable émis. |
+| `payable_invoice.partially_paid` | Bordereau partiellement payé. |
+| `payable_invoice.paid` | Bordereau intégralement payé. |
+| `payment.created` | Paiement créé. |
+| `payment.processing` | Paiement en traitement. |
+| `payment.succeeded` | Paiement réussi. |
+| `payment.failed` | Paiement échoué. |
+
+## Contraintes
+
+`target_url` doit être en HTTPS, sur un port autorisé, et ne pas pointer vers localhost, une IP privée ou une IP réservée. Les URLs contenant des identifiants sont refusées.
+
+## Vérification de la signature
+
+Chaque livraison inclut les headers `X-Azurance-Event-Id`, `X-Azurance-Delivery-Timestamp` et `X-Azurance-Signature` (format `sha256=<digest>`). Le message signé est `{timestamp}.{raw_json_payload}`. Vérifiez la signature sur le body brut avant tout parsing, et stockez `X-Azurance-Event-Id` pour traiter chaque événement une seule fois.
+
+## Exemple de réponse
+
+```json
+{
+  "data": {
+    "uuid": "wh_sandbox_001",
+    "provider_uid": "prov_sandbox_001",
+    "event_types": [
+      "claim.status_changed",
+      "payment.completed"
+    ],
+    "url": "https://erp.example.com/webhooks/azurance",
+    "secret": "whsec_sandbox_001",
+    "status": "active",
+    "created_at": "2025-01-15T10:00:00Z"
+  }
+}
+```

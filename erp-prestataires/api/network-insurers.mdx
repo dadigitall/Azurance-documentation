@@ -1,0 +1,50 @@
+---
+title: "Lister les assureurs disponibles"
+description: "Liste les compagnies d'assurance actives auxquelles le prestataire peut demander une adhésion réseau."
+openapi: "/openapi/provider-api.openapi.yml GET /api/v1/network/insurers"
+---
+
+Cet endpoint retourne les organisations assureur actives connues du registre réseau. Utilisez le champ `uid` d'un assureur comme `insurer_org_uid` dans `POST /api/v1/network/request` pour initier une demande d'adhésion.
+
+## Scope requis
+
+`providers.network.view`
+
+## Cas d'usage
+
+- Afficher aux administrateurs ERP la liste des compagnies disponibles pour conventionnement.
+- Préparer une demande d'adhésion au réseau d'un assureur.
+- Vérifier l'identifiant d'organisation assureur à utiliser dans une demande.
+
+## Réponse
+
+La réponse contient un tableau d'assureurs actifs. Cette liste n'indique pas que le prestataire est déjà conventionné : pour consulter les relations existantes, utilisez `GET /api/v1/network/relationships`.
+
+| Champ | Type | Description |
+| --- | --- | --- |
+| `data` | array | Liste des assureurs actifs. |
+| `data[].uid` | uuid | Identifiant public de l'organisation assureur. |
+| `data[].legal_name` | string | Raison sociale de l'assureur. |
+| `data[].trade_name` | string\|null | Nom commercial. |
+| `data[].country_code` | string | Pays de rattachement. |
+
+## Exemple de réponse
+
+```json
+{
+  "data": [
+    {
+      "uid": "5d000000-0000-4000-8000-000000000010",
+      "legal_name": "NSIA Assurances",
+      "trade_name": "NSIA",
+      "country_code": "CI"
+    },
+    {
+      "uid": "5d000000-0000-4000-8000-000000000011",
+      "legal_name": "Atlantique Assurance Santé",
+      "trade_name": "Atlantique Santé",
+      "country_code": "CI"
+    }
+  ]
+}
+```

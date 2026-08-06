@@ -6,6 +6,67 @@ icon: "list"
 
 Suivez les changements de contrat public, les nouvelles pages et les corrections importantes.
 
+## 2026-08-15 - Alignement API assurance sur insurer-bff réel
+
+- Suppression de `GET /api/v1/health` du contrat OpenAPI assureur : aucun controller `insurer-bff` public correspondant n'a été trouvé.
+- Alignement des chemins notifications sur le BFF réel (`/api/v1/notifications/{id}` et `/api/v1/notifications/{id}/read`) et mise à jour des pages MDX associées.
+- Ajout des pages manquantes `coverage-types-get`, `prior-authorizations-list`, `prior-authorizations-get` et `prior-authorizations-decision`, avec navigation `docs.json` mise à jour.
+- Correction des DTOs documentés pour `claims-update-status`, `fraud-assessment-create`, `fraud-assessment-feedback`, les uploads/status portraits, webhooks create/update et paiements billing.
+- Correction de `plans-get` pour préciser que le GET utilise le `plan_code` côté BFF, et correction de `plans-delete` sur la réponse `200 { message: "Plan deleted" }`.
+- Correction des statuts réseau côté assureur (`ACTIVE`, `PENDING`, `REJECTED`, `ENDED`; `PREFERRED`, `IN_NETWORK`, `OUT_OF_NETWORK`) et de l'exemple `provider-network-check` sur `ProviderResource`.
+
+## 2026-08-15 - Demandes d'adhésion au réseau prestataire
+
+- Ajout des endpoints prestataire `GET /api/v1/network/insurers` et `POST /api/v1/network/request` pour lister les assureurs disponibles et initier une demande d'adhésion au réseau d'un assureur.
+- Ajout des endpoints assureur `GET /api/v1/providers/network-requests`, `PATCH /api/v1/providers/network-requests/{uid}/approve` et `PATCH /api/v1/providers/network-requests/{uid}/reject` pour lister, approuver ou rejeter les demandes d'adhésion reçues.
+- Documentation du workflow complet : le prestataire liste les assureurs, soumet une demande `care_network` en statut `pending`, puis l'assureur la valide en `active` ou la rejette avec un motif `rejected_reason`.
+- Ajout des nouvelles pages dans la navigation prestataire et assureur, avec scopes publics `providers.network.view`, `providers.network.manage`, `insurer.providers.view` et `insurer.providers.manage`.
+
+## 2026-08-15 - Alignement des endpoints cliniques prestataire sur les BFF réels
+
+- Correction de l'enum `encounter_type` sur les valeurs réelles du backend (`consultation`, `hospitalization`, `emergency`, `surgery`, `procedure`, `imaging`, `laboratory`) et suppression des valeurs inexistantes (`follow_up`, `lab_visit`, `pharmacy_visit`) dans l'OpenAPI et la page `encounters-create`.
+- Alignement des exemples de réponse `medications-list`, `medications-get`, `medications-search`, `medications-export` et `medications-resolve` sur `MedicationProductResource` (`designation`, `dci_raw`, `inn_name`, `market_status`, `source`, `marketing_authorization_holder`, `public_price`, `authorization_number`, `presentations`, `clinical_mapping`, `mappings`).
+- Réécriture de la réponse `medications-resolve` sur la structure réelle `best_match` / `candidates` / `confidence` (suppression des champs inventés `name`, `generic_name`, `dosage_form`, `strength`, `manufacturer`, `status`, `matched_by`).
+- Réécriture de la réponse `eligibility/member-card` : renvoie un tableau de candidats `CoveredPerson` (`covered_person_type`, `covered_person_uid`, `subscription_uid`, `policy_number`, `member_number`, `coverage_status`, `display_name`, `relationship`, `contact`), et non une carte physique (`card_number`, `card_type`, `qr_code`, `coverage_families` supprimés).
+- Alignement des exemples `encounters-list`, `encounters-get`, `encounters-medical-acts`, `encounters-documents` sur les Resources Laravel réelles (`EncounterResource`, `MedicalActResource`, `EncounterDocumentResource`) : `id` au lieu de `uid` pour les sous-ressources, `encounter_type` au lieu de `type`, `act_code`/`act_label`/`act_category` au lieu de `code`/`name`/`category`, `uploaded_by_provider_uid` requis, `created_at` au lieu de `uploaded_at`.
+- Documentation des enums `act_category` (`surgery`, `imaging`, `biology`, `consultation`, `physiotherapy`, `nursing`, `anesthesia`, `other`), `document_type` (`scan_prescription`, `lab_result`, `imaging_report`, `discharge_summary`, `other`), `status` document (`draft`, `final`, `amended`, `cancelled`), `related_type` et `uploader_role`.
+- Correction de l'enum `prescription_type` sur les 9 valeurs réelles (`standard`, `bizozone`, `magistrale`, `controlled_substance`, `lab_test`, `imaging`, `physiotherapy`, `nursing_care`, `specialist_referral`) et documentation des champs complets d'une ligne de prescription (`line_type`, `code`, `label`, `medication_name`, `form`, `dosage`, `frequency`, `duration`, `quantity`, `instructions`, `refills_allowed`, `body_site`, `laterality`, `priority`, `indication`, `session_count`, `session_frequency`, `specialty`, `referred_provider_uid`).
+- Alignement des exemples `prescriptions-list`, `prescriptions-get`, `insured-prescriptions`, `covered-person-prescriptions-list` sur `PrescriptionResource` : `lines` au lieu de `items`, `issued_at` au lieu de `prescribed_at`, `encounter_id`/`insured_uid`/`provider_uid`/`prescription_type`/`status`/`prescriber_registration_number`/`clinical_notes`/`created_at` ajoutés, `prescriber_uid`/`encounter_uid`/`encounter_number`/`items_count` supprimés.
+- Correction du body `medical-record` PUT : `current_medications` est une string (et non un array), sous-champs renommés (`substance` au lieu de `name`, `condition_name` au lieu de `condition`, `procedure_name` au lieu de `procedure`, `vaccine_name` au lieu de `vaccine`), enums documentés (`severity`, `blood_type` avec `unknown`), `updated_by_provider_uid` ajouté, `noted_at`/`dose_number`/`status` sur chronic_conditions supprimés.
+- Correction des exemples `consent-requests-create` (réponse minimale `id`/`status`/`channel`/`assurance_level_required`/`expires_at`), `consent-requests-verify` (`consent_ref` UUID, `consent_snapshot` avec `consent_request_uid`/`validated_by_type`/`validator_user_uid`/`liveness_*`/`face_match_*`/`granted_at`) et `consent-requests-get` (`id` au lieu de `uid`, `assurance_level_achieved`/`validated_by_type`/`validator_user_uid`/`face_match_session_id`/`liveness_*`/`face_match_*`/`failure_reason` ajoutés, `purpose`/`purpose_detail`/`provider_uid`/`created_at` supprimés).
+- Correction des valeurs enum invalides dans l'exemple `medical-record-timeline` (`follow_up` → `consultation`, `consultation_report` → `discharge_summary`, `lab_results` → `lab_result`).
+- Ajout d'exemples de requête JSON sur toutes les pages POST/PUT du parcours clinique.
+- Ajout d'exemples de body dans le contrat OpenAPI pour `createEncounter`, `addMedicalAct`, `attachEncounterDocument`, `createPrescription` et `updateMedicalRecord`.
+
+## 2026-08-08 - Correction des tables de champs et des exemples de réponse
+
+- Alignement des tables `Champs du body` et `Réponse` sur les champs réellement présents dans le contrat OpenAPI et les exemples JSON, sur l'ensemble des pages prestataire et assureur.
+- Correction de `POST /api/v1/eligibility/check` assureur : body aligné sur `EligibilityCheckRequest` (`identifier`, `coverage_code`, `amount`, `provider_id`/`provider_uuid`, `beneficiary_id`, `service_date`, `purpose`) et réponse alignée sur `EligibilityCheckResult`.
+- Correction de `POST /api/v1/eligibility/check-batch` assureur : body aligné sur `EligibilityBatchCheckRequest` (chaque contrôle suit `EligibilityCheckRequest`).
+- Suppression des tables de réponse contradictoires sur les endpoints `204 No Content` (`plans-delete`, `webhooks-delete`).
+- Alignement des noms de champs sur les conventions du contrat (`uuid`, `policyholder_uuid`, `plan_code`, `subscription_number`, `provider_uuid`, `effective_date`, `expiry_date`, `amount_claimed`, `amount_approved`) sur les pages members, subscriptions, plans, claims, billing, providers, notifications, fraud-assessment, portraits, coverage-types, analytics et reimbursement.
+- Alignement des valeurs `enum` sur les majuscules (`ACTIVE`, `INACTIVE`, `SUSPENDED`, `EXPIRED`, `CANCELLED`, `SUBMITTED`, `APPROVED`, `REJECTED`, `PAID`, `ELIGIBLE`, `INELIGIBLE`, `PENDING`, `IN_REVIEW`, `COMPLETED`).
+- Correction du type de consultation dans les exemples `encounters` sur une valeur valide de l'enum (`consultation` au lieu de `ambulatory`).
+- Ajout de la table `Champs du body` sur `consent-requests-create` prestataire et complétion des champs manquants sur `encounters-documents`.
+- Correction de la description de réponse `medications-resolve` sur les champs réellement renvoyés (`uid`, `name`, `generic_name`, `dosage_form`, `strength`, `manufacturer`, `status`, `matched_by`).
+
+## 2026-08-07 - Corrections de cohérence de la référence API
+
+- Ajout de la section `Scope requis` sur les pages prestataire et assureur qui ne l'avaient pas encore (endpoints cliniques, consentement, network, service-executions, fraud-assessment, reimbursement, auth-verify).
+- Alignement de l'exemple de réponse `GET /api/v1/billing/sync` prestataire sur le format de flux incrémental documenté (page d'événements avec `cursor` et `next_cursor`).
+- Uniformisation de la devise des exemples sur `XOF` (correction des pages billing assureur qui utilisaient `XAF`).
+- Correction du champ de réponse `coverage_type_code` sur la page `POST /api/v1/eligibility/check` (au lieu de `coverage_code`).
+- Alignement des scopes de l'exemple `auth-verify` assureur sur les noms canoniques (`insurer.claims.view`, `insurer.members.view`, etc.).
+
+## 2026-08-06 - Parcours clinique prestataire et enrichissement de la référence API
+
+- Ajout des endpoints cliniques prestataire dans le contrat OpenAPI: `POST /api/v1/eligibility/member-card`, `POST/GET /api/v1/encounters`, `GET /api/v1/encounters/{encounterId}`, `GET/POST /api/v1/encounters/{encounterId}/medical-acts`, `POST /api/v1/encounters/{encounterId}/documents`, `GET/POST /api/v1/encounters/{encounterId}/prescriptions`, `GET /api/v1/prescriptions/{prescriptionUid}`, `GET /api/v1/insured/{insuredUid}/prescriptions`, `GET/PUT /api/v1/insured/{insuredUid}/medical-record`, `GET /api/v1/insured/{insuredUid}/medical-record/summary`, `GET /api/v1/insured/{insuredUid}/medical-record/timeline`.
+- Documentation des scopes cliniques associés: `clinical.encounters.manage`, `clinical.encounters.view`, `clinical.prescriptions.manage`, `clinical.prescriptions.view`, `clinical.records.manage`, `clinical.records.view`, `clinical.documents.attach`.
+- Enrichissement de toutes les pages d'endpoint prestataire et assureur avec un corps de documentation développeur-friendly: scope requis, paramètres, champs du body, indicateurs retournés, cas d'usage, bonnes pratiques et exemple de réponse sandbox.
+- Ajout d'exemples de réponse sandbox cohérents sur les pages consentement, claims, billing, media, prior-authorizations, service-executions, network, medications et medical-record.
+- Alignement des exemples consentement sur la valeur `purpose` documentée `claim_submission` (au lieu de `claims.create`).
+- Restauration de la référence OpenAPI sur la page de consultation d'une prestation effectuée.
+
 ## 2026-05-27 - Consentement N3 Face Match
 
 - Ajout du suivi public `GET /api/v1/consent-requests/{consentRequestUid}` pour les demandes OTP, TOTP et Face Match.

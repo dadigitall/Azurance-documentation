@@ -4,3 +4,55 @@ description: "Liste les claims visibles par le prestataire."
 openapi: "/openapi/provider-api.openapi.yml GET /api/v1/claims"
 ---
 
+Cet endpoint liste les claims visibles par le prestataire authentifié. Il est utilisé pour piloter le back-office de remboursement et suivre les claims en cours, approuvés ou rejetés.
+
+## Scope requis
+
+`claims.view`
+
+## Paramètres
+
+L'endpoint accepte les paramètres standards de pagination (`page`, `per_page`) ainsi que l'header `X-Request-Id` pour la corrélation. Aucun identifiant prestataire n'est à fournir : le contexte est déduit de `X-Api-Key`.
+
+## Réponse
+
+La réponse est paginée et contient un tableau de claims avec, pour chacun, l'identifiant, le statut, la date de prestation, le montant réclamé et la garantie visée. Pour consulter le détail complet d'un claim (documents, snapshots, réservations), appelez `GET /api/v1/claims/{claimId}`.
+
+## Flux incrémental
+
+Pour éviter un polling massif, complétez la lecture par le flux `GET /api/v1/billing/sync` ou par une souscription webhook billing.
+
+## Exemple de réponse
+
+```json
+{
+  "data": [
+    {
+      "uuid": "claim_sandbox_001",
+      "claim_number": "CLM-2025-001234",
+      "status": "approved",
+      "service_execution_uid": "se_sandbox_001",
+      "covered_person_type": "policyholder",
+      "covered_person_uid": "mbr_sandbox_001",
+      "subscription_uid": "sub_sandbox_001",
+      "policy_number": "NSIA-POL-2025-001",
+      "provider_uid": "prov_sandbox_001",
+      "insurer_uid": "ins_sandbox_001",
+      "coverage_type_code": "AMBULATORY",
+      "service_date": "2025-01-15",
+      "submitted_at": "2025-01-15T10:30:00Z",
+      "processed_at": "2025-01-16T09:00:00Z",
+      "amount_claimed": 50000,
+      "amount_approved": 45000,
+      "amount_paid": null,
+      "currency": "XOF"
+    }
+  ],
+  "meta": {
+    "current_page": 1,
+    "per_page": 20,
+    "total_count": 45,
+    "total_pages": 3
+  }
+}
+```

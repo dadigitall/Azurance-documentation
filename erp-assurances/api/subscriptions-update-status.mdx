@@ -4,3 +4,72 @@ description: "Suspend, réactive, expire ou annule une souscription selon les st
 openapi: "/openapi/insurer-api.openapi.yml PATCH /api/v1/subscriptions/{subscriptionId}/status"
 ---
 
+Cet endpoint modifie le statut d'une souscription. Les transitions autorisées dépendent du statut courant et du statut cible.
+
+## Scope requis
+
+`insurer.members.manage`
+
+## Paramètres de chemin
+
+| Paramètre | Type | Requis | Description |
+| --- | --- | --- | --- |
+| `subscriptionId` | string | oui | Identifiant de la souscription. |
+
+## Champs du body
+
+| Champ | Type | Requis | Description |
+| --- | --- | --- | --- |
+| `status` | string | oui | Statut cible (`SUSPENDED`, `ACTIVE`, `EXPIRED`, `CANCELLED`). |
+| `reason` | string | non | Motif du changement de statut. |
+
+## Transitions autorisées
+
+| Statut courant | Statuts cibles possibles |
+| --- | --- |
+| `ACTIVE` | `SUSPENDED`, `EXPIRED`, `CANCELLED` |
+| `SUSPENDED` | `ACTIVE`, `CANCELLED` |
+| `EXPIRED` | `CANCELLED` |
+| `CANCELLED` | aucune |
+
+## Cas d'usage
+
+- Suspendre un contrat en cas de non-paiement de cotisation.
+- Réactiver un contrat suspendu après régularisation.
+- Annuler un contrat suite à une résiliation demandée par l'assuré.
+
+## Bonnes pratiques
+
+Fournissez toujours un `reason` pour assurer la traçabilité. Vérifiez le statut courant avec `subscriptions-get` avant l'appel pour éviter une transition invalide et un rejet `409`.
+
+## Exemple de réponse
+
+```json
+{
+  "data": {
+    "uuid": "sub_sandbox_001",
+    "tenant_id": "tenant_sandbox_001",
+    "policyholder_uuid": "mbr_sandbox_001",
+    "subscription_number": "SUB-001",
+    "plan_code": "GOLD",
+    "plan_name": "Gold Plan",
+    "status": "SUSPENDED",
+    "effective_date": "2024-01-15",
+    "expiry_date": "2025-01-15",
+    "premium_amount": 50000.00,
+    "premium_frequency": "MONTHLY",
+    "annual_coverage_limit": 1000000.00,
+    "annual_used_amount": 250000.00,
+    "remaining_coverage": 750000.00,
+    "lifetime_used_amount": 500000.00,
+    "last_premium_payment_date": "2026-01-01",
+    "renewed_from_uuid": null,
+    "metadata": {},
+    "policyholder": null,
+    "beneficiaries": [],
+    "status_histories": [],
+    "created_at": "2024-01-15T00:00:00.000Z",
+    "updated_at": "2026-01-15T14:30:00.000Z"
+  }
+}
+```

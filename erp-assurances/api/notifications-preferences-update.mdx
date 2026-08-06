@@ -3,3 +3,76 @@ title: "Modifier les préférences"
 description: "Met à jour les préférences de notification par canal."
 openapi: "/openapi/insurer-api.openapi.yml PUT /api/v1/notifications/preferences"
 ---
+
+Cet endpoint met à jour les préférences de notification par canal. La mise à jour est globale : envoyez l'ensemble des préférences.
+
+## Scope requis
+
+`insurer.notifications.manage`
+
+## Champs du body
+
+| Champ | Type | Requis | Description |
+| --- | --- | --- | --- |
+| `email_enabled` | boolean | non | Activer le canal e-mail. |
+| `sms_enabled` | boolean | non | Activer le canal SMS. |
+| `push_enabled` | boolean | non | Activer le canal push. |
+| `critical_only` | boolean | non | Limiter aux notifications critiques. |
+| `quiet_hours_start` | string | non | Début des heures de silence (`HH:MM`). |
+| `quiet_hours_end` | string | non | Fin des heures de silence (`HH:MM`). |
+| `event_preferences` | object | non | Préférences par type d'événement (`email`, `sms`, `push` par événement). |
+
+## Réponse
+
+| Champ | Type | Description |
+| --- | --- | --- |
+| `recipient_id` | string | Identifiant du destinataire. |
+| `email_enabled` | boolean | Canal e-mail activé. |
+| `sms_enabled` | boolean | Canal SMS activé. |
+| `push_enabled` | boolean | Canal push activé. |
+| `critical_only` | boolean | Limiter aux notifications critiques. |
+| `quiet_hours_start` | string | Début des heures de silence. |
+| `quiet_hours_end` | string | Fin des heures de silence. |
+| `event_preferences` | object | Préférences par type d'événement. |
+| `updated_at` | string | Date de mise à jour au format ISO 8601. |
+
+## Cas d'usage
+
+- Désactiver un canal de notification devenu inutile.
+- Restreindre les types d'événements reçus par e-mail.
+- Réactiver un canal après une maintenance.
+
+## Bonnes pratiques
+
+Récupérez d'abord les préférences avec `notifications-preferences-get`, modifiez les champs nécessaires, puis renvoyez l'objet complet pour éviter d'écraser des valeurs par omission. Les webhooks configurés via `webhooks-create` ne sont pas affectés par ces préférences.
+
+## Exemple de réponse
+
+```json
+{
+  "data": {
+    "recipient_id": "user_sandbox_001",
+    "tenant_id": "tenant_sandbox_001",
+    "email_enabled": true,
+    "sms_enabled": false,
+    "push_enabled": true,
+    "critical_only": true,
+    "quiet_hours_start": "23:00",
+    "quiet_hours_end": "07:00",
+    "event_preferences": {
+      "CLAIM_APPROVED": {
+        "email": true,
+        "sms": false,
+        "push": true
+      },
+      "CLAIM_REJECTED": {
+        "email": true,
+        "sms": true,
+        "push": true
+      }
+    },
+    "created_at": "2026-01-01T00:00:00.000Z",
+    "updated_at": "2026-01-15T14:30:00.000Z"
+  }
+}
+```

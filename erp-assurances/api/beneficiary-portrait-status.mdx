@@ -4,3 +4,55 @@ description: "Retourne le statut du portrait sans exposer l'image."
 openapi: "/openapi/insurer-api.openapi.yml GET /api/v1/subscriptions/{subscriptionId}/beneficiaries/{beneficiaryId}/portrait/status"
 ---
 
+Cet endpoint retourne le statut du portrait d'un bénéficiaire sans exposer le contenu de l'image. Utilisez-le pour vérifier qu'une photo est disponible et valide.
+
+## Scope requis
+
+`insurer.members.view`
+
+## Paramètres de chemin
+
+| Paramètre | Type | Requis | Description |
+| --- | --- | --- | --- |
+| `subscriptionId` | string | oui | Identifiant de la souscription. |
+| `beneficiaryId` | string | oui | Identifiant du bénéficiaire. |
+
+## Réponse
+
+| Champ | Type | Description |
+| --- | --- | --- |
+| `exists` | boolean | Indique si un portrait existe. |
+| `subject_type` | string | Type de sujet (`BENEFICIARY`). |
+| `subject_uuid` | string | Identifiant du bénéficiaire. |
+| `media_uid` | string | Identifiant du média. |
+| `mime_type` | string | Type MIME de l'image. |
+| `source` | string | Source du portrait (`insurer_contract`, `kyc_refresh`, `member_update`, `other`). |
+| `captured_at` | string | Date de capture au format ISO 8601. |
+| `activated_at` | string | Date d'activation au format ISO 8601. |
+| `updated_at` | string | Date de dernière mise à jour au format ISO 8601. |
+
+## Cas d'usage
+
+- Vérifier qu'un portrait a bien été traité après un envoi.
+- Afficher un indicateur de complétude du dossier bénéficiaire.
+- Détecter un rejet et inviter à renvoyer l'image.
+
+## Bonnes pratiques
+
+Après un envoi via `beneficiary-portrait-upload`, attendez quelques secondes avant de consulter le statut. Un statut `processing` n'est pas une erreur : recommencez la vérification à intervalle régulier.
+
+## Exemple de réponse
+
+```json
+{
+  "exists": true,
+  "subject_type": "BENEFICIARY",
+  "subject_uuid": "ben_sandbox_001",
+  "media_uid": "media_sandbox_002",
+  "mime_type": "image/jpeg",
+  "source": "kyc_refresh",
+  "captured_at": "2026-01-15T14:30:00.000Z",
+  "activated_at": "2026-01-15T14:30:00.000Z",
+  "updated_at": "2026-01-15T14:30:00.000Z"
+}
+```

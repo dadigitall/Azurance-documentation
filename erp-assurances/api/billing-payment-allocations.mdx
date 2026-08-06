@@ -3,3 +3,63 @@ title: "Répartitions d'un paiement"
 description: "Liste les répartitions d'un paiement sur les factures."
 openapi: "/openapi/insurer-api.openapi.yml GET /api/v1/billing/payments/{uuid}/allocations"
 ---
+
+Cet endpoint liste les répartitions (allocations) d'un paiement sur les factures. Chaque allocation indique la facture concernée et le montant alloué.
+
+## Scope requis
+
+`insurer.billing.view`
+
+## Paramètres de chemin
+
+| Paramètre | Type | Requis | Description |
+| --- | --- | --- | --- |
+| `uuid` | string | oui | Identifiant unique du paiement. |
+
+## Réponse
+
+| Champ | Type | Description |
+| --- | --- | --- |
+| `data` | array | Liste des allocations. |
+| `data[].uuid` | string | Identifiant de l'allocation. |
+| `data[].payment_uuid` | string | Identifiant du paiement. |
+| `data[].payable_invoice_uuid` | string | Identifiant de la facture. |
+| `data[].payable_invoice_item_uuid` | string | Identifiant de la ligne de facture, si applicable. |
+| `data[].amount` | number | Montant alloué. |
+| `data[].currency` | string | Devise. |
+| `meta` | object | Métadonnées de pagination. |
+
+## Cas d'usage
+
+- Vérifier la répartition d'un paiement sur plusieurs factures.
+- Contrôler qu'une facture a bien été couverte.
+- Préparer le rapprochement comptable.
+
+## Bonnes pratiques
+
+La somme des allocations doit correspondre au montant total du paiement. Pour le détail d'une facture concernée, utilisez `billing-payable-invoice-get`. Pour le détail du paiement, utilisez `billing-payment-get`.
+
+## Exemple de réponse
+
+```json
+{
+  "data": [
+    {
+      "uuid": "alloc_sandbox_001",
+      "tenant_id": "tenant_sandbox_001",
+      "payment_uuid": "pay_sandbox_001",
+      "payable_invoice_uuid": "inv_sandbox_001",
+      "payable_invoice_item_uuid": "item_sandbox_001",
+      "amount": 150000.00,
+      "currency": "XOF",
+      "metadata": {},
+      "created_at": "2026-02-01T10:00:00.000000Z"
+    }
+  ],
+  "meta": {
+    "current_page": 1,
+    "per_page": 100,
+    "total": 1
+  }
+}
+```

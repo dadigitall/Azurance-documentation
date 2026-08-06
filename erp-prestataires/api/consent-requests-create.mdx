@@ -4,6 +4,22 @@ description: "Démarre un challenge OTP, TOTP ou Face Match pour autoriser l'acc
 openapi: "/openapi/provider-api.openapi.yml POST /api/v1/consent-requests"
 ---
 
+## Scope requis
+
+`consent_requests.create`
+
+## Champs du body
+
+| Champ | Type | Requis | Description |
+| --- | --- | --- | --- |
+| `covered_person_type` | string | oui | `policyholder` ou `beneficiary`. |
+| `covered_person_uid` | string | oui | Identifiant de la personne couverte. |
+| `subscription_uid` | string (uuid) | oui | Identifiant de la souscription. |
+| `purpose` | string | oui | Motif métier (voir tableau ci-dessous). |
+| `scopes` | array | oui | Scopes à autoriser via ce consentement. |
+| `channel` | string | non | Canal du challenge (`sms`, `email`, `whatsapp`, `totp`, `face_match`). |
+| `assurance_level_required` | integer | non | Niveau d'assurance requis (`2` pour OTP/TOTP, `3` pour Face Match). |
+
 Le champ `purpose` est volontairement encadré. Il décrit le motif métier de la demande et doit utiliser l'une des valeurs publiques documentées dans le schéma OpenAPI. Le champ optionnel `purpose_detail` permet d'afficher un contexte lisible à l'assuré, sans donnée sensible.
 
 | Purpose | Usage |
@@ -22,3 +38,57 @@ Le champ `purpose` est volontairement encadré. Il décrit le motif métier de l
 `assurance_level_required` vaut `2` pour OTP/TOTP et `3` pour Face Match. Un consentement N3 ne redescend jamais automatiquement en N2: si Face Match est requis et impossible, la demande échoue avec une erreur métier explicite.
 
 Pour un bénéficiaire mineur, le titulaire de la police peut valider à sa place dans l'application assurée. La réponse indique alors `validated_by_type: "policyholder_representative"`. Pour un bénéficiaire adulte, la validation doit être réalisée par son propre compte assuré.
+
+## Réponse
+
+La réponse `201` est volontairement minimale : elle contient l'identifiant de la demande (`id`), son statut, le canal de challenge, le niveau d'assurance requis et la date d'expiration. Les champs `purpose`, `scopes`, `covered_person_*` et `subscription_uid` ne sont pas renvoyés dans la réponse de création — ils sont en entrée seulement et conservés côté service pour la vérification.
+
+Si `assurance_level_required` est `3` (Face Match), la réponse contient en plus `face_match_session_id` et `validated_by_type` pour initier la session biométrique dans l'application assurée.
+
+## Exemple de requête
+
+```json
+{
+  "covered_person_type": "policyholder",
+  "covered_person_uid": "5f6e7d8c-0000-4000-8000-000000000099",
+  "subscription_uid": "1a2b3c4d-0000-4000-8000-000000000055",
+  "purpose": "claim_submission",
+  "purpose_detail": "Soumission de claim pour consultation du 15/08",
+  "scopes": [
+    "claims.create",
+    "eligibility.check"
+  ],
+  "channel": "sms",
+  "assurance_level_required": 2
+}
+```
+
+## Exemple de réponse
+
+```json
+{
+  "data": {
+    "id": "c0d1e2f3-0000-4000-8000-0000000000a1",
+    "status": "pending",
+    "channel": "sms",
+    "assurance_level_required": 2,
+    "expires_at": "2026-08-15T10:10:00.000000Z"
+  }
+}
+```
+
+## Exemple de réponse (N3 Face Match)
+
+```json
+{
+  "data": {
+    "id": "c0d1e2f3-0000-4000-8000-0000000000a2",
+    "status": "face_match_started",
+    "channel": "face_match",
+    "assurance_level_required": 3,
+    "face_match_session_id": "f1e2d3c4-0000-4000-8000-0000000000b2",
+    "validated_by_type": "self",
+    "expires_at": "2026-08-15T10:10:00.000000Z"
+  }
+}
+```

@@ -3,3 +3,93 @@ title: "Détail d'une facture"
 description: "Récupère le détail d'une facture à payer."
 openapi: "/openapi/insurer-api.openapi.yml GET /api/v1/billing/payable-invoices/{uuid}"
 ---
+
+Cet endpoint récupère le détail d'une facture à payer : prestataire émetteur, montant, statut et échéance.
+
+## Scope requis
+
+`insurer.billing.view`
+
+## Paramètres de chemin
+
+| Paramètre | Type | Requis | Description |
+| --- | --- | --- | --- |
+| `uuid` | string | oui | Identifiant unique de la facture. |
+
+## Réponse
+
+| Champ | Type | Description |
+| --- | --- | --- |
+| `uuid` | string | Identifiant unique de la facture. |
+| `invoice_number` | string | Numéro de facture. |
+| `beneficiary_type` | string | Type de bénéficiaire (`PROVIDER`). |
+| `beneficiary_uuid` | string | Identifiant du prestataire émetteur. |
+| `beneficiary_name` | string | Nom du prestataire. |
+| `provider_uuid` | string | Identifiant du prestataire. |
+| `provider_name` | string | Nom du prestataire. |
+| `status` | string | Statut (`ISSUED`, `PAID`, `DISPUTED`). |
+| `total_amount` | number | Montant total. |
+| `paid_amount` | number | Montant déjà réglé. |
+| `remaining_amount` | number | Reste à régler. |
+| `currency` | string | Devise. |
+| `period_start` | string | Début de période facturée. |
+| `period_end` | string | Fin de période facturée. |
+| `issued_at` | string | Date d'émission au format ISO 8601. |
+| `items` | array | Lignes de la facture (voir `billing-payable-invoice-items`). |
+
+## Cas d'usage
+
+- Afficher le détail d'une facture avant validation d'un paiement.
+- Vérifier le statut d'une facture en litige.
+- Contrôler le montant déjà réglé sur une facture partiellement payée.
+
+## Bonnes pratiques
+
+Pour consulter les lignes détaillées de la facture, utilisez `billing-payable-invoice-items`. Pour enregistrer un règlement, utilisez `billing-payment-create` avec une allocation sur cette facture.
+
+## Exemple de réponse
+
+```json
+{
+  "uuid": "inv_sandbox_001",
+  "invoice_number": "INV-2026-001",
+  "tenant_id": "tenant_sandbox_001",
+  "beneficiary_type": "PROVIDER",
+  "beneficiary_uuid": "prov_sandbox_001",
+  "beneficiary_name": "Clinique Santé Plus",
+  "provider_uuid": "prov_sandbox_001",
+  "provider_name": "Clinique Santé Plus",
+  "status": "ISSUED",
+  "total_amount": 150000.00,
+  "paid_amount": 0.00,
+  "remaining_amount": 150000.00,
+  "currency": "XOF",
+  "period_start": "2026-01-01",
+  "period_end": "2026-01-31",
+  "issued_at": "2026-02-01T10:00:00.000000Z",
+  "metadata": {},
+  "created_at": "2026-02-01T10:00:00.000000Z",
+  "updated_at": "2026-02-01T10:00:00.000000Z",
+  "items": [
+    {
+      "uuid": "item_sandbox_001",
+      "payable_invoice_uuid": "inv_sandbox_001",
+      "tenant_id": "tenant_sandbox_001",
+      "claim_uuid": "claim_sandbox_001",
+      "claim_number": "CLM-2026-001",
+      "provider_invoice_ref": "FAC-001",
+      "provider_invoice_line_ref": "LIG-001",
+      "provider_patient_ref": "PAT-001",
+      "service_date": "2026-01-15",
+      "status": "ISSUED",
+      "approved_amount": 150000.00,
+      "paid_amount": 0.00,
+      "remaining_amount": 150000.00,
+      "currency": "XOF",
+      "metadata": {},
+      "created_at": "2026-02-01T10:00:00.000000Z",
+      "updated_at": "2026-02-01T10:00:00.000000Z"
+    }
+  ]
+}
+```

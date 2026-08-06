@@ -4,3 +4,50 @@ description: "Retourne les spécialités déclarées pour un prestataire."
 openapi: "/openapi/insurer-api.openapi.yml GET /api/v1/providers/{providerId}/specialties"
 ---
 
+Cet endpoint retourne les spécialités médicales déclarées pour un prestataire. Utilisez-le pour orienter les assurés vers le bon établissement.
+
+## Scope requis
+
+`insurer.providers.view`
+
+## Paramètres de chemin
+
+| Paramètre | Type | Requis | Description |
+| --- | --- | --- | --- |
+| `providerId` | string | oui | Identifiant du prestataire. |
+
+## Réponse
+
+| Champ | Type | Description |
+| --- | --- | --- |
+| (racine) | array | Liste des spécialités. |
+| `id` | integer | Identifiant de la spécialité. |
+| `specialty` | string | Libellé de la spécialité. |
+| `is_primary` | boolean | Indique s'il s'agit de la spécialité principale. |
+
+## Cas d'usage
+
+- Afficher les spécialités d'un établissement dans un annulaire réseau.
+- Filtrer les prestataires par spécialité pour orienter un assuré.
+- Vérifier la spécialité principale avant un contrôle d'éligibilité.
+
+## Bonnes pratiques
+
+Un prestataire peut avoir plusieurs spécialités, dont une seule est principale. Pour le détail du prestataire, utilisez `providers-get`. Pour vérifier le conventionnement, utilisez `provider-network-check`.
+
+## Exemple de réponse
+
+```json
+[
+  {
+    "id": 1,
+    "specialty": "Cardiologie",
+    "is_primary": true
+  },
+  {
+    "id": 2,
+    "specialty": "Médecine Générale",
+    "is_primary": false
+  }
+]
+```

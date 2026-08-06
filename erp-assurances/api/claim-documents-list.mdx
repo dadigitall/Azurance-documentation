@@ -4,3 +4,78 @@ description: "Retourne les pièces justificatives associées à un claim."
 openapi: "/openapi/insurer-api.openapi.yml GET /api/v1/claims/{claimId}/documents"
 ---
 
+Cet endpoint retourne la liste des pièces justificatives associées à un claim : factures, ordonnances, comptes-rendus et autres documents transmis par le prestataire.
+
+## Scope requis
+
+`insurer.claims.view`
+
+## Paramètres de chemin
+
+| Paramètre | Type | Requis | Description |
+| --- | --- | --- | --- |
+| `claimId` | string | oui | Identifiant du claim. |
+
+## Réponse
+
+| Champ | Type | Description |
+| --- | --- | --- |
+| `data` | array | Liste des documents. |
+| `data[].id` | integer | Identifiant du document. |
+| `data[].claim_id` | integer | Identifiant du claim. |
+| `data[].document_type` | string | Type de pièce (`INVOICE`, `PRESCRIPTION`, `REPORT`, `OTHER`). |
+| `data[].media_uid` | string | Identifiant du média. |
+| `data[].original_name` | string | Nom original du fichier. |
+| `data[].file_name` | string | Nom stocké du fichier. |
+| `data[].file_size` | integer | Taille en octets. |
+| `data[].mime_type` | string | Type MIME. |
+| `data[].sha256_hash` | string | Empreinte SHA-256. |
+| `data[].media_status` | string | Statut du média (`READY`). |
+| `data[].uploaded_at` | string | Date d'envoi au format ISO 8601. |
+
+## Cas d'usage
+
+- Lister les pièces reçues avant de décider un claim.
+- Vérifier la complétude du dossier avant approbation.
+- Identifier une pièce manquante à réclamer au prestataire.
+
+## Bonnes pratiques
+
+Cet endpoint liste les pièces sans exposer leur contenu. Pour visualiser un document, utilisez l'URL de téléchargement fournie dans le détail du document, avec une durée de validité limitée.
+
+## Exemple de réponse
+
+```json
+{
+  "data": [
+    {
+      "id": 1,
+      "claim_id": 1,
+      "document_type": "INVOICE",
+      "media_uid": "media_sandbox_003",
+      "original_name": "facture.pdf",
+      "file_name": "facture_001.pdf",
+      "file_size": 245678,
+      "mime_type": "application/pdf",
+      "sha256_hash": "abc123...",
+      "media_status": "READY",
+      "metadata": {},
+      "uploaded_at": "2026-01-10T10:00:00.000Z"
+    },
+    {
+      "id": 2,
+      "claim_id": 1,
+      "document_type": "PRESCRIPTION",
+      "media_uid": "media_sandbox_004",
+      "original_name": "ordonnance.pdf",
+      "file_name": "ordonnance_001.pdf",
+      "file_size": 156789,
+      "mime_type": "application/pdf",
+      "sha256_hash": "def456...",
+      "media_status": "READY",
+      "metadata": {},
+      "uploaded_at": "2026-01-10T10:00:00.000Z"
+    }
+  ]
+}
+```

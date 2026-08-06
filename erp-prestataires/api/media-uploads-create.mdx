@@ -4,3 +4,59 @@ description: "Crée un document clinique ou justificatif de claim."
 openapi: "/openapi/provider-api.openapi.yml POST /api/v1/media/uploads"
 ---
 
+Cet endpoint crée un média (document clinique ou justificatif de claim) par upload multipart. Le média renvoyé est ensuite référencé dans les pré-autorisations, claims et prescriptions via son `media_uid`.
+
+## Scope requis
+
+`media.upload`
+
+## Champs du body (multipart/form-data)
+
+| Champ | Type | Requis | Description |
+| --- | --- | --- | --- |
+| `file` | binary | oui | Fichier à uploader. |
+| `category` | string | oui | Catégorie du document (ex. `claim`, `clinical`, `prior_authorization`). |
+| `purpose` | string | oui | Usage du document (ex. `INVOICE`, `PRESCRIPTION`, `PROFORMA`). |
+| `external_reference` | string | non | Référence interne ERP pour le rapprochement. |
+| `metadata` | string | non | Métadonnées supplémentaires au format JSON sérialisé. |
+
+## Formats et limites
+
+| Règle | Valeur |
+| --- | --- |
+| Extensions autorisées | `.pdf`, `.jpg`, `.jpeg`, `.png`, `.webp`, `.doc`, `.docx` |
+| Taille maximale | 20 MB |
+| Content-Type | `multipart/form-data` |
+
+## Workflow
+
+1. Uploader le fichier via cet endpoint.
+2. Récupérer le `media_uid` renvoyé dans la réponse `201`.
+3. Référencer ce `media_uid` dans le `documents` d'une pré-autorisation, d'un claim ou de tout endpoint acceptant des pièces.
+
+## Réponse
+
+La réponse `201` contient le `media_uid`, la catégorie, le purpose et les métadonnées du média créé. Les fichiers non conformes (extension ou taille) sont rejetés en `422`.
+
+## Exemple de réponse
+
+```json
+{
+  "data": {
+    "uid": "media_sandbox_001",
+    "original_filename": "ordonance_scan.pdf",
+    "filename": "ordonance_scan_20250115_103000.pdf",
+    "mime_type": "application/pdf",
+    "size_bytes": 245760,
+    "category": "prescription",
+    "url": "https://storage.azurance.com/media/ordonance_scan_20250115_103000.pdf",
+    "uploaded_by_subject_type": "provider",
+    "uploaded_by_subject_uid": "prov_sandbox_001",
+    "created_at": "2025-01-15T10:30:00Z",
+    "metadata": {
+      "purpose": "claim_submission",
+      "external_reference": "ERP-REF-001"
+    }
+  }
+}
+```

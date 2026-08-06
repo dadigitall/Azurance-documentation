@@ -3,3 +3,57 @@ title: "Synthèse du dossier médical"
 description: "Récupère la synthèse du dossier médical d'un assuré."
 openapi: "/openapi/provider-api.openapi.yml GET /api/v1/insured/{insuredUid}/medical-record/summary"
 ---
+
+Cet endpoint retourne une synthèse condensée du dossier médical : allergies critiques, pathologies actives, groupe sanguin et traitements en cours. Il est conçu pour un affichage rapide en contexte clinique (urgences, admission) sans charger le dossier complet.
+
+## Scope requis
+
+`clinical.records.view`
+
+## Paramètres de chemin
+
+| Paramètre | Type | Description |
+| --- | --- | --- |
+| `insuredUid` | string | Identifiant de l'assuré. |
+
+## Différence avec le dossier complet
+
+- `GET /api/v1/insured/{insuredUid}/medical-record` retourne le dossier complet avec l'historique détaillé.
+- `GET /api/v1/insured/{insuredUid}/medical-record/summary` retourne uniquement les informations critiques pour une décision clinique immédiate.
+
+## Chiffrement
+
+Les réponses de cet endpoint sont chiffrées via JWE. Récupérez la clé publique RSA via `GET /api/v1/auth/encryption-key` pour déchiffrer la réponse.
+
+## Exemple de réponse
+
+```json
+{
+  "data": {
+    "tenant_id": "tenant_sandbox_001",
+    "insured_uid": "ins_sandbox_abc456",
+    "blood_type": "A+",
+    "allergies": [
+      {
+        "substance": "Penicillin",
+        "severity": "severe"
+      },
+      {
+        "substance": "Peanuts",
+        "severity": "moderate"
+      }
+    ],
+    "chronic_conditions": [
+      {
+        "condition_name": "Type 2 Diabetes Mellitus",
+        "icd10_code": "E11.9"
+      },
+      {
+        "condition_name": "Essential Hypertension",
+        "icd10_code": "I10"
+      }
+    ],
+    "current_medications": "Metformin 500mg daily, Lisinopril 10mg daily"
+  }
+}
+```

@@ -3,3 +3,57 @@ title: "Lister les consultations"
 description: "Liste les consultations du prestataire."
 openapi: "/openapi/provider-api.openapi.yml GET /api/v1/encounters"
 ---
+
+Cet endpoint retourne l'historique des consultations d'un assuré, filtré par le prestataire authentifié. Le paramètre `insured_uid` est obligatoire pour limiter les résultats à un assuré donné.
+
+## Scope requis
+
+`clinical.encounters.view`
+
+## Paramètres de requête
+
+| Paramètre | Type | Requis | Description |
+| --- | --- | --- | --- |
+| `insured_uid` | uuid | oui | Identifiant de l'assuré. |
+| `page` | integer | non | Numéro de page (pagination). |
+| `per_page` | integer | non | Nombre de résultats par page. |
+
+## Réponse
+
+La réponse contient une liste paginée de consultations, triées par date décroissante. Chaque entrée inclut le type, la date, le motif et les relations chargées (`medical_acts`, `prescriptions`, `documents`) si disponibles.
+
+## Chiffrement
+
+Les réponses de cet endpoint sont chiffrées via JWE. Récupérez la clé publique RSA via `GET /api/v1/auth/encryption-key` pour déchiffrer la réponse.
+
+## Exemple de réponse
+
+```json
+{
+  "data": [
+    {
+      "uid": "7a8b9c0d-0000-4000-8000-000000000041",
+      "insured_uid": "9a1b2c3d-4e5f-4061-8f2a-1b2c3d4e5f60",
+      "provider_uid": "3d2e1a00-0000-4000-8000-000000000077",
+      "tenant_id": "01J5X4QZ",
+      "encounter_type": "consultation",
+      "encounter_date": "2026-08-15",
+      "discharge_date": null,
+      "icd10_codes": ["R10.9"],
+      "chief_complaint": "Douleur abdominale",
+      "clinical_summary": null,
+      "department": "urgences",
+      "attending_physician": "Dr. KOUASSI",
+      "status": null,
+      "medical_acts": [],
+      "prescriptions": [],
+      "documents": [],
+      "created_at": "2026-08-15T10:00:00.000000Z"
+    }
+  ],
+  "meta": {
+    "total": 25,
+    "page": 1
+  }
+}
+```

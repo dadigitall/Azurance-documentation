@@ -4,3 +4,65 @@ description: "Liste les compagnies d'assurance et réseaux en relation avec le p
 openapi: "/openapi/provider-api.openapi.yml GET /api/v1/network/relationships"
 ---
 
+Cet endpoint liste les relations entre le prestataire authentifié et les compagnies d'assurance. Chaque relation indique le statut (`ACTIVE`, `ENDED`), le niveau réseau (`PREFERRED`, `IN_NETWORK`, `OUT_OF_NETWORK`) et l'identifiant public de la relation.
+
+## Scope requis
+
+`providers.network.view`
+
+## Paramètres de requête
+
+| Paramètre | Type | Requis | Description |
+| --- | --- | --- | --- |
+| `status` | string | non | Filtrer par statut de relation (`ACTIVE`, `ENDED`). |
+
+## Réponse
+
+La réponse contient un tableau de relations. Chaque entrée inclut l'identifiant de l'assureur, le type de relation, le statut et le niveau réseau. Utilisez ces informations pour déterminer quels assureurs acceptent vos claims et sous quelles conditions.
+
+## Exemple de réponse
+
+```json
+{
+  "data": [
+    {
+      "relationship_uid": "rel_sandbox_001",
+      "relationship_type": "care_network",
+      "relationship_status": "active",
+      "network_status": "standard",
+      "network_name": "Réseau NSIA Standard",
+      "network_tier": "tier_2",
+      "contract_reference": "CTR-NSIA-2025-001",
+      "contract_start_date": "2024-01-01",
+      "contract_end_date": "2025-12-31",
+      "claim_submission_enabled": true,
+      "requires_prior_authorization": false,
+      "covered_service_families": [
+        "AMBULATORY",
+        "PHARMACY"
+      ],
+      "insurer": {
+        "uid": "ins_sandbox_001",
+        "tenant_uid": "nsia-ci",
+        "name": "NSIA Assurance CI",
+        "trade_name": "NSIA",
+        "status": "active",
+        "country_code": "CI"
+      },
+      "provider": {
+        "uid": "org_sandbox_001",
+        "name": "Clinique Santé Plus SARL",
+        "trade_name": "Santé Plus",
+        "status": "active",
+        "country_code": "CI"
+      }
+    }
+  ],
+  "meta": {
+    "provider_uid": "prov_sandbox_001",
+    "provider_name": "Clinique Santé Plus",
+    "provider_organization_uid": "org_sandbox_001",
+    "relationship_count": 3
+  }
+}
+```

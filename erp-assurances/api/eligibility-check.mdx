@@ -4,3 +4,116 @@ description: "Teste une couverture pour une personne assurée."
 openapi: "/openapi/insurer-api.openapi.yml POST /api/v1/eligibility/check"
 ---
 
+Cet endpoint vérifie l'éligibilité d'un assuré pour un acte ou une prestation à une date donnée. Il contrôle la validité du contrat, les plafonds de couverture et le réseau prestataire.
+
+## Scope requis
+
+`eligibility.check`
+
+## Champs du body
+
+| Champ | Type | Requis | Description |
+| --- | --- | --- | --- |
+| `identifier` | string | oui | Identifiant de la personne assurée (numéro de police ou identifiant équivalent). |
+| `coverage_code` | string | oui | Code de la couverture à vérifier, tel que renvoyé par `GET /api/v1/coverage-types`. |
+| `amount` | number | non | Montant du soin à évaluer. Si fourni, la réponse inclut un calcul de remboursement et une vérification de plafond. |
+| `provider_id` | integer | non* | Identifiant numérique interne du prestataire. Requis si `provider_uuid` est absent. |
+| `provider_uuid` | string | non* | UUID du prestataire. Requis si `provider_id` est absent. |
+| `beneficiary_id` | string | non | À renseigner si le soin concerne un bénéficiaire plutôt que le souscripteur. |
+| `service_date` | string | non | Date du soin au format `YYYY-MM-DD`. Défaut : date du jour. |
+| `purpose` | string | non | `PRECHECK` (défaut) ou `CLAIM_SUBMISSION`. |
+
+\* `provider_id` ou `provider_uuid` est obligatoire (l'un des deux).
+
+Ne fournissez jamais `tenant_id`, `tenant_uid`, `insurer_uid` ou `insurer_uuid` : ces valeurs sont dérivées de `X-Api-Key` et rejetées en `400`.
+
+## Réponse
+
+| Champ | Type | Description |
+| --- | --- | --- |
+| `eligibility_check_uuid` | string (uuid) | Identifiant de la vérification. |
+| `eligible` | boolean | Indique si la personne est éligible. |
+| `status` | string | `ELIGIBLE` ou `INELIGIBLE`. |
+| `error_code` | string | `null` si `eligible: true`. Sinon un code (`MEMBER_NOT_FOUND`, `NO_ACTIVE_SUBSCRIPTION`, `COVERAGE_NOT_INCLUDED`, `PROVIDER_NOT_IN_NETWORK`, `LIMIT_EXCEEDED`, etc.). |
+| `reason` | string | Message lisible expliquant `error_code`. |
+| `purpose` | string | `PRECHECK` ou `CLAIM_SUBMISSION`. |
+| `read_only` | boolean | Toujours `true` : une vérification n'engage ni ne réserve rien. |
+| `valid_until` | string | Horodatage jusqu'auquel considérer le résultat comme frais (généralement +5 minutes). |
+| `provider_network` | object | Renseigné si le prestataire a pu être résolu. Contient au moins `in_network` (boolean). |
+| `member` | object | Informations de la personne assurée (`uuid`, `policy_number`, `full_name`, `status`). |
+| `subscription` | object | Souscription active (`uuid`, `subscription_number`, `plan_code`, `status`, `effective_date`, `expiry_date`). |
+| `coverage` | object | Garantie vérifiée (`code`, `name`, `base_rate`, `annual_limit`, `remaining_limit`, `limit_usage`). |
+| `reimbursement` | object | Présent si `amount` était fourni (`eligible`, `reimbursement_amount`, `decision`, `decision_reason`). |
+| `contract_context` | object | Contexte interne de trace, ne pas parser en production. |
+
+## Cas d'usage
+
+- Vérifier la couverture avant une prestation programmée.
+- Estimer le reste à charge avant d'informer l'assuré (fournir `amount`).
+- Contrôler l'appartenance du prestataire au réseau conventionné (`provider_network.in_network`).
+
+## Bonnes pratiques
+
+Le résultat est valable à l'instant de l'appel et ne constitue pas une garantie de prise en charge. Pour un acte planifié loin à l'avance, refaites le contrôle à l'approche de la date.
+
+## Exemple de réponse
+
+```json
+{
+  "data": {
+    "eligibility_check_uuid": "9a1b2c3d-4e5f-4061-8f2a-1b2c3d4e5f60",
+    "eligible": true,
+    "status": "ELIGIBLE",
+    "error_code": null,
+    "reason": null,
+    "purpose": "PRECHECK",
+    "read_only": true,
+    "valid_until": "2026-08-04T10:20:00Z",
+    "provider_network": {
+      "in_network": true
+    },
+    "member": {
+      "uuid": "5f6e7d8c-0000-4000-8000-000000000099",
+      "policy_number": "POL-2026-004821",
+      "identity_uid": null,
+      "full_name": "Awa Diarra",
+      "age": 34,
+      "status": "ACTIVE",
+      "kyc_status": "VERIFIED"
+    },
+    "subscription": {
+      "uuid": "1a2b3c4d-0000-4000-8000-000000000055",
+      "subscription_number": "SUB-2026-001122",
+      "plan_code": "PLAN_ESSENTIAL",
+      "plan_name": "Plan Essentiel",
+      "status": "ACTIVE",
+      "effective_date": "2026-01-01",
+      "expiry_date": "2026-12-31",
+      "annual_coverage_limit": 2000000,
+      "annual_used_amount": 320000,
+      "remaining_coverage": 1680000
+    },
+    "coverage": {
+      "uuid": "6b7c8d9e-0000-4000-8000-000000000010",
+      "code": "OUTPATIENT_PHARMACY",
+      "name": "Pharmacie ambulatoire",
+      "base_rate": 0.8,
+      "annual_limit": 500000,
+      "remaining_limit": 455000,
+      "requires_authorization": false,
+      "network_restriction": null,
+      "limit_usage": {
+        "used": 45000,
+        "remaining": 455000
+      }
+    },
+    "reimbursement": {
+      "eligible": true,
+      "reimbursement_amount": 36000,
+      "decision": "APPROVED",
+      "decision_reason": null
+    },
+    "contract_context": {}
+  }
+}
+```

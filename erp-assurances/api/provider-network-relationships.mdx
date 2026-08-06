@@ -1,6 +1,97 @@
 ---
 title: "Lister les prestataires conventionnés"
-description: "Liste les prestataires conventionnés visibles pour la compagnie d'assurance."
+description: "Liste les relations réseau entre la compagnie d'assurance et les prestataires."
 openapi: "/openapi/insurer-api.openapi.yml GET /api/v1/providers/network-relationships"
 ---
 
+Cet endpoint liste les relations `care_network` dont l'assureur authentifié est propriétaire. Chaque relation décrit le statut public, le niveau réseau et les conditions de conventionnement.
+
+## Scope requis
+
+`insurer.providers.view`
+
+## Paramètres de requête
+
+| Paramètre | Type | Requis | Description |
+| --- | --- | --- | --- |
+| `status` | string | non | Filtrer par statut brut (`all`, `active`, `pending`, `rejected`, `ended`). |
+| `type` | string | non | Filtrer par type de prestataire (`HOSPITAL`, `CLINIC`, `PHARMACY`, `LABORATORY`, `SPECIALIST`). |
+
+## Réponse
+
+| Champ | Type | Description |
+| --- | --- | --- |
+| `data` | array | Liste des relations. |
+| `data[].relationship_uid` | string | Identifiant de la relation. |
+| `data[].relationship_type` | string | Type de relation (`care_network`). |
+| `data[].relationship_status` | string | Statut public (`ACTIVE`, `PENDING`, `REJECTED`, `ENDED`). |
+| `data[].network_status` | string | Statut réseau (`PREFERRED`, `IN_NETWORK`, `OUT_OF_NETWORK`). |
+| `data[].network_name` | string\|null | Nom du réseau. |
+| `data[].network_tier` | string\|null | Niveau brut configuré dans les métadonnées. |
+| `data[].contract_reference` | string\|null | Référence de convention. |
+| `data[].contract_start_date` | string\|null | Date de début de contrat. |
+| `data[].contract_end_date` | string\|null | Date de fin de contrat. |
+| `data[].claim_submission_enabled` | boolean | Soumission de claims autorisée si la relation est active. |
+| `data[].requires_prior_authorization` | boolean | Autorisation préalable requise par défaut. |
+| `data[].covered_service_families` | array | Familles de soins couvertes. |
+| `data[].insurer` | object | Détail de l'assureur (`uid`, `name`, `trade_name`, `status`, `country_code`). |
+| `data[].provider` | object | Détail du prestataire (`organization_uid`, `provider_uid`, `name`, `trade_name`, `type`, `status`, `country_code`). |
+| `meta` | object | Métadonnées de comptage et d'organisation assureur. |
+
+## Cas d'usage
+
+- Lister les prestataires conventionnés actifs pour un annuaire réseau.
+- Identifier les conventions arrivant à échéance.
+- Suivre les demandes rejetées ou clôturées lorsque le filtre `status` est utilisé.
+
+## Bonnes pratiques
+
+Cette liste reflète les relations de conventionnement, pas le catalogue complet des prestataires. Pour le détail d'un prestataire, utilisez `providers-get`. Pour vérifier rapidement l'appartenance réseau, utilisez `provider-network-check`.
+
+## Exemple de réponse
+
+```json
+{
+  "data": [
+    {
+      "relationship_uid": "96000000-0000-4000-8000-000000000001",
+      "relationship_type": "care_network",
+      "relationship_status": "ACTIVE",
+      "network_status": "PREFERRED",
+      "network_name": "Réseau Plateau",
+      "network_tier": "preferred",
+      "contract_reference": "CTR-2026-0091",
+      "contract_start_date": "2026-01-01T00:00:00Z",
+      "contract_end_date": null,
+      "claim_submission_enabled": true,
+      "requires_prior_authorization": false,
+      "covered_service_families": [
+        "PHARMACY",
+        "OUTPATIENT"
+      ],
+      "insurer": {
+        "uid": "5d000000-0000-4000-8000-000000000010",
+        "name": "NSIA Assurances",
+        "trade_name": "NSIA",
+        "status": "ACTIVE",
+        "country_code": "CI"
+      },
+      "provider": {
+        "organization_uid": "3d2e1a00-0000-4000-8000-000000000077",
+        "provider_uid": "3d2e1a00-0000-4000-8000-000000000077",
+        "name": "Pharmacie du Plateau",
+        "trade_name": null,
+        "type": "PHARMACY",
+        "status": "ACTIVE",
+        "country_code": "CI"
+      }
+    }
+  ],
+  "meta": {
+    "insurer_uid": "5d000000-0000-4000-8000-000000000010",
+    "insurer_name": "NSIA Assurances",
+    "insurer_organization_uid": "5d000000-0000-4000-8000-000000000010",
+    "relationship_count": 1
+  }
+}
+```

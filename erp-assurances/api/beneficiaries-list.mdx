@@ -4,3 +4,90 @@ description: "Retourne les bénéficiaires rattachés à une souscription."
 openapi: "/openapi/insurer-api.openapi.yml GET /api/v1/subscriptions/{subscriptionId}/beneficiaries"
 ---
 
+Cet endpoint retourne la liste des bénéficiaires (ayants droit) rattachés à une souscription. Utilisez-le pour afficher la composition familiale d'un contrat.
+
+## Scope requis
+
+`insurer.members.view`
+
+## Paramètres de chemin
+
+| Paramètre | Type | Requis | Description |
+| --- | --- | --- | --- |
+| `subscriptionId` | string | oui | Identifiant de la souscription. |
+
+## Réponse
+
+| Champ | Type | Description |
+| --- | --- | --- |
+| `data` | array | Liste des bénéficiaires. |
+| `data[].uuid` | string | Identifiant du bénéficiaire. |
+| `data[].beneficiary_number` | string | Numéro du bénéficiaire. |
+| `data[].first_name` | string | Prénom. |
+| `data[].last_name` | string | Nom. |
+| `data[].date_of_birth` | string | Date de naissance. |
+| `data[].gender` | string | Sexe. |
+| `data[].relationship` | string | Lien avec l'assuré (`CHILD`, `SPOUSE`, `PARENT`, `OTHER`). |
+| `data[].is_dependent` | boolean | Ayant droit à charge. |
+| `data[].coverage_start_date` | string | Date de début de couverture. |
+| `data[].coverage_end_date` | string | Date de fin de couverture. |
+| `data[].status` | string | Statut (`ACTIVE`, `INACTIVE`). |
+
+## Cas d'usage
+
+- Afficher les ayants droit d'un contrat dans un back-office.
+- Vérifier la composition familiale avant un contrôle d'éligibilité.
+- Préparer un avenant de mise à jour des bénéficiaires.
+
+## Bonnes pratiques
+
+La liste est limitée aux bénéficiaires d'une souscription. Pour une vue globale par assuré, récupérez d'abord ses souscriptions puis leurs bénéficiaires.
+
+## Exemple de réponse
+
+```json
+{
+  "data": [
+    {
+      "uuid": "ben_sandbox_001",
+      "tenant_id": "tenant_sandbox_001",
+      "subscription_uuid": "sub_sandbox_001",
+      "beneficiary_number": "BEN-001",
+      "identity_uid": "id_sandbox_003",
+      "national_id": "CI1122334455",
+      "first_name": "Aya",
+      "last_name": "Kouassi",
+      "date_of_birth": "2015-03-10",
+      "gender": "FEMALE",
+      "relationship": "CHILD",
+      "is_dependent": true,
+      "coverage_start_date": "2024-01-15",
+      "coverage_end_date": "2025-01-15",
+      "status": "ACTIVE",
+      "metadata": {},
+      "created_at": "2024-01-15T00:00:00.000Z",
+      "updated_at": "2026-01-15T00:00:00.000Z"
+    },
+    {
+      "uuid": "ben_sandbox_002",
+      "tenant_id": "tenant_sandbox_001",
+      "subscription_uuid": "sub_sandbox_001",
+      "beneficiary_number": "BEN-002",
+      "identity_uid": "id_sandbox_004",
+      "national_id": "CI5566778899",
+      "first_name": "Kofi",
+      "last_name": "Kouassi",
+      "date_of_birth": "2018-07-22",
+      "gender": "MALE",
+      "relationship": "CHILD",
+      "is_dependent": true,
+      "coverage_start_date": "2024-01-15",
+      "coverage_end_date": "2025-01-15",
+      "status": "ACTIVE",
+      "metadata": {},
+      "created_at": "2024-01-15T00:00:00.000Z",
+      "updated_at": "2026-01-15T00:00:00.000Z"
+    }
+  ]
+}
+```

@@ -3,3 +3,65 @@ title: "Préférences de notification"
 description: "Récupère les préférences de notification par canal."
 openapi: "/openapi/insurer-api.openapi.yml GET /api/v1/notifications/preferences"
 ---
+
+Cet endpoint récupère les préférences de notification par canal. Utilisez-le pour connaître les types d'événements activés pour chaque canal de réception.
+
+## Scope requis
+
+`insurer.notifications.view`
+
+## Réponse
+
+| Champ | Type | Description |
+| --- | --- | --- |
+| `recipient_id` | string | Identifiant du destinataire. |
+| `email_enabled` | boolean | Notifications e-mail activées. |
+| `sms_enabled` | boolean | Notifications SMS activées. |
+| `push_enabled` | boolean | Notifications push activées. |
+| `critical_only` | boolean | Limiter aux notifications critiques. |
+| `quiet_hours_start` | string | Début des heures de silence. |
+| `quiet_hours_end` | string | Fin des heures de silence. |
+| `event_preferences` | object | Préférences par type d'événement (`email`, `sms`, `push` par événement). |
+| `created_at` | string | Date de création. |
+| `updated_at` | string | Date de dernière mise à jour. |
+
+## Cas d'usage
+
+- Vérifier les canaux actifs avant une campagne de notification.
+- Contrôler les types d'événements reçus par chaque canal.
+- Préparer une modification des préférences.
+
+## Bonnes pratiques
+
+Cet endpoint est lecture seule. Pour modifier les préférences, utilisez `notifications-preferences-update`. Les préférences ne concernent que les notifications système, pas les webhooks configurés séparément.
+
+## Exemple de réponse
+
+```json
+{
+  "data": {
+    "recipient_id": "user_sandbox_001",
+    "tenant_id": "tenant_sandbox_001",
+    "email_enabled": true,
+    "sms_enabled": true,
+    "push_enabled": false,
+    "critical_only": false,
+    "quiet_hours_start": "22:00",
+    "quiet_hours_end": "08:00",
+    "event_preferences": {
+      "CLAIM_APPROVED": {
+        "email": true,
+        "sms": true,
+        "push": false
+      },
+      "CLAIM_REJECTED": {
+        "email": true,
+        "sms": true,
+        "push": true
+      }
+    },
+    "created_at": "2026-01-01T00:00:00.000Z",
+    "updated_at": "2026-01-15T10:30:00.000Z"
+  }
+}
+```

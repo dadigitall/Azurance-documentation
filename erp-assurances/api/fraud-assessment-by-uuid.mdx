@@ -3,3 +3,93 @@ title: "Évaluation de fraude par UUID"
 description: "Récupère une évaluation de fraude par son identifiant."
 openapi: "/openapi/insurer-api.openapi.yml GET /api/v1/fraud-assessments/{uuid}"
 ---
+
+Cet endpoint récupère une évaluation de fraude par son identifiant unique. Contrairement à `fraud-assessment-get` qui retourne la dernière évaluation d'un claim, cet endpoint cible une évaluation précise.
+
+## Scope requis
+
+`insurer.claims.view`
+
+## Paramètres de chemin
+
+| Paramètre | Type | Requis | Description |
+| --- | --- | --- | --- |
+| `uuid` | string | oui | Identifiant unique de l'évaluation. |
+
+## Réponse
+
+| Champ | Type | Description |
+| --- | --- | --- |
+| `uuid` | string | Identifiant unique de l'évaluation. |
+| `claim_uuid` | string | Identifiant du claim évalué. |
+| `provider_uuid` | string | Identifiant du prestataire. |
+| `status` | string | Statut (`PENDING`, `IN_REVIEW`, `COMPLETED`). |
+| `risk_score` | number | Score de risque, présent si `COMPLETED`. |
+| `risk_level` | string | Niveau de risque (`LOW`, `MEDIUM`, `HIGH`), présent si `COMPLETED`. |
+| `recommended_action` | string | Action recommandée (`APPROVE`, `REVIEW`, `REJECT`). |
+| `trigger` | string | Origine du déclenchement. |
+| `priority` | string | Priorité d'analyse. |
+| `flags` | array | Indicateurs ayant contribué au score. |
+| `ai_runs` | array | Exécutions d'agents IA ayant participé à l'évaluation. |
+| `completed_at` | string | Date de complétion, présente si `COMPLETED`. |
+| `created_at` | string | Date de création. |
+
+## Cas d'usage
+
+- Consulter une évaluation archivée sans repartir du claim.
+- Partager un lien direct vers une évaluation entre opérateurs.
+- Vérifier le résultat d'une évaluation après un feedback.
+
+## Bonnes pratiques
+
+Conservez l'`uuid` retourné à la création pour pouvoir interroger l'évaluation ultérieurement. Si vous ne disposez que du `claimId`, utilisez `fraud-assessment-get` pour récupérer la dernière évaluation.
+
+## Exemple de réponse
+
+```json
+{
+  "data": {
+    "uuid": "fraud_sandbox_001",
+    "tenant_id": "tenant_sandbox_001",
+    "claim_uuid": "clm_sandbox_001",
+    "provider_uuid": "prov_sandbox_001",
+    "status": "COMPLETED",
+    "risk_score": 15.5,
+    "risk_level": "LOW",
+    "recommended_action": "APPROVE",
+    "trigger": "CLAIM_SUBMITTED",
+    "priority": "NORMAL",
+    "request_id": "req_sandbox_001",
+    "completed_at": "2026-01-15T14:35:00.000Z",
+    "created_at": "2026-01-15T14:30:00.000Z",
+    "updated_at": "2026-01-15T14:35:00.000Z",
+    "flags": [
+      {
+        "code": "DUPLICATE_CLAIM",
+        "category": "PATTERN",
+        "severity": "MEDIUM",
+        "confidence": 0.75,
+        "explanation": "Similar claim submitted recently",
+        "evidence": {
+          "similar_claim_uuid": "clm_sandbox_002",
+          "similarity_score": 0.85
+        },
+        "source": "RULE_ENGINE",
+        "source_version": "1.0.0"
+      }
+    ],
+    "ai_runs": [
+      {
+        "agent_code": "FRAUD_DETECTION_AGENT",
+        "provider": "openai",
+        "model": "gpt-4",
+        "prompt_version": "1.2.0",
+        "output_schema_version": "1.0.0",
+        "tokens": 1250,
+        "estimated_cost": 0.05,
+        "status": "COMPLETED"
+      }
+    ]
+  }
+}
+```

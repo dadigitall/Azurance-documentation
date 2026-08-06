@@ -3,3 +3,109 @@ title: "Confirmer un paiement"
 description: "Confirme qu'un paiement a été effectué."
 openapi: "/openapi/insurer-api.openapi.yml POST /api/v1/billing/payments/{uuid}/confirm"
 ---
+
+Cet endpoint confirme qu'un paiement a été effectué. La réponse attendue côté billing-service indique un paiement finalisé en statut `SUCCEEDED` lorsque la confirmation est acceptée.
+
+## Scope requis
+
+`insurer.billing.manage`
+
+## Paramètres de chemin
+
+| Paramètre | Type | Requis | Description |
+| --- | --- | --- | --- |
+| `uuid` | string | oui | Identifiant unique du paiement. |
+
+## Champs du body
+
+| Champ | Type | Requis | Description |
+| --- | --- | --- | --- |
+| `external_reference` | string | oui | Référence de la preuve de paiement externe (numéro de virement, de chèque, etc.). |
+| `paid_at` | string | non | Date effective du paiement au format ISO 8601. |
+| `proof_document_uid` | string | non | Référence media-service d'un justificatif scanné. |
+| `metadata` | object | non | Métadonnées libres. |
+
+## Exemple de requête
+
+```json
+{
+  "external_reference": "REF-BANK-001",
+  "paid_at": "2026-02-01T10:10:00Z",
+  "proof_document_uid": "doc_sandbox_001",
+  "metadata": {
+    "bank_batch": "VIR-2026-02-01"
+  }
+}
+```
+
+## Réponse
+
+| Champ | Type | Description |
+| --- | --- | --- |
+| `uuid` | string | Identifiant du paiement. |
+| `payment_number` | string | Numéro du paiement. |
+| `beneficiary_type` | string | Type de bénéficiaire (`PROVIDER`). |
+| `beneficiary_uuid` | string | Identifiant du bénéficiaire. |
+| `beneficiary_name` | string | Nom du bénéficiaire. |
+| `payment_method` | string | Moyen de paiement (`BANK_TRANSFER`, `CHECK`, `MANUAL`, etc.). |
+| `payment_provider` | string | Fournisseur de paiement (`MANUAL`, `ORANGE_MONEY`, etc.). |
+| `status` | string | Statut après confirmation (`SUCCEEDED`). |
+| `amount` | number | Montant total. |
+| `allocated_amount` | number | Montant alloué. |
+| `currency` | string | Devise. |
+| `external_reference` | string | Référence bancaire. |
+| `succeeded_at` | string | Date de succès au format ISO 8601. |
+| `allocations` | array | Répartitions du paiement sur les factures. |
+
+## Cas d'usage
+
+- Confirmer un virement après exécution bancaire.
+- Clôturer un lot de paiements en fin de journée.
+- Rapprocher un paiement de sa référence bancaire.
+
+## Bonnes pratiques
+
+Ne confirmez un paiement qu'après confirmation bancaire effective. Fournissez l'`external_reference` pour faciliter le rapprochement comptable.
+
+## Exemple de réponse
+
+```json
+{
+  "uuid": "pay_sandbox_001",
+  "payment_number": "PAY-2026-001",
+  "tenant_id": "tenant_sandbox_001",
+  "beneficiary_type": "PROVIDER",
+  "beneficiary_uuid": "prov_sandbox_001",
+  "beneficiary_name": "Clinique Santé Plus",
+  "payment_method": "BANK_TRANSFER",
+  "payment_provider": "MANUAL",
+  "status": "SUCCEEDED",
+  "amount": 150000.00,
+  "allocated_amount": 150000.00,
+  "currency": "XOF",
+  "external_reference": "REF-BANK-001",
+  "requested_by": "finance-team",
+  "requested_at": "2026-02-01T10:00:00.000000Z",
+  "processing_at": "2026-02-01T10:05:00.000000Z",
+  "succeeded_at": "2026-02-01T10:10:00.000000Z",
+  "failed_at": null,
+  "failure_reason": null,
+  "proof_document_uid": "doc_sandbox_001",
+  "metadata": {},
+  "created_at": "2026-02-01T10:00:00.000000Z",
+  "updated_at": "2026-02-01T10:10:00.000000Z",
+  "allocations": [
+    {
+      "uuid": "alloc_sandbox_001",
+      "tenant_id": "tenant_sandbox_001",
+      "payment_uuid": "pay_sandbox_001",
+      "payable_invoice_uuid": "inv_sandbox_001",
+      "payable_invoice_item_uuid": "item_sandbox_001",
+      "amount": 150000.00,
+      "currency": "XOF",
+      "metadata": {},
+      "created_at": "2026-02-01T10:00:00.000000Z"
+    }
+  ]
+}
+```

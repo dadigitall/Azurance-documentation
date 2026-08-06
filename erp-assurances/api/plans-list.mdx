@@ -4,3 +4,79 @@ description: "Retourne les plans d'assurance disponibles."
 openapi: "/openapi/insurer-api.openapi.yml GET /api/v1/plans"
 ---
 
+Cet endpoint retourne la liste paginée des plans d'assurance disponibles pour l'assureur. Utilisez-le pour alimenter un catalogue ou un sélecteur de plan.
+
+## Scope requis
+
+`insurer.policies.view`
+
+## Paramètres de requête
+
+| Paramètre | Type | Requis | Description |
+| --- | --- | --- | --- |
+| `page` | integer | non | Numéro de page. Défaut : `1`. |
+| `per_page` | integer | non | Nombre d'éléments par page. Défaut : `20`. |
+
+## Réponse
+
+| Champ | Type | Description |
+| --- | --- | --- |
+| `data` | array | Liste des plans. |
+| `data[].uuid` | string | Identifiant du plan. |
+| `data[].plan_code` | string | Code du plan. |
+| `data[].plan_name` | string | Nom du plan. |
+| `data[].plan_type` | string | Type de plan. |
+| `data[].base_premium` | number | Prime de référence. |
+| `data[].premium_frequency` | string | Fréquence de prime. |
+| `data[].is_active` | boolean | Indique si le plan est actif. |
+| `data[].effective_date` | string | Date d'effet. |
+| `data[].expiry_date` | string | Date d'expiration. |
+| `meta` | object | Métadonnées de pagination. |
+
+## Cas d'usage
+
+- Alimenter un catalogue de plans pour la souscription.
+- Synchroniser le référentiel plans vers un SI tiers.
+- Identifier les plans actifs avant une création de souscription.
+
+## Bonnes pratiques
+
+La liste des plans évolue peu fréquemment : mettez en cache le résultat courte durée pour limiter les appels. Pour le détail d'un plan, utilisez `plans-get`.
+
+## Exemple de réponse
+
+```json
+{
+  "data": [
+    {
+      "uuid": "plan_sandbox_001",
+      "plan_code": "GOLD",
+      "plan_name": "Gold Plan",
+      "plan_type": "INDIVIDUAL",
+      "description": "Comprehensive coverage for individuals",
+      "base_premium": 50000.00,
+      "premium_frequency": "MONTHLY",
+      "annual_coverage_limit": 1000000.00,
+      "lifetime_coverage_limit": 5000000.00,
+      "dependent_age_limit": 25,
+      "waiting_period_days": 30,
+      "grace_period_days": 15,
+      "cnss_compliant": true,
+      "arch_compatible": true,
+      "cipres_approved": true,
+      "effective_date": "2024-01-01",
+      "expiry_date": null,
+      "is_active": true,
+      "coverages": [],
+      "exclusions": [],
+      "created_at": "2024-01-01T00:00:00.000Z"
+    }
+  ],
+  "meta": {
+    "current_page": 1,
+    "per_page": 20,
+    "total": 15,
+    "last_page": 1
+  }
+}
+```

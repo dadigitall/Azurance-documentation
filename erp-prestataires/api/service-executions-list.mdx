@@ -4,3 +4,50 @@ description: "Liste les prestations du prestataire lié à la clé API."
 openapi: "/openapi/provider-api.openapi.yml GET /api/v1/service-executions"
 ---
 
+Cet endpoint liste les prestations enregistrées par le prestataire authentifié. Utilisez-le pour suivre les prestations avant soumission de claim ou pour audit.
+
+## Scope requis
+
+`service_executions.create` (ou scope de lecture équivalent selon la configuration de la clé).
+
+## Paramètres de requête
+
+| Paramètre | Type | Requis | Description |
+| --- | --- | --- | --- |
+| `page` | integer | non | Numéro de page. |
+| `per_page` | integer | non | Résultats par page. |
+
+## Réponse
+
+La réponse contient une liste paginée des prestations enregistrées. Chaque entrée inclut la date, la personne couverte, le type de couverture, le statut et l'identifiant de prestation à référencer dans un claim.
+
+## Exemple de réponse
+
+```json
+{
+  "data": [
+    {
+      "uuid": "se_sandbox_001",
+      "execution_number": "SE-2025-001234",
+      "status": "completed",
+      "covered_person_type": "policyholder",
+      "covered_person_uid": "mbr_sandbox_001",
+      "subscription_uid": "sub_sandbox_001",
+      "policy_number": "NSIA-POL-2025-001",
+      "provider_uid": "prov_sandbox_001",
+      "coverage_type_code": "AMBULATORY",
+      "service_date": "2025-01-15",
+      "executed_at": "2025-01-15T10:30:00Z",
+      "total_amount": 50000,
+      "currency": "XOF",
+      "item_count": 2
+    }
+  ],
+  "meta": {
+    "current_page": 1,
+    "per_page": 20,
+    "total_count": 120,
+    "total_pages": 6
+  }
+}
+```

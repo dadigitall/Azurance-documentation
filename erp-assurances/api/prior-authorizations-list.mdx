@@ -1,0 +1,80 @@
+---
+title: "Lister les préautorisations"
+description: "Liste les demandes de préautorisation à traiter par la compagnie d'assurance."
+openapi: "/openapi/insurer-api.openapi.yml GET /api/v1/prior-authorizations"
+---
+
+Cet endpoint liste les demandes de préautorisation reçues par l'assureur. Le BFF transmet les filtres de requête au service claims sans demander de contexte tenant explicite : le tenant et l'assureur sont déduits de `X-Api-Key`.
+
+## Scope requis
+
+`insurer.prior_authorizations.view`
+
+## Paramètres de requête
+
+| Paramètre | Type | Requis | Description |
+| --- | --- | --- | --- |
+| `status` | string | non | Filtrer par statut (`PENDING_REVIEW`, `INFO_NEEDED`, `APPROVED`, `REJECTED`, `EXPIRED`, `CANCELLED`, `CONSUMED`). |
+| `provider_uuid` | uuid | non | Filtrer par prestataire demandeur. |
+| `subscription_uid` | string | non | Filtrer par souscription. |
+| `covered_person_uid` | string | non | Filtrer par personne couverte. |
+| `page` | integer | non | Numéro de page. |
+| `per_page` | integer | non | Taille de page, 20 par défaut. |
+
+## Réponse
+
+La réponse contient une liste paginée de préautorisations.
+
+| Champ | Type | Description |
+| --- | --- | --- |
+| `data` | array | Préautorisations retournées. |
+| `data[].uuid` | uuid | Identifiant public de la préautorisation. |
+| `data[].status` | string | Statut de traitement. |
+| `data[].priority` | string | Priorité (`URGENT`, `STANDARD`, `DEFERRED`). |
+| `data[].provider_uuid` | string | Prestataire demandeur. |
+| `data[].subscription_uid` | string | Souscription concernée. |
+| `data[].covered_person_uid` | string | Personne couverte concernée. |
+| `data[].coverage_type_code` | string | Code de garantie demandé. |
+| `data[].estimated_amount` | number | Montant estimé. |
+| `data[].authorized_amount` | number\|null | Montant autorisé après décision. |
+| `meta` | object | Métadonnées de pagination. |
+
+## Exemple de réponse
+
+```json
+{
+  "data": [
+    {
+      "uuid": "pauth_sandbox_001",
+      "status": "PENDING_REVIEW",
+      "priority": "STANDARD",
+      "provider_uuid": "3d2e1a00-0000-4000-8000-000000000077",
+      "provider_reference": "REQ-PA-2026-001",
+      "subscription_uid": "sub_sandbox_001",
+      "covered_person_type": "policyholder",
+      "covered_person_uid": "mbr_sandbox_001",
+      "coverage_type_code": "SURGERY",
+      "service_date_from": "2026-08-15",
+      "service_date_to": "2026-08-20",
+      "estimated_amount": 350000,
+      "authorized_amount": null,
+      "currency": "XOF",
+      "reason": null,
+      "items": [],
+      "documents": [],
+      "metadata": {},
+      "approved_at": null,
+      "rejected_at": null,
+      "expires_at": null,
+      "created_at": "2026-08-06T15:30:00Z",
+      "updated_at": "2026-08-06T15:30:00Z"
+    }
+  ],
+  "meta": {
+    "current_page": 1,
+    "last_page": 1,
+    "per_page": 20,
+    "total": 1
+  }
+}
+```

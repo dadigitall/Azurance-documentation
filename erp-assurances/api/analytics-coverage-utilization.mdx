@@ -3,3 +3,71 @@ title: "Utilisation des couvertures"
 description: "Consommation des plafonds de couverture par plan."
 openapi: "/openapi/insurer-api.openapi.yml GET /api/v1/analytics/coverage-utilization"
 ---
+
+Cet endpoint mesure la consommation des plafonds de couverture par plan, afin d'anticiper les dépassements et d'ajuster les garanties.
+
+## Scope requis
+
+`insurer.analytics.view`
+
+## Paramètres de requête
+
+| Paramètre | Type | Requis | Description |
+| --- | --- | --- | --- |
+| `period` | string | non | Code de période (`month`, `quarter`, `year`). Défaut : `year`. |
+| `from` | string | non | Date de début au format `YYYY-MM-DD`. |
+| `to` | string | non | Date de fin au format `YYYY-MM-DD`. |
+| `plan_id` | string | non | Identifiant du plan à isoler. |
+| `coverage_type` | string | non | Code de garantie à filtrer. |
+
+## Indicateurs retournés
+
+| Champ | Type | Description |
+| --- | --- | --- |
+| `period_start` | string | Date de début de la période. |
+| `period_end` | string | Date de fin de la période. |
+| `by_coverage` | array | Consommation par garantie (`coverage_code`, `utilization_rate`, `claims_count`, `total_used`, `total_limit`). |
+| `high_utilization_coverages` | array | Garanties à forte consommation (`coverage_code`, `utilization_rate`). |
+
+## Cas d'usage
+
+- Détecter les garanties systématiquement saturées en cours d'année.
+- Ajuster les plafonds lors de la refonte d'un plan.
+- Anticiper les demandes de déblocage exceptionnel pour les assurés proches du plafond.
+
+## Bonnes pratiques
+
+Un taux d'utilisation élevé n'est pas forcément un signal négatif : il peut indiquer une garantie bien adaptée. Croisez avec le nombre de membres concernés pour distinguer une consommation diffuse d'une concentration sur quelques assurés.
+
+## Exemple de réponse
+
+```json
+{
+  "data": {
+    "period_start": "2026-01-01",
+    "period_end": "2026-01-31",
+    "by_coverage": [
+      {
+        "coverage_code": "CONSULT",
+        "utilization_rate": 0.78,
+        "claims_count": 1850,
+        "total_used": 55500000.00,
+        "total_limit": 71250000.00
+      },
+      {
+        "coverage_code": "PHARMACY",
+        "utilization_rate": 0.65,
+        "claims_count": 920,
+        "total_used": 27600000.00,
+        "total_limit": 42461538.00
+      }
+    ],
+    "high_utilization_coverages": [
+      {
+        "coverage_code": "HOSPITALIZATION",
+        "utilization_rate": 0.92
+      }
+    ]
+  }
+}
+```

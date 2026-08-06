@@ -4,3 +4,50 @@ description: "Rattache un justificatif ou document complémentaire à un claim."
 openapi: "/openapi/provider-api.openapi.yml POST /api/v1/claims/{claimId}/documents"
 ---
 
+Cet endpoint rattache un justificatif ou un document complémentaire à un claim existant. Il est utilisé lorsque l'assureur demande des pièces supplémentaires ou lorsque le prestataire ajoute a posteriori un document manquant au dossier de remboursement.
+
+## Scope requis
+
+`claims.documents.attach`
+
+## Paramètre de chemin
+
+| Paramètre | Type | Description |
+| --- | --- | --- |
+| `claimId` | string | Identifiant du claim. |
+
+## Champs du body
+
+Le body référence un média préalablement uploadé via `POST /api/v1/media/uploads` :
+
+| Champ | Type | Description |
+| --- | --- | --- |
+| `document_type` | string | Type de pièce (ex. `INVOICE`, `PRESCRIPTION`, `PROOF_OF_SERVICE`). |
+| `media_uid` | string | Identifiant du média renvoyé par l'upload. |
+
+## Workflow
+
+1. Uploader le document via `POST /api/v1/media/uploads`.
+2. Rattacher le média au claim via cet endpoint.
+3. Reconsulter le claim via `GET /api/v1/claims/{claimId}` pour vérifier la présence de la pièce.
+
+## Réponse
+
+La réponse confirme l'ajout du document et retourne le claim mis à jour avec la liste des pièces rattachées.
+
+## Exemple de réponse
+
+```json
+{
+  "data": {
+    "uid": "doc_sandbox_002",
+    "claim_uid": "claim_sandbox_001",
+    "document_type": "lab_result",
+    "media_uid": "media_sandbox_002",
+    "file_name": "analyse_sanguine.pdf",
+    "file_path": null,
+    "uploaded_at": "2025-01-15T11:00:00Z",
+    "uploaded_by_provider_uid": "prov_sandbox_001"
+  }
+}
+```

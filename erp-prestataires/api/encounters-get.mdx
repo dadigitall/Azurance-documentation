@@ -3,3 +3,123 @@ title: "Détail d'une consultation"
 description: "Récupère le détail d'une consultation."
 openapi: "/openapi/provider-api.openapi.yml GET /api/v1/encounters/{encounterId}"
 ---
+
+Cet endpoint retourne le détail complet d'une consultation, incluant les actes médicaux, les ordonnances et les documents rattachés. Utilisez-le pour reconstituer le parcours clinique d'une consultation donnée.
+
+## Scope requis
+
+`clinical.encounters.view`
+
+## Paramètres de chemin
+
+| Paramètre | Type | Description |
+| --- | --- | --- |
+| `encounterId` | string | Identifiant UUID de la consultation. |
+
+## Réponse
+
+La réponse contient les informations de la consultation (`encounter_type`, `encounter_date`, `chief_complaint`, `clinical_summary`) ainsi que les listes d'actes médicaux, d'ordonnances et de documents associées (chargées si disponibles).
+
+## Chiffrement
+
+Les réponses de cet endpoint sont chiffrées via JWE. Récupérez la clé publique RSA via `GET /api/v1/auth/encryption-key` pour déchiffrer la réponse.
+
+## Exemple de réponse
+
+```json
+{
+  "data": {
+    "uid": "7a8b9c0d-0000-4000-8000-000000000041",
+    "insured_uid": "9a1b2c3d-4e5f-4061-8f2a-1b2c3d4e5f60",
+    "provider_uid": "3d2e1a00-0000-4000-8000-000000000077",
+    "tenant_id": "01J5X4QZ",
+    "encounter_type": "consultation",
+    "encounter_date": "2026-08-15",
+    "discharge_date": null,
+    "icd10_codes": ["R10.9"],
+    "chief_complaint": "Douleur abdominale",
+    "clinical_summary": "Examen abdominal normal, pas de signe d'urgence.",
+    "department": "urgences",
+    "attending_physician": "Dr. KOUASSI",
+    "status": null,
+    "medical_acts": [
+      {
+        "id": 1,
+        "act_code": "CS-001",
+        "act_label": "Consultation générale",
+        "act_category": "consultation",
+        "quantity": 1,
+        "unit_price": 15000,
+        "performed_at": "2026-08-15T10:30:00.000000Z",
+        "performed_by": "Dr. KOUASSI",
+        "notes": null,
+        "created_at": "2026-08-15T10:30:00.000000Z"
+      }
+    ],
+    "prescriptions": [
+      {
+        "uid": "8b9c0d1e-0000-4000-8000-000000000051",
+        "encounter_id": "7a8b9c0d-0000-4000-8000-000000000041",
+        "insured_uid": "9a1b2c3d-4e5f-4061-8f2a-1b2c3d4e5f60",
+        "provider_uid": "3d2e1a00-0000-4000-8000-000000000077",
+        "prescription_type": "standard",
+        "issued_at": "2026-08-15T10:45:00.000000Z",
+        "valid_until": "2026-08-22",
+        "prescriber_name": "Dr. KOUASSI",
+        "prescriber_registration_number": "CI-CO-2018-0042",
+        "clinical_notes": "Infection respiratoire basse",
+        "status": null,
+        "lines": [
+          {
+            "id": 1,
+            "line_type": "medication",
+            "code": null,
+            "label": null,
+            "medication_id": null,
+            "atc_code": null,
+            "medication_name": "Amoxicilline 500mg",
+            "form": "comprimé",
+            "dosage": "500mg",
+            "frequency": "3 fois par jour",
+            "duration": "7 jours",
+            "quantity": 21,
+            "instructions": "Après les repas",
+            "refills_allowed": null,
+            "body_site": null,
+            "laterality": null,
+            "priority": null,
+            "indication": null,
+            "session_count": null,
+            "session_frequency": null,
+            "specialty": null,
+            "referred_provider_uid": null
+          }
+        ],
+        "created_at": "2026-08-15T10:45:00.000000Z"
+      }
+    ],
+    "documents": [
+      {
+        "id": 1,
+        "media_uid": "8b7c6d5e-0000-4000-8000-000000000020",
+        "document_type": "lab_result",
+        "title": "NFS et CRP",
+        "status": "final",
+        "produced_at": "2026-08-15T10:45:00.000000Z",
+        "produced_by_provider_uid": "3d2e1a00-0000-4000-8000-000000000077",
+        "related_type": "medical_act",
+        "related_uid": "5e6f7a8b-0000-4000-8000-000000000031",
+        "source_system": null,
+        "external_reference": null,
+        "description": "Résultats d'analyse sanguine",
+        "uploaded_by_provider_uid": "3d2e1a00-0000-4000-8000-000000000077",
+        "uploader_name": "Dr. KOUASSI",
+        "uploader_role": "doctor",
+        "uploader_user_uid": null,
+        "created_at": "2026-08-15T11:00:00.000000Z"
+      }
+    ],
+    "created_at": "2026-08-15T10:00:00.000000Z"
+  }
+}
+```

@@ -4,3 +4,49 @@ description: "Retourne les indicateurs de traitement des claims."
 openapi: "/openapi/insurer-api.openapi.yml GET /api/v1/claims/stats"
 ---
 
+Cet endpoint retourne les indicateurs de traitement des claims : volumes par statut, délais moyens et montants agrégés.
+
+## Scope requis
+
+`insurer.claims.view`
+
+## Paramètres de requête
+
+| Paramètre | Type | Requis | Description |
+| --- | --- | --- | --- |
+| `from` | string | non | Date de début au format `YYYY-MM-DD`. |
+| `to` | string | non | Date de fin au format `YYYY-MM-DD`. |
+
+## Indicateurs retournés
+
+| Champ | Type | Description |
+| --- | --- | --- |
+| `total` | integer | Nombre total de claims sur la période. |
+| `by_status` | object | Répartition par statut (`SUBMITTED`, `UNDER_REVIEW`, `APPROVED`, `REJECTED`, `PAID`). |
+| `total_amount_claimed` | number | Montant total réclamé. |
+
+## Cas d'usage
+
+- Suivre l'activité du back-office claims.
+- Identifier un engorgement de claims en attente.
+- Comparer les délais de traitement d'une période à l'autre.
+
+## Bonnes pratiques
+
+Ces statistiques sont agrégées et ne remplacent pas le détail opérationnel. Pour analyser un claim précis, utilisez `claims-get`. Pour un pilotage par plan, préférez `analytics-claims-summary`.
+
+## Exemple de réponse
+
+```json
+{
+  "total": 3420,
+  "by_status": {
+    "SUBMITTED": 120,
+    "UNDER_REVIEW": 85,
+    "APPROVED": 2890,
+    "REJECTED": 245,
+    "PAID": 80
+  },
+  "total_amount_claimed": 171000000.00
+}
+```

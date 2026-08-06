@@ -3,3 +3,182 @@ title: "Créer une prescription"
 description: "Crée une prescription dans le cadre d'une consultation."
 openapi: "/openapi/provider-api.openapi.yml POST /api/v1/encounters/{encounterId}/prescriptions"
 ---
+
+Cet endpoint émet une ordonnance dans le cadre d'une consultation. L'ordonnance est rattachée à la consultation et visible dans le dossier médical de l'assuré.
+
+## Scope requis
+
+`clinical.prescriptions.manage`
+
+## Paramètres de chemin
+
+| Paramètre | Type | Description |
+| --- | --- | --- |
+| `encounterId` | string | Identifiant UUID de la consultation. |
+
+## Types d'ordonnance
+
+| `prescription_type` | Usage |
+| --- | --- |
+| `standard` | Médicaments standards. |
+| `bizozone` | Zone bizone (médicaments spécifiques). |
+| `magistrale` | Préparation magistrale. |
+| `controlled_substance` | Stupéfiants ou substances contrôlées. |
+| `lab_test` | Examens de laboratoire. |
+| `imaging` | Imagerie médicale. |
+| `physiotherapy` | Séances de kinésithérapie. |
+| `nursing_care` | Soins infirmiers. |
+| `specialist_referral` | Orientation vers un spécialiste. |
+
+## Lignes de prescription
+
+Chaque ordonnance contient un tableau `lines` décrivant les éléments prescrits. Le champ `line_type` détermine comment interpréter les champs :
+
+| `line_type` | Usage |
+| --- | --- |
+| `medication` | Médicament (requiert `medication_name` ou `medication_uid`). |
+| `lab_test` | Examen de laboratoire (requiert `code` ou `label`). |
+| `imaging` | Examen d'imagerie (requiert `code` ou `label`). |
+| `procedure` | Procédure (requiert `code` ou `label`). |
+| `session` | Séance de rééducation (requiert `code` ou `label`). |
+| `referral` | Orientation (requiert `code` ou `label`). |
+
+### Champs d'une ligne
+
+| Champ | Type | Description |
+| --- | --- | --- |
+| `line_type` | string | Type de ligne (voir ci-dessus). |
+| `code` | string | Code de l'acte/examen/médicament (max 50). |
+| `label` | string | Libellé lisible (max 300). |
+| `medication_name` | string | Nom du médicament ou DCI (max 200). |
+| `form` | string | Forme pharmaceutique (comprimé, sirop, etc., max 100). |
+| `dosage` | string | Dosage unitaire (max 50). |
+| `frequency` | string | Fréquence d'administration (max 100). |
+| `duration` | string | Durée du traitement (max 50). |
+| `quantity` | number | Quantité à délivrer (min 1). |
+| `instructions` | string | Instructions particulières (max 500). |
+| `refills_allowed` | integer | Nombre de renouvellements (min 0). |
+| `body_site` | string | Site anatomique (max 100). |
+| `laterality` | string | Latéralité (`left`, `right`, `bilateral`). |
+| `priority` | string | Priorité (`routine`, `urgent`, `stat`). |
+| `indication` | string | Motif de la demande (max 1000). |
+| `session_count` | integer | Nombre de séances (min 1). |
+| `session_frequency` | string | Rythme des séances (max 100). |
+| `specialty` | string | Spécialité demandée (max 100). |
+| `referred_provider_uid` | string | Prestataire de destination (max 36). |
+
+## Champs principaux
+
+| Champ | Type | Requis | Description |
+| --- | --- | --- | --- |
+| `lines` | array | oui | Lignes de prescription (min 1). |
+| `prescription_type` | string | non | Type d'ordonnance (voir ci-dessus). |
+| `prescriber_name` | string | non | Nom du prescripteur (max 150). |
+| `prescriber_registration_number` | string | non | Numéro d'enregistrement (max 50). |
+| `issued_at` | date-time | non | Date d'émission. |
+| `valid_until` | date | non | Date de validité. |
+| `clinical_notes` | string | non | Notes cliniques complémentaires (max 2000). |
+
+## Chiffrement
+
+Les réponses de cet endpoint sont chiffrées via JWE. Récupérez la clé publique RSA via `GET /api/v1/auth/encryption-key` pour déchiffrer la réponse.
+
+## Exemple de requête
+
+```json
+{
+  "prescription_type": "standard",
+  "prescriber_name": "Dr. KOUASSI",
+  "prescriber_registration_number": "CI-CO-2018-0042",
+  "lines": [
+    {
+      "line_type": "medication",
+      "medication_name": "Amoxicilline 500mg",
+      "form": "comprimé",
+      "dosage": "500mg",
+      "frequency": "3 fois par jour",
+      "duration": "7 jours",
+      "quantity": 21,
+      "instructions": "Après les repas"
+    },
+    {
+      "line_type": "lab_test",
+      "code": "NFS",
+      "label": "Numération formule sanguine",
+      "priority": "routine"
+    }
+  ],
+  "clinical_notes": "Infection respiratoire basse"
+}
+```
+
+## Exemple de réponse
+
+```json
+{
+  "data": {
+    "uid": "8b9c0d1e-0000-4000-8000-000000000051",
+    "encounter_id": "7a8b9c0d-0000-4000-8000-000000000041",
+    "insured_uid": "9a1b2c3d-4e5f-4061-8f2a-1b2c3d4e5f60",
+    "provider_uid": "3d2e1a00-0000-4000-8000-000000000077",
+    "prescription_type": "standard",
+    "issued_at": "2026-08-15T10:45:00.000000Z",
+    "valid_until": null,
+    "prescriber_name": "Dr. KOUASSI",
+    "prescriber_registration_number": "CI-CO-2018-0042",
+    "clinical_notes": "Infection respiratoire basse",
+    "status": null,
+    "lines": [
+      {
+        "id": 1,
+        "line_type": "medication",
+        "code": null,
+        "label": null,
+        "medication_id": null,
+        "atc_code": null,
+        "medication_name": "Amoxicilline 500mg",
+        "form": "comprimé",
+        "dosage": "500mg",
+        "frequency": "3 fois par jour",
+        "duration": "7 jours",
+        "quantity": 21,
+        "instructions": "Après les repas",
+        "refills_allowed": null,
+        "body_site": null,
+        "laterality": null,
+        "priority": null,
+        "indication": null,
+        "session_count": null,
+        "session_frequency": null,
+        "specialty": null,
+        "referred_provider_uid": null
+      },
+      {
+        "id": 2,
+        "line_type": "lab_test",
+        "code": "NFS",
+        "label": "Numération formule sanguine",
+        "medication_id": null,
+        "atc_code": null,
+        "medication_name": null,
+        "form": null,
+        "dosage": null,
+        "frequency": null,
+        "duration": null,
+        "quantity": null,
+        "instructions": null,
+        "refills_allowed": null,
+        "body_site": null,
+        "laterality": null,
+        "priority": "routine",
+        "indication": null,
+        "session_count": null,
+        "session_frequency": null,
+        "specialty": null,
+        "referred_provider_uid": null
+      }
+    ],
+    "created_at": "2026-08-15T10:45:00.000000Z"
+  }
+}
+```

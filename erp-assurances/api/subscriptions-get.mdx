@@ -4,3 +4,125 @@ description: "Retourne le détail d'un contrat."
 openapi: "/openapi/insurer-api.openapi.yml GET /api/v1/subscriptions/{subscriptionId}"
 ---
 
+Cet endpoint retourne le détail complet d'une souscription : plan rattaché, période de couverture, statut et bénéficiaires associés.
+
+## Scope requis
+
+`insurer.members.view`
+
+## Paramètres de chemin
+
+| Paramètre | Type | Requis | Description |
+| --- | --- | --- | --- |
+| `subscriptionId` | string | oui | Identifiant de la souscription. |
+
+## Réponse
+
+| Champ | Type | Description |
+| --- | --- | --- |
+| `uuid` | string | Identifiant de la souscription. |
+| `policyholder_uuid` | string | Identifiant de l'assuré. |
+| `subscription_number` | string | Numéro de souscription. |
+| `plan_code` | string | Code du plan. |
+| `plan_name` | string | Nom du plan. |
+| `status` | string | Statut (`ACTIVE`, `SUSPENDED`, `EXPIRED`, `CANCELLED`). |
+| `effective_date` | string | Date de début de couverture. |
+| `expiry_date` | string | Date de fin de couverture. |
+| `premium_amount` | number | Montant de la prime. |
+| `premium_frequency` | string | Fréquence de prime. |
+| `annual_coverage_limit` | number | Plafond annuel. |
+| `annual_used_amount` | number | Consommation annuelle. |
+| `remaining_coverage` | number | Couverture restante. |
+| `policyholder` | object | Détail de l'assuré. |
+| `beneficiaries` | array | Bénéficiaires rattachés. |
+| `status_histories` | array | Historique des changements de statut. |
+| `created_at` | string | Date de création. |
+| `updated_at` | string | Date de dernière mise à jour. |
+
+## Cas d'usage
+
+- Afficher le détail d'un contrat dans un back-office.
+- Vérifier la période de couverture avant un contrôle d'éligibilité.
+- Consulter le statut avant une opération de renouvellement ou de suspension.
+
+## Bonnes pratiques
+
+Cet endpoint est lecture seule et n'a pas d'effet de bord. Utilisez-le librement pour afficher les fiches contrats, mais mettez en cache le résultat courte durée pour limiter les appels répétés.
+
+## Exemple de réponse
+
+```json
+{
+  "data": {
+    "uuid": "sub_sandbox_001",
+    "tenant_id": "tenant_sandbox_001",
+    "policyholder_uuid": "mbr_sandbox_001",
+    "subscription_number": "SUB-001",
+    "plan_code": "GOLD",
+    "plan_name": "Gold Plan",
+    "status": "ACTIVE",
+    "effective_date": "2024-01-15",
+    "expiry_date": "2025-01-15",
+    "premium_amount": 50000.00,
+    "premium_frequency": "MONTHLY",
+    "annual_coverage_limit": 1000000.00,
+    "annual_used_amount": 250000.00,
+    "remaining_coverage": 750000.00,
+    "lifetime_used_amount": 500000.00,
+    "last_premium_payment_date": "2026-01-01",
+    "renewed_from_uuid": null,
+    "metadata": {},
+    "policyholder": {
+      "uuid": "mbr_sandbox_001",
+      "tenant_id": "tenant_sandbox_001",
+      "policy_number": "POL-001",
+      "identity_uid": "id_sandbox_001",
+      "national_id": "CI1234567890",
+      "cnss_number": "CNSS001",
+      "first_name": "Jean",
+      "last_name": "Kouassi",
+      "full_name": "Jean Kouassi",
+      "date_of_birth": "1985-05-15",
+      "age": 40,
+      "gender": "MALE",
+      "phone_primary": "+2250707070707",
+      "email": "jean.kouassi@example.com",
+      "address": "123 Rue de la République",
+      "city": "Abidjan",
+      "country": "CI",
+      "status": "ACTIVE",
+      "kyc_status": "VERIFIED",
+      "registration_date": "2024-01-15",
+      "metadata": {},
+      "subscriptions": [],
+      "created_at": "2024-01-15T00:00:00.000Z",
+      "updated_at": "2026-01-15T00:00:00.000Z"
+    },
+    "beneficiaries": [
+      {
+        "uuid": "ben_sandbox_001",
+        "tenant_id": "tenant_sandbox_001",
+        "subscription_uuid": "sub_sandbox_001",
+        "beneficiary_number": "BEN-001",
+        "identity_uid": "id_sandbox_003",
+        "national_id": "CI1122334455",
+        "first_name": "Aya",
+        "last_name": "Kouassi",
+        "date_of_birth": "2015-03-10",
+        "gender": "FEMALE",
+        "relationship": "CHILD",
+        "is_dependent": true,
+        "coverage_start_date": "2024-01-15",
+        "coverage_end_date": "2025-01-15",
+        "status": "ACTIVE",
+        "metadata": {},
+        "created_at": "2024-01-15T00:00:00.000Z",
+        "updated_at": "2026-01-15T00:00:00.000Z"
+      }
+    ],
+    "status_histories": [],
+    "created_at": "2024-01-15T00:00:00.000Z",
+    "updated_at": "2026-01-15T00:00:00.000Z"
+  }
+}
+```

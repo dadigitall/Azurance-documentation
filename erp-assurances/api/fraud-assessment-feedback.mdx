@@ -1,5 +1,79 @@
 ---
 title: "Feedback sur une évaluation de fraude"
-description: "Envoie un feedback sur une évaluation de fraude."
+description: "Envoie un feedback humain sur une évaluation de fraude."
 openapi: "/openapi/insurer-api.openapi.yml POST /api/v1/fraud-assessments/{uuid}/feedback"
 ---
+
+Cet endpoint enregistre la décision humaine sur le résultat d'une évaluation de fraude. Le feedback est stocké séparément pour l'historique, l'audit et l'amélioration du moteur de scoring.
+
+## Scope requis
+
+`insurer.claims.manage`
+
+## Paramètres de chemin
+
+| Paramètre | Type | Requis | Description |
+| --- | --- | --- | --- |
+| `uuid` | string | oui | Identifiant unique de l'évaluation. |
+
+## Champs du body
+
+| Champ | Type | Requis | Description |
+| --- | --- | --- | --- |
+| `decision` | string | oui | Décision humaine (`APPROVED`, `REJECTED`, `INFO_NEEDED`). |
+| `reason_codes` | array | non | Codes de motif associés à la décision. |
+| `reviewer_role` | string | non | Rôle de l'opérateur (`claims_manager`, `fraud_analyst`, etc.). |
+
+## Exemple de requête
+
+```json
+{
+  "decision": "APPROVED",
+  "reason_codes": [
+    "DOCUMENTATION_SUFFICIENT"
+  ],
+  "reviewer_role": "claims_manager"
+}
+```
+
+## Réponse
+
+| Champ | Type | Description |
+| --- | --- | --- |
+| `data.uuid` | string | Identifiant du feedback. |
+| `data.assessment_uuid` | string | Identifiant de l'évaluation concernée. |
+| `data.decision` | string | Décision humaine enregistrée. |
+| `data.reason_codes` | array | Codes de motif. |
+| `data.reviewer_role` | string | Rôle de l'opérateur. |
+| `data.feedback_at` | string | Date du feedback au format ISO 8601. |
+
+## Cas d'usage
+
+- Confirmer qu'une évaluation de fraude est pertinente.
+- Signaler qu'une évaluation ne nécessite pas d'action supplémentaire.
+- Demander des informations complémentaires avant décision finale.
+
+## Bonnes pratiques
+
+Le feedback ne modifie pas le statut du claim. Si une décision claim doit être prise, utilisez aussi `claims-update-status`.
+
+## Exemple de réponse
+
+```json
+{
+  "data": {
+    "uuid": "feedback_sandbox_001",
+    "assessment_uuid": "fraud_sandbox_001",
+    "validation_request_uuid": "valid_sandbox_001",
+    "decision": "APPROVED",
+    "reason_codes": [
+      "DOCUMENTATION_SUFFICIENT"
+    ],
+    "reviewer_role": "claims_manager",
+    "request_id": "req_sandbox_002",
+    "feedback_at": "2026-01-15T14:40:00.000Z",
+    "created_at": "2026-01-15T14:40:00.000Z",
+    "updated_at": "2026-01-15T14:40:00.000Z"
+  }
+}
+```

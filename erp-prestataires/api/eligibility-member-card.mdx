@@ -1,5 +1,95 @@
 ---
 title: "Recherche par carte membre"
-description: "Vérifie l'éligibilité à partir du numéro de carte membre."
+description: "Résout un assuré à partir de son numéro de carte membre."
 openapi: "/openapi/provider-api.openapi.yml POST /api/v1/eligibility/member-card"
 ---
+
+Cet endpoint résout un assuré à partir de son numéro de carte membre ou identifiant équivalent. Contrairement à `/eligibility/check` qui effectue un précheck de couverture, cet endpoint retourne les candidats `CoveredPerson` correspondant à l'identifiant (souscripteur et bénéficiaires rattachés) sans calculer un montant éligible.
+
+## Scope requis
+
+`eligibility.check`
+
+## Cas d'usage
+
+- Afficher les informations d'un assuré à l'accueil d'un établissement avant la consultation.
+- Vérifier rapidement qu'un assuré est actif et récupérer ses identifiants (`covered_person_uid`, `subscription_uid`) pour les étapes suivantes (consentement, éligibilité, claim).
+- Récupérer les métadonnées de souscription (`policy_number`, `subscription_number`, `member_number`) pour les stocker dans le dossier administratif.
+
+## Champs du body
+
+| Champ | Type | Requis | Description |
+| --- | --- | --- | --- |
+| `identifier` | string | oui | Numéro de carte membre, numéro de police ou identifiant équivalent. |
+
+## Réponse
+
+La réponse contient un tableau `data` de candidats `CoveredPerson`. Chaque candidat décrit la personne couverte, sa souscription et son contexte. Si l'identifiant ne correspond à aucun assuré actif, l'API retourne une erreur `404`.
+
+### Champs d'un candidat
+
+| Champ | Type | Description |
+| --- | --- | --- |
+| `covered_person_type` | string | `policyholder` ou `beneficiary`. |
+| `covered_person_uid` | string | Identifiant UUID de la personne couverte. |
+| `identity_uid` | string | Identifiant d'identité fédérée. |
+| `auth_user_uid` | string | Identifiant du compte assuré (si enrollé). |
+| `policyholder_uid` | string | Identifiant UUID du souscripteur. |
+| `policyholder_auth_user_uid` | string | Compte assuré du souscripteur (si enrollé). |
+| `subscription_uid` | string | Identifiant UUID de la souscription. |
+| `subscription_number` | string | Numéro de souscription. |
+| `policy_number` | string | Numéro de police. |
+| `member_number` | string | Numéro de membre. |
+| `beneficiary_number` | string | Numéro de bénéficiaire (null pour un souscripteur). |
+| `insurer_uid` | string | Identifiant de l'assureur. |
+| `insurer_name` | string | Nom de l'assureur (null si non résolu). |
+| `coverage_status` | string | Statut de couverture de la souscription. |
+| `display_name` | string | Nom complet de la personne couverte. |
+| `relationship` | string | Lien avec le souscripteur (`policyholder` pour le titulaire). |
+| `date_of_birth` | string | Date de naissance (format date). |
+| `contact` | object | Contact de la personne (`phone`, `email`). |
+| `policyholder_contact` | object | Contact du souscripteur (`phone`, `email`). |
+
+## Exemple de requête
+
+```json
+{
+  "identifier": "POL-2026-004821"
+}
+```
+
+## Exemple de réponse
+
+```json
+{
+  "data": [
+    {
+      "covered_person_type": "policyholder",
+      "covered_person_uid": "5f6e7d8c-0000-4000-8000-000000000099",
+      "identity_uid": "id_abc123",
+      "auth_user_uid": "user_001",
+      "policyholder_uid": "5f6e7d8c-0000-4000-8000-000000000099",
+      "policyholder_auth_user_uid": "user_001",
+      "subscription_uid": "1a2b3c4d-0000-4000-8000-000000000055",
+      "subscription_number": "SUB-2026-001122",
+      "policy_number": "POL-2026-004821",
+      "member_number": "MEM-2026-004821",
+      "beneficiary_number": null,
+      "insurer_uid": "01J5X4QZ",
+      "insurer_name": null,
+      "coverage_status": "active",
+      "display_name": "Awa Diarra",
+      "relationship": "policyholder",
+      "date_of_birth": "1992-03-15",
+      "contact": {
+        "phone": "+2250700000001",
+        "email": "awa.diarra@example.com"
+      },
+      "policyholder_contact": {
+        "phone": "+2250700000001",
+        "email": "awa.diarra@example.com"
+      }
+    }
+  ]
+}
+```

@@ -4,3 +4,41 @@ description: "Retourne les informations d'un paiement."
 openapi: "/openapi/provider-api.openapi.yml GET /api/v1/payments/{paymentId}"
 ---
 
+Cet endpoint retourne les informations détaillées d'un paiement : montant, devise, statut, mode de règlement et bordereaux concernés. Il complète la lecture des bordereaux payables en apportant la trace du règlement effectif.
+
+## Scope requis
+
+`billing.payments.view`
+
+## Paramètre de chemin
+
+| Paramètre | Type | Description |
+| --- | --- | --- |
+| `paymentId` | string | Identifiant du paiement. |
+
+## Réponse
+
+La réponse contient le paiement avec son statut (`processing`, `succeeded`, `failed`), son montant et la liste des bordereaux ou claims couverts. Pour connaître la répartition détaillée d'un paiement sur les factures, appelez `GET /api/v1/payments/{uuid}/allocations`.
+
+## Exemple de réponse
+
+```json
+{
+  "data": {
+    "uuid": "pay_sandbox_001",
+    "payment_number": "PAY-2025-001234",
+    "status": "completed",
+    "provider_uid": "prov_sandbox_001",
+    "insurer_uid": "ins_sandbox_001",
+    "amount": 1500000,
+    "currency": "XOF",
+    "payment_method": "bank_transfer",
+    "payment_date": "2025-02-10",
+    "reference": "REF-BANK-2025-001",
+    "invoice_uids": [
+      "inv_sandbox_001"
+    ],
+    "created_at": "2025-02-10T10:00:00Z"
+  }
+}
+```

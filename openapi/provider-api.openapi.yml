@@ -432,6 +432,144 @@ paths:
                       $ref: '#/components/schemas/ProviderNetworkRelationship'
                   meta:
                     type: object
+  /api/v1/network/insurers:
+    get:
+      operationId: listAvailableInsurers
+      summary: Lister les assureurs disponibles pour une demande d'adhésion réseau
+      description: >
+        Retourne les organisations assureur actives connues du registre réseau. Le prestataire
+        peut utiliser `uid` comme `insurer_org_uid` dans `POST /api/v1/network/request`.
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+      responses:
+        '200':
+          description: Assureurs disponibles pour demande d'adhésion
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        uid:
+                          type: string
+                          format: uuid
+                        legal_name:
+                          type: string
+                        trade_name:
+                          type: string
+                          nullable: true
+                        country_code:
+                          type: string
+              example:
+                data:
+                  - uid: 5d000000-0000-4000-8000-000000000010
+                    legal_name: NSIA Assurances
+                    trade_name: NSIA
+                    country_code: CI
+        '401':
+          description: API key absente ou invalide
+        '403':
+          description: Scope providers.network.view manquant
+  /api/v1/network/request:
+    post:
+      operationId: createAffiliationRequest
+      summary: Initier une demande d'adhésion au réseau d'un assureur
+      description: >
+        Crée une demande d'adhésion `care_network` en statut pending entre l'assureur demandé
+        (`insurer_org_uid`) et l'organisation du prestataire authentifié par X-Api-Key.
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [insurer_org_uid]
+              properties:
+                insurer_org_uid:
+                  type: string
+                  format: uuid
+                  description: UID de l'organisation assureur retourné par `GET /api/v1/network/insurers`.
+                metadata:
+                  type: object
+                  additionalProperties: true
+                  description: Informations métier facultatives transmises à l'assureur.
+            example:
+              insurer_org_uid: 5d000000-0000-4000-8000-000000000010
+              metadata:
+                requested_network_tier: standard
+                service_families: [OUTPATIENT, PHARMACY]
+                message: Demande d'adhésion au réseau soins ambulatoires.
+      responses:
+        '201':
+          description: Demande d'adhésion créée
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      uid: { type: string, format: uuid }
+                      source_uid: { type: string, format: uuid }
+                      target_uid: { type: string, format: uuid }
+                      type:
+                        type: string
+                        enum: [care_network]
+                      status:
+                        type: string
+                        enum: [pending]
+                      initiated_by:
+                        type: string
+                        enum: [provider]
+                      rejected_reason:
+                        type: string
+                        nullable: true
+                      starts_at:
+                        type: string
+                        nullable: true
+                      ends_at:
+                        type: string
+                        nullable: true
+                      metadata:
+                        type: object
+                      created_at:
+                        type: string
+                        format: date-time
+                      updated_at:
+                        type: string
+                        format: date-time
+              example:
+                data:
+                  uid: 98000000-0000-4000-8000-000000000021
+                  source_uid: 5d000000-0000-4000-8000-000000000010
+                  target_uid: 3d2e1a00-0000-4000-8000-000000000077
+                  type: care_network
+                  status: pending
+                  initiated_by: provider
+                  rejected_reason: null
+                  starts_at: null
+                  ends_at: null
+                  metadata:
+                    requested_network_tier: standard
+                    service_families: [OUTPATIENT, PHARMACY]
+                    message: Demande d'adhésion au réseau soins ambulatoires.
+                  created_at: '2026-08-06T15:30:00Z'
+                  updated_at: '2026-08-06T15:30:00Z'
+        '401':
+          description: API key absente ou invalide
+        '403':
+          description: Scope providers.network.manage manquant
+        '404':
+          description: Organisation prestataire introuvable dans le registre réseau
+        '409':
+          description: Une relation pending ou active existe déjà entre ces organisations
   /api/v1/reference/medications:
     get:
       operationId: listMedications
@@ -1014,3 +1152,614 @@ paths:
       responses:
         '201':
           description: Souscription créée
+  /api/v1/eligibility/member-card:
+    post:
+      operationId: getMemberCard
+      summary: Récupérer la carte membre d'un assuré à partir du numéro de carte
+      description: Nécessite le scope eligibility.check.
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [identifier]
+              properties:
+                identifier:
+                  type: string
+      responses:
+        '200':
+          description: Carte membre de l'assuré
+        '401':
+          description: API key absente ou invalide
+        '403':
+          description: Scope eligibility.check insuffisant
+  /api/v1/encounters:
+    post:
+      operationId: createEncounter
+      summary: Déclarer une nouvelle consultation ou hospitalisation
+      description: Nécessite le scope clinical.encounters.manage.
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [insured_uid, encounter_type, encounter_date]
+              properties:
+                insured_uid:
+                  type: string
+                  format: uuid
+                  description: Identifiant UUID de l'assuré.
+                encounter_type:
+                  type: string
+                  enum: [consultation, hospitalization, emergency, surgery, procedure, imaging, laboratory]
+                  description: Type de consultation. `consultation` = consultation ambulatoire ; `hospitalization` = admission ; `emergency` = urgences ; `surgery` = acte chirurgical ; `procedure` = geste thérapeutique ; `imaging` = imagerie ; `laboratory` = biologie.
+                encounter_date:
+                  type: string
+                  format: date
+                discharge_date:
+                  type: string
+                  format: date
+                  nullable: true
+                icd10_codes:
+                  type: array
+                  items:
+                    type: string
+                chief_complaint:
+                  type: string
+                clinical_summary:
+                  type: string
+                department:
+                  type: string
+                attending_physician:
+                  type: string
+            example:
+              insured_uid: 9a1b2c3d-4e5f-4061-8f2a-1b2c3d4e5f60
+              encounter_type: consultation
+              encounter_date: '2026-08-15'
+              icd10_codes: ['R10.9']
+              chief_complaint: Douleur abdominale
+              department: urgences
+              attending_physician: Dr. KOUASSI
+      responses:
+        '201':
+          description: Consultation créée
+        '401':
+          description: API key absente ou invalide
+        '403':
+          description: Scope clinical.encounters.manage insuffisant
+    get:
+      operationId: listEncounters
+      summary: Lister l'historique des consultations d'un assuré
+      description: Nécessite le scope clinical.encounters.view.
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - in: query
+          name: insured_uid
+          required: true
+          schema: { type: string }
+        - in: query
+          name: page
+          schema: { type: integer, minimum: 1, default: 1 }
+        - in: query
+          name: per_page
+          schema: { type: integer, minimum: 1, default: 20 }
+      responses:
+        '200':
+          description: Liste paginée des consultations
+        '401':
+          description: API key absente ou invalide
+        '403':
+          description: Scope clinical.encounters.view insuffisant
+  /api/v1/encounters/{encounterId}:
+    get:
+      operationId: getEncounter
+      summary: Récupérer le détail d'une consultation
+      description: Nécessite le scope clinical.encounters.view.
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - in: path
+          name: encounterId
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Détail de la consultation
+        '401':
+          description: API key absente ou invalide
+        '403':
+          description: Scope clinical.encounters.view insuffisant
+        '404':
+          description: Consultation introuvable
+  /api/v1/encounters/{encounterId}/medical-acts:
+    get:
+      operationId: listMedicalActs
+      summary: Lister les actes médicaux d'une consultation
+      description: Nécessite le scope clinical.encounters.view.
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - in: path
+          name: encounterId
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Liste des actes médicaux
+        '401':
+          description: API key absente ou invalide
+        '403':
+          description: Scope clinical.encounters.view insuffisant
+        '404':
+          description: Consultation introuvable
+    post:
+      operationId: addMedicalAct
+      summary: Ajouter un acte médical à une consultation
+      description: Nécessite le scope clinical.encounters.manage.
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - in: path
+          name: encounterId
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [act_code, act_label]
+              properties:
+                act_code:
+                  type: string
+                act_label:
+                  type: string
+                act_category:
+                  type: string
+                  enum: [surgery, imaging, biology, consultation, physiotherapy, nursing, anesthesia, other]
+                quantity:
+                  type: number
+                  default: 1
+                unit_price:
+                  type: number
+                performed_at:
+                  type: string
+                  format: date-time
+                performed_by:
+                  type: string
+                notes:
+                  type: string
+            example:
+              act_code: CS-001
+              act_label: Consultation générale
+              act_category: consultation
+              quantity: 1
+              unit_price: 15000
+              performed_at: '2026-08-15T10:30:00Z'
+              performed_by: Dr. KOUASSI
+      responses:
+        '201':
+          description: Acte médical créé
+        '401':
+          description: API key absente ou invalide
+        '403':
+          description: Scope clinical.encounters.manage insuffisant
+        '404':
+          description: Consultation introuvable
+  /api/v1/encounters/{encounterId}/documents:
+    post:
+      operationId: attachEncounterDocument
+      summary: Joindre un document clinique à une consultation
+      description: Nécessite le scope clinical.documents.attach.
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - in: path
+          name: encounterId
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [media_uid, uploaded_by_provider_uid]
+              properties:
+                media_uid:
+                  type: string
+                document_type:
+                  type: string
+                  enum: [scan_prescription, lab_result, imaging_report, discharge_summary, other]
+                title:
+                  type: string
+                status:
+                  type: string
+                  enum: [draft, final, amended, cancelled]
+                produced_at:
+                  type: string
+                  format: date-time
+                produced_by_provider_uid:
+                  type: string
+                related_type:
+                  type: string
+                  enum: [prescription, medical_act, claim, lab_order, imaging_order, rehabilitation_request, other]
+                related_uid:
+                  type: string
+                source_system:
+                  type: string
+                external_reference:
+                  type: string
+                description:
+                  type: string
+                uploaded_by_provider_uid:
+                  type: string
+                uploader_name:
+                  type: string
+                uploader_role:
+                  type: string
+                  enum: [doctor, nurse, radiologist, lab_technician, pharmacist, admin]
+                uploader_user_uid:
+                  type: string
+            example:
+              media_uid: 8b7c6d5e-0000-4000-8000-000000000020
+              document_type: lab_result
+              title: NFS et CRP
+              status: final
+              produced_at: '2026-08-15T10:45:00Z'
+              uploaded_by_provider_uid: 3d2e1a00-0000-4000-8000-000000000077
+              uploader_name: Dr. KOUASSI
+              uploader_role: doctor
+              related_type: medical_act
+              related_uid: 5e6f7a8b-0000-4000-8000-000000000031
+      responses:
+        '201':
+          description: Document attaché
+        '401':
+          description: API key absente ou invalide
+        '403':
+          description: Scope clinical.documents.attach insuffisant
+        '404':
+          description: Consultation introuvable
+  /api/v1/encounters/{encounterId}/prescriptions:
+    get:
+      operationId: listEncounterPrescriptions
+      summary: Lister les ordonnances d'une consultation
+      description: Nécessite le scope clinical.prescriptions.view.
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - in: path
+          name: encounterId
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Liste des ordonnances
+        '401':
+          description: API key absente ou invalide
+        '403':
+          description: Scope clinical.prescriptions.view insuffisant
+        '404':
+          description: Consultation introuvable
+    post:
+      operationId: createPrescription
+      summary: Émettre une ordonnance dans le cadre d'une consultation
+      description: Nécessite le scope clinical.prescriptions.manage.
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - in: path
+          name: encounterId
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [lines]
+              properties:
+                prescription_type:
+                  type: string
+                  enum: [standard, bizozone, magistrale, controlled_substance, lab_test, imaging, physiotherapy, nursing_care, specialist_referral]
+                  description: Type d'ordonnance. `standard` = médicaments standards ; `bizozone` = zone bizone ; `magistrale` = préparation magistrale ; `controlled_substance` = stupéfiants ; `lab_test` = examens labo ; `imaging` = imagerie ; `physiotherapy` = kinésithérapie ; `nursing_care` = soins infirmiers ; `specialist_referral` = orientation spécialiste.
+                issued_at:
+                  type: string
+                  format: date-time
+                valid_until:
+                  type: string
+                  format: date
+                prescriber_name:
+                  type: string
+                prescriber_registration_number:
+                  type: string
+                lines:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      line_type:
+                        type: string
+                        enum: [medication, lab_test, imaging, procedure, session, referral]
+                      code:
+                        type: string
+                      label:
+                        type: string
+                      medication_name:
+                        type: string
+                      form:
+                        type: string
+                      dosage:
+                        type: string
+                      frequency:
+                        type: string
+                      duration:
+                        type: string
+                      quantity:
+                        type: number
+                      instructions:
+                        type: string
+                      refills_allowed:
+                        type: integer
+                      body_site:
+                        type: string
+                      laterality:
+                        type: string
+                        enum: [left, right, bilateral]
+                      priority:
+                        type: string
+                        enum: [routine, urgent, stat]
+                      indication:
+                        type: string
+                      session_count:
+                        type: integer
+                      session_frequency:
+                        type: string
+                      specialty:
+                        type: string
+                      referred_provider_uid:
+                        type: string
+                clinical_notes:
+                  type: string
+            example:
+              prescription_type: standard
+              prescriber_name: Dr. KOUASSI
+              prescriber_registration_number: CI-CO-2018-0042
+              lines:
+                - line_type: medication
+                  medication_name: Amoxicilline 500mg
+                  form: comprimé
+                  dosage: 500mg
+                  frequency: 3 fois par jour
+                  duration: 7 jours
+                  quantity: 21
+                  instructions: Après les repas
+              clinical_notes: Infection respiratoire basse
+      responses:
+        '201':
+          description: Ordonnance créée
+        '401':
+          description: API key absente ou invalide
+        '403':
+          description: Scope clinical.prescriptions.manage insuffisant
+        '404':
+          description: Consultation introuvable
+  /api/v1/prescriptions/{prescriptionUid}:
+    get:
+      operationId: getPrescription
+      summary: Consulter le détail d'une ordonnance
+      description: Nécessite le scope clinical.prescriptions.view.
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - in: path
+          name: prescriptionUid
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Détail de l'ordonnance
+        '401':
+          description: API key absente ou invalide
+        '403':
+          description: Scope clinical.prescriptions.view insuffisant
+        '404':
+          description: Ordonnance introuvable
+  /api/v1/insured/{insuredUid}/prescriptions:
+    get:
+      operationId: listInsuredPrescriptions
+      summary: Lister l'historique des ordonnances d'un assuré
+      description: Nécessite le scope clinical.prescriptions.view.
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - in: path
+          name: insuredUid
+          required: true
+          schema: { type: string }
+        - in: query
+          name: page
+          schema: { type: integer, minimum: 1, default: 1 }
+        - in: query
+          name: per_page
+          schema: { type: integer, minimum: 1, default: 20 }
+      responses:
+        '200':
+          description: Liste paginée des ordonnances
+        '401':
+          description: API key absente ou invalide
+        '403':
+          description: Scope clinical.prescriptions.view insuffisant
+  /api/v1/insured/{insuredUid}/medical-record:
+    get:
+      operationId: getMedicalRecord
+      summary: Consulter le dossier médical complet d'un assuré
+      description: Nécessite le scope clinical.records.view.
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - in: path
+          name: insuredUid
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Dossier médical complet
+        '401':
+          description: API key absente ou invalide
+        '403':
+          description: Scope clinical.records.view insuffisant
+        '404':
+          description: Dossier médical introuvable
+    put:
+      operationId: updateMedicalRecord
+      summary: Mettre à jour le dossier médical d'un assuré (merge partiel)
+      description: Nécessite le scope clinical.records.manage.
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - in: path
+          name: insuredUid
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                blood_type:
+                  type: string
+                  enum: [A+, A-, B+, B-, AB+, AB-, O+, O-, unknown]
+                height_cm:
+                  type: number
+                weight_kg:
+                  type: number
+                allergies:
+                  type: array
+                  items:
+                    type: object
+                    required: [substance]
+                    properties:
+                      substance:
+                        type: string
+                      reaction:
+                        type: string
+                      severity:
+                        type: string
+                        enum: [mild, moderate, severe, unknown]
+                chronic_conditions:
+                  type: array
+                  items:
+                    type: object
+                    required: [condition_name]
+                    properties:
+                      condition_name:
+                        type: string
+                      icd10_code:
+                        type: string
+                      diagnosed_at:
+                        type: string
+                      current_treatment:
+                        type: string
+                surgical_history:
+                  type: array
+                  items:
+                    type: object
+                    required: [procedure_name]
+                    properties:
+                      procedure_name:
+                        type: string
+                      performed_at:
+                        type: string
+                      hospital_name:
+                        type: string
+                      notes:
+                        type: string
+                immunizations:
+                  type: array
+                  items:
+                    type: object
+                    required: [vaccine_name]
+                    properties:
+                      vaccine_name:
+                        type: string
+                      administered_at:
+                        type: string
+                      next_dose_at:
+                        type: string
+                family_history:
+                  type: string
+                lifestyle_notes:
+                  type: string
+                current_medications:
+                  type: string
+                updated_by_provider_uid:
+                  type: string
+            example:
+              blood_type: A+
+              height_cm: 175
+              weight_kg: 72
+              allergies:
+                - substance: Pénicilline
+                  reaction: Anaphylaxie
+                  severity: severe
+              chronic_conditions:
+                - condition_name: Diabète type 2
+                  icd10_code: E11.9
+                  current_treatment: Metformine 500mg
+              current_medications: Metformine 500mg, Lisinopril 10mg
+              updated_by_provider_uid: 3d2e1a00-0000-4000-8000-000000000077
+      responses:
+        '200':
+          description: Dossier médical mis à jour
+        '401':
+          description: API key absente ou invalide
+        '403':
+          description: Scope clinical.records.manage insuffisant
+        '404':
+          description: Dossier médical introuvable
+  /api/v1/insured/{insuredUid}/medical-record/summary:
+    get:
+      operationId: getMedicalRecordSummary
+      summary: Récupérer la synthèse du dossier médical d'un assuré
+      description: Nécessite le scope clinical.records.view. Retourne les allergies, pathologies, groupe sanguin et traitements en cours.
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - in: path
+          name: insuredUid
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Synthèse du dossier médical (allergies, pathologies, groupe sanguin, traitements)
+        '401':
+          description: API key absente ou invalide
+        '403':
+          description: Scope clinical.records.view insuffisant
+        '404':
+          description: Dossier médical introuvable
+  /api/v1/insured/{insuredUid}/medical-record/timeline:
+    get:
+      operationId: getMedicalRecordTimeline
+      summary: Chronologie médicale complète d'un assuré
+      description: Nécessite le scope clinical.records.view. Retourne une timeline paginée combinant consultations, ordonnances et actes médicaux.
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - in: path
+          name: insuredUid
+          required: true
+          schema: { type: string }
+        - in: query
+          name: page
+          schema: { type: integer, minimum: 1, default: 1 }
+        - in: query
+          name: per_page
+          schema: { type: integer, minimum: 1, default: 20 }
+      responses:
+        '200':
+          description: Timeline paginée (consultations, ordonnances, actes)
+        '401':
+          description: API key absente ou invalide
+        '403':
+          description: Scope clinical.records.view insuffisant
