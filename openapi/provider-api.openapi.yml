@@ -1,11 +1,15 @@
-openapi: 3.1.0
+openapi: 3.0.3
 info:
   title: AZURANCE ERP Provider API
   version: 0.1.0
   description: API externe sandbox pour ERP prestataires. Le BFF valide X-Api-Key via auth-service puis appelle les microservices internes.
+  license:
+    name: Proprietary
 servers:
+  - url: https://provider-api-sandbox.elenami.com
+    description: Sandbox publique
   - url: http://localhost:3101
-    description: Sandbox local provider-api-bff
+    description: Développement local
 security:
   - ApiKeyAuth: []
 components:
@@ -223,6 +227,7 @@ components:
 paths:
   /api/health:
     get:
+      operationId: healthCheck
       security: []
       summary: Healthcheck BFF prestataire
       responses:
@@ -230,6 +235,7 @@ paths:
           description: OK
   /api/v1/prior-authorizations:
     post:
+      operationId: requestPriorAuthorization
       summary: Demander une préautorisation de prestation
       description: Crée une demande formelle de prévalidation avant exécution, par exemple proforma de kinésithérapie ou matériel médical.
       x-codeSamples:
@@ -287,6 +293,7 @@ paths:
         '422':
           description: Précheck d'éligibilité refusé ou payload invalide
     get:
+      operationId: listPriorAuthorizations
       summary: Lister les préautorisations du prestataire
       x-codeSamples:
         - lang: curl
@@ -306,6 +313,7 @@ paths:
           description: Liste paginée
   /api/v1/prior-authorizations/{uid}:
     get:
+      operationId: getPriorAuthorization
       summary: Consulter une préautorisation
       parameters:
         - in: path
@@ -317,6 +325,7 @@ paths:
           description: Détail de la préautorisation
   /api/v1/prior-authorizations/{uid}/documents:
     post:
+      operationId: attachPriorAuthorizationDocument
       summary: Ajouter une pièce à une préautorisation
       parameters:
         - in: path
@@ -328,6 +337,7 @@ paths:
           description: Pièce ajoutée
   /api/v1/prior-authorizations/{uid}/cancel:
     post:
+      operationId: cancelPriorAuthorization
       summary: Annuler une préautorisation
       parameters:
         - in: path
@@ -339,6 +349,7 @@ paths:
           description: Préautorisation annulée
   /api/v1/network/status:
     get:
+      operationId: getNetworkStatus
       summary: Lire le statut réseau global du prestataire authentifié
       description: >
         Retourne le statut réseau général du prestataire lié à X-Api-Key. Cet endpoint ne vérifie pas
@@ -354,6 +365,7 @@ paths:
           description: Scope providers.network.view manquant
   /api/v1/network/profile:
     get:
+      operationId: getNetworkProfile
       summary: Lire le profil réseau du prestataire authentifié
       description: Retourne le profil du prestataire rattaché à X-Api-Key.
       parameters:
@@ -363,6 +375,7 @@ paths:
           description: Profil prestataire
   /api/v1/network/relationships:
     get:
+      operationId: listInsurerRelationships
       summary: Lister les relations assureur du prestataire authentifié
       description: >
         Liste les compagnies et réseaux avec lesquels le prestataire lié à X-Api-Key est conventionné.
@@ -394,6 +407,7 @@ paths:
           description: Scope providers.network.view manquant
   /api/v1/provider/insurer-relationships:
     get:
+      operationId: listInsurerRelationshipsAlias
       summary: Alias métier pour lister les relations assureur du prestataire
       description: Equivalent de /api/v1/network/relationships avec un nom plus explicite pour les ERP.
       parameters:
@@ -420,6 +434,7 @@ paths:
                     type: object
   /api/v1/reference/medications:
     get:
+      operationId: listMedications
       summary: Lister le référentiel médicaments Azurance
       description: Retourne les produits médicaments du référentiel pivot pour initialiser ou synchroniser un ERP prestataire. Ne retourne pas de stock, lot ou prix réel pharmacie.
       x-codeSamples:
@@ -471,6 +486,7 @@ paths:
           description: Scope reference.medications.view manquant
   /api/v1/reference/medications/search:
     get:
+      operationId: searchMedications
       summary: Rechercher un médicament du référentiel
       description: Recherche par désignation, DCI, AMM ou titulaire. Les produits autorisés localement sont prioritaires.
       x-codeSamples:
@@ -510,6 +526,7 @@ paths:
                     type: integer
   /api/v1/reference/medications/export:
     get:
+      operationId: exportMedications
       summary: Exporter une page du référentiel médicaments
       description: Export contrôlé JSON ou CSV, limité par pagination. Aucun dump illimité n'est exposé.
       x-codeSamples:
@@ -545,6 +562,7 @@ paths:
           description: Export JSON ou CSV
   /api/v1/reference/medications/resolve:
     post:
+      operationId: resolveMedication
       summary: Résoudre un produit ERP vers le référentiel Azurance
       description: Retourne des candidats de correspondance sans créer de mapping persistant côté Azurance.
       x-codeSamples:
@@ -597,6 +615,7 @@ paths:
                         type: number
   /api/v1/reference/medications/{uid}:
     get:
+      operationId: getMedication
       summary: Consulter une fiche médicament du référentiel
       description: Retourne un produit médicament, ses présentations et son mapping clinique si disponible.
       x-codeSamples:
@@ -625,6 +644,7 @@ paths:
           description: Produit introuvable
   /api/v1/eligibility/check:
     post:
+      operationId: checkEligibility
       summary: Précheck d'éligibilité ERP sans création de claim
       parameters:
         - $ref: '#/components/parameters/RequestId'
@@ -669,6 +689,7 @@ paths:
           description: Scope insuffisant
   /api/v1/covered-persons/resolve:
     post:
+      operationId: resolveCoveredPerson
       summary: Résoudre une personne couverte sans exposer de données médicales
       parameters:
         - $ref: '#/components/parameters/RequestId'
@@ -701,6 +722,7 @@ paths:
           description: Rate limit atteint
   /api/v1/consent-requests:
     post:
+      operationId: initiateConsentRequest
       summary: Initier un consentement fort assuré pour un ERP prestataire
       parameters:
         - $ref: '#/components/parameters/RequestId'
@@ -737,6 +759,7 @@ paths:
           description: Challenge de consentement créé
   /api/v1/consent-requests/{uid}/verify:
     post:
+      operationId: verifyConsentRequest
       summary: Vérifier un consentement OTP/TOTP ou Face Match
       parameters:
         - $ref: '#/components/parameters/RequestId'
@@ -768,6 +791,7 @@ paths:
           description: Challenge invalide ou expiré
   /api/v1/covered-persons/{type}/{uid}/prescriptions:
     get:
+      operationId: listAuthorizedPrescriptions
       summary: Lister les ordonnances autorisées après consentement fort
       parameters:
         - $ref: '#/components/parameters/RequestId'
@@ -801,6 +825,7 @@ paths:
           description: Consentement ou scope invalide
   /api/v1/media/uploads:
     post:
+      operationId: uploadMedia
       summary: Upload de document clinique ou justificatif claim
       parameters:
         - $ref: '#/components/parameters/RequestId'
@@ -828,6 +853,7 @@ paths:
           description: Média créé
   /api/v1/claims:
     post:
+      operationId: submitClaim
       summary: Soumettre un claim après recheck final obligatoire
       parameters:
         - $ref: '#/components/parameters/RequestId'
@@ -841,15 +867,15 @@ paths:
               properties:
                 subscription_id:
                   type: string
-                  service_execution_uid:
-                    type: string
-                    format: uuid
-                  prior_authorization_uid:
-                    type: string
-                    format: uuid
-                  covered_person_type:
-                    type: string
-                    enum: [policyholder, beneficiary]
+                service_execution_uid:
+                  type: string
+                  format: uuid
+                prior_authorization_uid:
+                  type: string
+                  format: uuid
+                covered_person_type:
+                  type: string
+                  enum: [policyholder, beneficiary]
                 covered_person_uid:
                   type: string
                 consent_ref:
@@ -882,6 +908,7 @@ paths:
         '503':
           description: Service interne indisponible, aucun claim créé
     get:
+      operationId: listClaims
       summary: Lister les claims du prestataire lié à la clé API
       parameters:
         - $ref: '#/components/parameters/RequestId'
@@ -890,6 +917,7 @@ paths:
           description: Liste paginée
   /api/v1/service-executions:
     post:
+      operationId: recordServiceExecution
       summary: Enregistrer une prestation réellement effectuée par l'ERP
       parameters:
         - $ref: '#/components/parameters/RequestId'
@@ -929,6 +957,7 @@ paths:
         '403':
           description: Consentement ou scope invalide
     get:
+      operationId: listServiceExecutions
       summary: Lister les prestations réellement effectuées par le prestataire
       parameters:
         - $ref: '#/components/parameters/RequestId'
@@ -937,6 +966,7 @@ paths:
           description: Liste paginée
   /api/v1/payable-invoices:
     get:
+      operationId: listPayableInvoices
       summary: Lister les bordereaux payables visibles par l'ERP prestataire
       parameters:
         - $ref: '#/components/parameters/RequestId'
@@ -945,6 +975,7 @@ paths:
           description: Liste paginée
   /api/v1/payments/{paymentId}:
     get:
+      operationId: getPayment
       summary: Consulter un paiement
       parameters:
         - $ref: '#/components/parameters/RequestId'
@@ -958,6 +989,7 @@ paths:
           description: Paiement
   /api/v1/billing/sync:
     get:
+      operationId: getBillingSync
       summary: Flux incrémental ERP des événements billing
       parameters:
         - $ref: '#/components/parameters/RequestId'
@@ -975,6 +1007,7 @@ paths:
           description: Page de synchronisation
   /api/v1/webhook-subscriptions:
     post:
+      operationId: createWebhookSubscription
       summary: Créer une souscription webhook ERP
       parameters:
         - $ref: '#/components/parameters/RequestId'
