@@ -4,7 +4,7 @@ description: "Met à jour le statut et la décision de traitement d'un claim."
 openapi: "/openapi/insurer-api.openapi.yml PATCH /api/v1/claims/{claimId}/status"
 ---
 
-Cet endpoint met à jour le statut d'un claim. Le BFF accepte `PATCH` et `PUT` sur le même chemin ; les deux verbes déclenchent exactement le même traitement côté API assureur.
+Cet endpoint met à jour le statut d'un claim. L'API accepte `PATCH` et `PUT` sur le même chemin ; les deux verbes déclenchent exactement le même traitement.
 
 ## Scope requis
 
@@ -20,15 +20,15 @@ Cet endpoint met à jour le statut d'un claim. Le BFF accepte `PATCH` et `PUT` s
 
 | Champ | Type | Requis | Description |
 | --- | --- | --- | --- |
-| `status` | string | oui | Statut cible. Le BFF accepte `PENDING`, `UNDER_REVIEW`, `APPROVED`, `REJECTED`, `PAID` et leurs variantes minuscules, puis transmet la valeur en majuscules au service claims. |
-| `reason` | string | non | Motif principal transmis au service claims. Prioritaire sur les alias ci-dessous. |
+| `status` | string | oui | Statut cible. L'API accepte `PENDING`, `UNDER_REVIEW`, `APPROVED`, `REJECTED`, `PAID` et leurs variantes minuscules, puis normalise la valeur en majuscules. |
+| `reason` | string | non | Motif principal de la décision. Prioritaire sur les alias ci-dessous. |
 | `rejection_reason` | string | non | Alias historique de `reason`, utilisé seulement si `reason` est absent. |
 | `reviewer_notes` | string | non | Second alias de `reason`, utilisé seulement si `reason` et `rejection_reason` sont absents. |
 | `reviewed_by` | string | non | Identifiant de l'opérateur ayant pris la décision. |
 
-## Normalisation BFF
+## Normalisation
 
-Le BFF transmet au service claims un payload normalisé :
+L'API transmet un payload normalisé :
 
 - `status` est converti en majuscules ;
 - `reason` est choisi avec la priorité `reason` → `rejection_reason` → `reviewer_notes` ;

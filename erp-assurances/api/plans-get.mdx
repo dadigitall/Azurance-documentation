@@ -4,7 +4,7 @@ description: "Retourne le détail d'un plan d'assurance par son code métier."
 openapi: "/openapi/insurer-api.openapi.yml GET /api/v1/plans/{planId}"
 ---
 
-Cet endpoint retourne le détail complet d'un plan d'assurance. Côté BFF, le paramètre de chemin est transmis comme `code` au policy-service : utilisez donc le `plan_code` du plan, par exemple `GOLD` ou `PLAN_ESSENTIAL`.
+Cet endpoint retourne le détail complet d'un plan d'assurance. Le paramètre de chemin correspond au `plan_code` du plan, par exemple `GOLD` ou `PLAN_ESSENTIAL`.
 
 ## Scope requis
 

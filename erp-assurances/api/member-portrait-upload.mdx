@@ -4,7 +4,7 @@ description: "Envoie ou remplace la photo de référence d'un assuré."
 openapi: "/openapi/insurer-api.openapi.yml PUT /api/v1/members/{memberId}/portrait"
 ---
 
-Cet endpoint téléverse ou remplace la photo de référence d'un assuré. La photo est d'abord déposée dans media-service, puis activée dans policy-service comme portrait biométrique du membre.
+Cet endpoint téléverse ou remplace la photo de référence d'un assuré. La photo est déposée puis activée comme portrait biométrique du membre.
 
 ## Scope requis
 
@@ -23,7 +23,7 @@ Cet endpoint téléverse ou remplace la photo de référence d'un assuré. La ph
 | `file` | binary | oui | Fichier JPEG ou PNG, 1 Mo maximum. Extensions acceptées : `.jpg`, `.jpeg`, `.png`. |
 | `source` | string | oui | Source du portrait (`insurer_contract`, `kyc_refresh`, `member_update`, `other`). |
 | `captured_at` | string | non | Date de capture au format ISO 8601. |
-| `metadata` | object|string | non | Objet JSON ou chaîne JSON valide. Les champs de contexte forcé sont ignorés par le BFF. |
+| `metadata` | object|string | non | Objet JSON ou chaîne JSON valide. Les champs de contexte forcé sont ignorés par l'API. |
 
 ## Contraintes du fichier
 

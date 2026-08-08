@@ -2,7 +2,7 @@ openapi: 3.0.3
 info:
   title: AZURANCE ERP Provider API
   version: 0.1.0
-  description: API externe sandbox pour ERP prestataires. Le BFF valide X-Api-Key via auth-service puis appelle les microservices internes.
+  description: API externe sandbox pour ERP prestataires. Toutes les requêtes doivent inclure un header `X-Api-Key` valide.
   license:
     name: Proprietary
 servers:

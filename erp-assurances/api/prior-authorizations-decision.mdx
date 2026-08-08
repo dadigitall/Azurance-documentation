@@ -10,7 +10,7 @@ Cet endpoint enregistre la décision de l'assureur sur une demande de préautori
 
 `insurer.prior_authorizations.view`
 
-Le BFF actuel exige le scope de lecture `insurer.prior_authorizations.view` pour ce chemin, y compris pour l'action de décision.
+L'API exige le scope `insurer.prior_authorizations.view` pour ce chemin, y compris pour l'action de décision.
 
 ## Paramètres de chemin
 
@@ -24,10 +24,10 @@ Le BFF actuel exige le scope de lecture `insurer.prior_authorizations.view` pour
 | --- | --- | --- | --- |
 | `decision` | string | oui | Décision (`APPROVED`, `REJECTED`, `INFO_NEEDED`). |
 | `decided_by` | string | oui | Identifiant ou rôle de l'opérateur ayant décidé. |
-| `authorized_amount` | number | non | Montant autorisé. Requis par le service aval pour `APPROVED`. |
+| `authorized_amount` | number | non | Montant autorisé. Requis pour `APPROVED`. |
 | `expires_at` | string | non | Date d'expiration de l'accord, au format ISO 8601. |
-| `reason` | string | non | Motif métier. Requis par le service aval pour `REJECTED` ou `INFO_NEEDED`. |
-| `notes` | string | non | Notes internes de décision. |
+| `reason` | string | non | Motif métier. Requis pour `REJECTED` ou `INFO_NEEDED`. |
+| `notes` | string | non | Notes de décision. |
 | `conditions` | array | non | Conditions associées à l'accord. |
 | `metadata` | object | non | Métadonnées libres. |
 

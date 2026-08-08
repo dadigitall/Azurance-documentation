@@ -38,7 +38,7 @@ Cet endpoint soumet un claim après un recheck final obligatoire. Il valide l'é
 
 ## Réponse
 
-La réponse `201` contient le claim créé avec son identifiant, son statut et les réservations de plafond. Un `422` indique un check final refusé (aucun claim créé) ; un `503` signale un service interne indisponible (réessayer avec backoff sur `5xx`).
+La réponse `201` contient le claim créé avec son identifiant, son statut et les réservations de plafond. Un `422` indique un check final refusé (aucun claim créé) ; un `503` signale une indisponibilité temporaire (réessayer avec backoff sur `5xx`).
 
 ## Exemple de réponse
 

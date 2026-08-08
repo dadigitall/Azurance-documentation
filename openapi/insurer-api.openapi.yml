@@ -79,8 +79,8 @@ components:
     AuthError:
       type: object
       description: >-
-        Format d'erreur renvoyé par insurer-bff lui-même (guard d'authentification/scopes),
-        distinct du format `Error` renvoyé par les microservices backend en aval.
+        Format d'erreur renvoyé par l'API (authentification/scopes), distinct du format
+        `Error` renvoyé par les services en aval.
       properties:
         statusCode:
           type: integer
@@ -145,7 +145,7 @@ components:
         media_uid:
           type: string
           nullable: true
-          description: Référence media-service ; utiliser cet identifiant pour récupérer le fichier, jamais exposé en URL directe ici.
+          description: Référence du média ; utiliser cet identifiant pour récupérer le fichier, jamais exposé en URL directe ici.
         original_name:
           type: string
           nullable: true
@@ -165,7 +165,7 @@ components:
         media_status:
           type: string
           nullable: true
-          description: Statut du scan antivirus media-service (ex. `CLEAN`, `PENDING`, `INFECTED`).
+          description: Statut du scan antivirus (ex. `CLEAN`, `PENDING`, `INFECTED`).
         metadata:
           type: object
           nullable: true
@@ -333,10 +333,10 @@ components:
         status:
           type: string
           description: >-
-            Nouveau statut. Insensible à la casse côté BFF, mais seules ces 4 valeurs sont
-            aussi acceptées par le service claims en aval : `INFO_NEEDED` est rejeté par le
-            BFF lui-même (absent de son validateur) et `PENDING` est accepté par le BFF mais
-            rejeté en 422 par le service claims (absent côté backend). N'utiliser que les
+            Nouveau statut. Insensible à la casse, mais seules ces 4 valeurs sont
+            aussi acceptées par le service claims en aval : `INFO_NEEDED` est rejeté par
+            l'API (absent du validateur) et `PENDING` est accepté par l'API mais
+            rejeté en 422 par le service claims. N'utiliser que les
             4 valeurs listées ci-dessous.
           enum: [UNDER_REVIEW, APPROVED, REJECTED, PAID]
         reason:
@@ -379,14 +379,14 @@ components:
           type: string
         service:
           type: string
-          description: Nom du service en amont injoignable (ex. `policy-service`, `provider-service`).
+          description: Service en amont injoignable.
     EligibilityCheckRequest:
       type: object
       required: [identifier, coverage_code]
       description: >-
         `provider_id` ou `provider_uuid` est obligatoire (l'un des deux, pas nécessairement
         les deux). `tenant_id`, `tenant_uid`, `insurer_uid` et `insurer_uuid` ne doivent
-        jamais être fournis : insurer-bff les rejette en 400 avant même d'appeler le service
+        jamais être fournis : l'API les rejette en 400 avant tout traitement
         (le tenant est toujours dérivé de `X-Api-Key`).
       properties:
         identifier:
@@ -577,8 +577,8 @@ components:
           type: object
           nullable: true
           description: >-
-            Contexte brut interne renvoyé par policy-service, à titre de trace/debug.
-            Structure non garantie entre versions, ne pas parser en production.
+            Contexte de trace, à titre de debug. Ne pas parser en production.
+            Structure non garantie entre versions.
     CreatePaymentRequest:
       type: object
       required: [idempotency_key, payment_method, beneficiary_type, beneficiary_uuid, amount, allocations]
@@ -660,7 +660,7 @@ components:
           type: string
           maxLength: 100
           nullable: true
-          description: Référence media-service d'un justificatif scanné, le cas échéant.
+          description: Référence d'un justificatif scanné, le cas échéant.
         metadata:
           type: object
           nullable: true
@@ -1385,7 +1385,7 @@ components:
           nullable: true
           description: >-
             Absent en pratique sur tous les endpoints assureur actuels (relation jamais
-            chargée côté backend pour ce chemin) — ne pas compter dessus pour lister les
+            chargée pour ce chemin) — ne pas compter dessus pour lister les
             couvertures d'un plan ; utiliser `GET /coverage-types` séparément.
           items:
             $ref: '#/components/schemas/Coverage'
@@ -2003,7 +2003,7 @@ components:
         status:
           type: string
           enum: [ACTIVE, SUSPENDED, TERMINATED, PENDING]
-          description: Par défaut `PENDING` côté backend si omis.
+          description: Par défaut `PENDING` si omis.
         kyc_status:
           type: string
           enum: [VERIFIED, PENDING, REJECTED]
@@ -2152,7 +2152,7 @@ components:
         status:
           type: string
           enum: [PENDING, ACTIVE, SUSPENDED, EXPIRED, CANCELLED]
-          description: Par défaut `PENDING` côté backend si omis.
+          description: Par défaut `PENDING` si omis.
         effective_date:
           type: string
           format: date
@@ -2604,8 +2604,8 @@ paths:
       operationId: listMembers
       summary: Lister les assurés du portefeuille
       description: >-
-        ⚠️ Le backend supporte aussi un filtre `status`, mais insurer-bff ne le transmet
-        pas : seul `search` (nom ou numéro de police) est réellement utilisable ici.
+        ⚠️ Un filtre `status` existe côté API mais n'est pas transmis :
+        seul `search` (nom ou numéro de police) est réellement utilisable ici.
       parameters:
         - $ref: '#/components/parameters/RequestId'
         - $ref: '#/components/parameters/Page'
@@ -2804,8 +2804,8 @@ paths:
       operationId: uploadMemberPortrait
       summary: Envoyer ou remplacer le portrait biométrique d'un assuré
       description: >
-        Upload multipart protégé par le scope insurer.members.manage. La photo est stockée dans
-        media-service avec la catégorie BIOMETRIC_PHOTO. L'API publique ne retourne jamais l'image,
+        Upload multipart protégé par le scope insurer.members.manage. La photo est stockée avec
+        la catégorie BIOMETRIC_PHOTO. L'API ne retourne jamais l'image,
         ni d'URL signée. L'assuré doit avoir un identity_uid pour activer le portrait face match.
       parameters:
         - $ref: '#/components/parameters/RequestId'
@@ -2880,7 +2880,7 @@ paths:
     get:
       operationId: listSubscriptions
       summary: Lister les souscriptions
-      description: '⚠️ Le backend supporte aussi `policyholder_uuid`, mais insurer-bff ne le transmet pas : seuls `page`/`per_page` fonctionnent ici.'
+      description: '⚠️ `policyholder_uuid` n''est pas supporté sur cet endpoint : seuls `page`/`per_page` fonctionnent ici.'
       parameters:
         - $ref: '#/components/parameters/RequestId'
         - $ref: '#/components/parameters/Page'
@@ -3124,7 +3124,7 @@ paths:
     get:
       operationId: listBeneficiaries
       summary: Lister les bénéficiaires d'une souscription
-      description: Paginé (page/per_page côté backend), mais insurer-bff ne transmet pas ces paramètres ici — une seule page de 20 est toujours renvoyée.
+      description: Une seule page de 20 résultats est toujours renvoyée (la pagination n'est pas supportée sur cet endpoint).
       parameters:
         - $ref: '#/components/parameters/RequestId'
         - in: path
@@ -3279,7 +3279,7 @@ paths:
       operationId: uploadBeneficiaryPortrait
       summary: Envoyer ou remplacer le portrait biométrique d'un bénéficiaire
       description: >
-        Même cycle de vie que le portrait assuré: stockage media-service, historique versionné,
+        Même cycle de vie que le portrait assuré : stockage sécurisé, historique versionné,
         une seule version ACTIVE, aucun téléchargement public.
       parameters:
         - $ref: '#/components/parameters/RequestId'
@@ -3504,14 +3504,14 @@ paths:
                       coverage_code:
                         - The coverage code field is required.
         '503':
-          description: policy-service ou provider-service injoignable
+          description: Service en amont injoignable
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ServiceUnavailableError'
               example:
                 message: Service externe indisponible
-                service: policy-service
+                service: upstream
   /api/v1/eligibility/check-batch:
     post:
       operationId: checkEligibilityBatch
@@ -3608,7 +3608,7 @@ paths:
                   checks.0.coverage_code:
                     - The checks.0.coverage_code field is required.
         '503':
-          description: policy-service ou provider-service injoignable
+          description: Service en amont injoignable
           content:
             application/json:
               schema:
@@ -3701,8 +3701,8 @@ paths:
           name: provider_uid
           description: >-
             ⚠️ Paramètre actuellement sans effet : le service claims filtre en interne sur
-            `provider_uuid`, mais insurer-bff transmet la valeur sous la clé `provider_uid`,
-            jamais lue côté backend. Ne pas s'appuyer sur ce filtre pour l'instant.
+            `provider_uuid`, mais l'API utilise la clé `provider_uid`, qui n'est jamais lue.
+            Ne pas s'appuyer sur ce filtre pour l'instant.
           schema:
             type: string
         - in: query
@@ -3982,7 +3982,7 @@ paths:
       description: >-
         Documents justificatifs déjà attachés au claim (factures, ordonnances, comptes-rendus...),
         triés par date d'upload décroissante. Ne retourne jamais le fichier lui-même :
-        `media_uid` sert de référence pour le récupérer via media-service.
+        `media_uid` sert de référence pour récupérer le fichier.
       parameters:
         - $ref: '#/components/parameters/RequestId'
         - $ref: '#/components/parameters/ClaimId'
@@ -4263,7 +4263,7 @@ paths:
     get:
       operationId: listCoverageTypes
       summary: Lister les types de couverture
-      description: '⚠️ Le backend supporte un filtre `category`, mais insurer-bff ne le transmet pas : toutes les couvertures actives sont toujours renvoyées (page de 50 par défaut).'
+      description: '⚠️ Le filtre `category` n''est pas supporté : toutes les couvertures actives sont toujours renvoyées (page de 50 par défaut).'
       parameters:
         - $ref: '#/components/parameters/RequestId'
       responses:
@@ -4397,7 +4397,7 @@ paths:
       operationId: listProviders
       summary: Lister les prestataires du réseau tenant
       description: >-
-        ⚠️ Le backend supporte aussi `status`, `tier` et `city`, mais insurer-bff ne
+        ⚠️ Les filtres `status`, `tier` et `city` ne sont pas supportés : l'API ne
         transmet que `type` (en plus de la pagination) : ces trois filtres sont sans effet
         ici. Ne retourne pas `specialties`/`contacts` (uniquement sur le détail).
       parameters:
@@ -4485,7 +4485,7 @@ paths:
                     description: >-
                       `insurer_uid`, `insurer_name`, `insurer_organization_uid`,
                       `relationship_count`. Si aucune organisation assureur correspondante
-                      n'est trouvée dans organization-service, `data` est vide et `meta`
+                      n'est trouvée, `data` est vide et `meta`
                       contient un champ `note` explicatif au lieu de `insurer_organization_uid`.
               example:
                 data:
@@ -5210,8 +5210,8 @@ paths:
         - in: query
           name: provider_uuid
           description: >-
-            ⚠️ Le paramètre documenté auparavant (`beneficiary_uuid`) n'existe pas côté
-            backend pour cet endpoint ; seul `provider_uuid` est un filtre réel ici.
+            ⚠️ Le paramètre documenté auparavant (`beneficiary_uuid`) n'existe pas sur cet
+            endpoint ; seul `provider_uuid` est un filtre réel ici.
           schema:
             type: string
       responses:
@@ -5906,7 +5906,7 @@ paths:
       summary: Synthèse du portefeuille (souscriptions, primes, assurés)
       description: >-
         Agrégats calculés à la volée par requêtes SQL directes (pas de cache). `date_from`/
-        `date_to` sont acceptés par le backend mais ignorés par cet agrégat précis (aucun
+        `date_to` sont acceptés mais ignorés par cet agrégat précis (aucun
         filtre par date appliqué côté requête) — présents surtout pour homogénéité avec les
         autres endpoints analytics.
       parameters:
@@ -6097,7 +6097,7 @@ paths:
                         type: array
                         description: >-
                           ⚠️ `plan_code` ici est en réalité `coverage_type_code` (raccourci
-                          pris côté backend), pas le vrai code de plan — à ne pas confondre
+                          interne), pas le vrai code de plan — à ne pas confondre
                           avec `plan_code` des autres endpoints analytics.
                         items:
                           type: object
@@ -6504,7 +6504,7 @@ paths:
       operationId: getNotificationPreferences
       summary: Lister les préférences de notification
       description: >-
-        ⚠️ Le paramètre `recipient_id` documenté précédemment est sans effet : insurer-bff
+        ⚠️ Le paramètre `recipient_id` documenté précédemment est sans effet : l'API
         ne transmet aucun paramètre de requête à cet endpoint. Renvoie systématiquement
         toutes les préférences du tenant, tous destinataires confondus.
       parameters:

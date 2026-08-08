@@ -17,7 +17,7 @@ Cet endpoint vérifie l'éligibilité d'un assuré pour un acte ou une prestatio
 | `identifier` | string | oui | Identifiant de la personne assurée (numéro de police ou identifiant équivalent). |
 | `coverage_code` | string | oui | Code de la couverture à vérifier, tel que renvoyé par `GET /api/v1/coverage-types`. |
 | `amount` | number | non | Montant du soin à évaluer. Si fourni, la réponse inclut un calcul de remboursement et une vérification de plafond. |
-| `provider_id` | integer | non* | Identifiant numérique interne du prestataire. Requis si `provider_uuid` est absent. |
+| `provider_id` | integer | non* | Identifiant numérique du prestataire. Requis si `provider_uuid` est absent. |
 | `provider_uuid` | string | non* | UUID du prestataire. Requis si `provider_id` est absent. |
 | `beneficiary_id` | string | non | À renseigner si le soin concerne un bénéficiaire plutôt que le souscripteur. |
 | `service_date` | string | non | Date du soin au format `YYYY-MM-DD`. Défaut : date du jour. |
@@ -44,7 +44,7 @@ Ne fournissez jamais `tenant_id`, `tenant_uid`, `insurer_uid` ou `insurer_uuid` 
 | `subscription` | object | Souscription active (`uuid`, `subscription_number`, `plan_code`, `status`, `effective_date`, `expiry_date`). |
 | `coverage` | object | Garantie vérifiée (`code`, `name`, `base_rate`, `annual_limit`, `remaining_limit`, `limit_usage`). |
 | `reimbursement` | object | Présent si `amount` était fourni (`eligible`, `reimbursement_amount`, `decision`, `decision_reason`). |
-| `contract_context` | object | Contexte interne de trace, ne pas parser en production. |
+| `contract_context` | object | Contexte de trace, ne pas parser en production. |
 
 ## Cas d'usage
 

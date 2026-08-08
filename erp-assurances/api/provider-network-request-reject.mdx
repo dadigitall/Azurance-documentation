@@ -38,7 +38,7 @@ Cet endpoint rejette une demande d'adhésion réseau en statut `PENDING`. Le mot
 
 ## Réponse
 
-La réponse retourne la relation réseau mise à jour. Le statut est `rejected` dans la réponse brute de l'organization-service.
+La réponse retourne la relation réseau mise à jour. Le statut est `rejected`.
 
 | Champ | Type | Description |
 | --- | --- | --- |
@@ -46,7 +46,7 @@ La réponse retourne la relation réseau mise à jour. Le statut est `rejected` 
 | `data.source_uid` | uuid | UID de l'organisation assureur. |
 | `data.target_uid` | uuid | UID de l'organisation prestataire. |
 | `data.type` | string | Type de relation (`care_network`). |
-| `data.status` | string | Statut interne (`rejected`). |
+| `data.status` | string | Statut (`rejected`). |
 | `data.initiated_by` | string\|null | Origine de la demande. |
 | `data.rejected_reason` | string\|null | Motif de rejet enregistré. |
 | `data.starts_at` | string\|null | Date de début si configurée. |

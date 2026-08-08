@@ -4,7 +4,7 @@ description: "Récupère la clé publique RSA utilisée pour chiffrer les répon
 openapi: "/openapi/provider-api.openapi.yml GET /api/v1/auth/encryption-key"
 ---
 
-Cet endpoint retourne la clé publique RSA du BFF prestataire. Elle est utilisée pour déchiffrer les réponses JWE (JSON Web Encryption) renvoyées par les endpoints cliniques (consultations, ordonnances, dossier médical).
+Cet endpoint retourne la clé publique RSA utilisée pour chiffrer les réponses JWE (JSON Web Encryption) renvoyées par les endpoints cliniques (consultations, ordonnances, dossier médical).
 
 ## Scope requis
 
@@ -32,4 +32,4 @@ Aucun scope métier requis. L'endpoint est accessible avec une clé API valide m
 
 1. Récupérez la clé publique via cet endpoint.
 2. Déchiffrez les réponses JWE des endpoints cliniques avec cette clé côté client.
-3. La clé peut être mise en cache côté client (elle est stable tant que le BFF n'est pas redéployé avec de nouvelles clés).
+3. La clé peut être mise en cache côté client. Elle est rotée lors des mises à jour de l'API — surveillez l'en-tête de réponse pour détecter un changement de clé.

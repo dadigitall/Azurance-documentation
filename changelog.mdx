@@ -6,25 +6,25 @@ icon: "list"
 
 Suivez les changements de contrat public, les nouvelles pages et les corrections importantes.
 
-## 2026-08-08 - Alignement API prestataire sur provider-api-bff réel
+## 2026-08-08 - Alignement API prestataire et dépublication du vocabulaire d'architecture interne
 
-- Suppression de `GET /api/health` du contrat OpenAPI prestataire : aucun controller `provider-api-bff` public correspondant n'a été trouvé.
-- Correction des chemins OpenAPI et MDX pour aligner avec le BFF réel :
+- Suppression de `GET /api/health` du contrat OpenAPI prestataire : aucun endpoint public correspondant n'existe.
+- Correction des chemins OpenAPI et MDX pour aligner avec l'API réelle :
   - `payments/{paymentId}` → `payments/{uuid}`
   - `prescriptions/{prescriptionUid}` → `prescriptions/{prescriptionId}`
   - `covered-persons/{type}/{uid}/prescriptions` → `insured/{identityUid}/covered-persons/{coveredPersonType}/prescriptions`
   - `consent-requests/{consentRequestUid}` → `consent-requests/{uid}`
 - Ajout des routes manquantes dans l'OpenAPI prestataire : `auth/encryption-key`, `auth/verify`, `claims/{claimId}`, `claims/{claimId}/documents`, `consent-requests/{uid}`, `payable-invoices/{uuid}`, `payable-invoices/{uuid}/items`, `payments/{uuid}/allocations`, `covered-persons/support-search`, `webhook-subscriptions/{uuid}` (PATCH + DELETE), `encounters/{encounterId}/medical-acts` (POST).
-- Suppression des pages orphelines `service-executions-get` et `webhook-subscriptions-list` (routes inexistantes dans le BFF) et retrait de `docs.json`.
-- Création d'un skill local `.devin/skills/audit-bff-docs/` avec script d'audit automatisé pour vérifier l'alignement BFF ↔ OpenAPI ↔ MDX ↔ docs.json.
+- Suppression des pages orphelines `service-executions-get` et `webhook-subscriptions-list` (routes inexistantes) et retrait de `docs.json`.
+- Dépublication du vocabulaire d'architecture interne dans toute la documentation : retrait des termes `BFF`, `microservice`, `policy-service`, `provider-service`, `media-service`, `billing-service`, `organization-service`, `auth-service`, `controller`, `guard`, `interceptor`, `NestJS`, `backend` et `redéployé` des pages MDX et des fichiers OpenAPI. Ces termes sont remplacés par un vocabulaire public (`l'API`, `services en aval`, etc.).
 
-## 2026-08-15 - Alignement API assurance sur insurer-bff réel
+## 2026-08-15 - Alignement API assurance sur l'API réelle
 
-- Suppression de `GET /api/v1/health` du contrat OpenAPI assureur : aucun controller `insurer-bff` public correspondant n'a été trouvé.
-- Alignement des chemins notifications sur le BFF réel (`/api/v1/notifications/{id}` et `/api/v1/notifications/{id}/read`) et mise à jour des pages MDX associées.
+- Suppression de `GET /api/v1/health` du contrat OpenAPI assureur : aucun endpoint public correspondant n'existe.
+- Alignement des chemins notifications sur l'API réelle (`/api/v1/notifications/{id}` et `/api/v1/notifications/{id}/read`) et mise à jour des pages MDX associées.
 - Ajout des pages manquantes `coverage-types-get`, `prior-authorizations-list`, `prior-authorizations-get` et `prior-authorizations-decision`, avec navigation `docs.json` mise à jour.
 - Correction des DTOs documentés pour `claims-update-status`, `fraud-assessment-create`, `fraud-assessment-feedback`, les uploads/status portraits, webhooks create/update et paiements billing.
-- Correction de `plans-get` pour préciser que le GET utilise le `plan_code` côté BFF, et correction de `plans-delete` sur la réponse `200 { message: "Plan deleted" }`.
+- Correction de `plans-get` pour préciser que le GET utilise le `plan_code`, et correction de `plans-delete` sur la réponse `200 { message: "Plan deleted" }`.
 - Correction des statuts réseau côté assureur (`ACTIVE`, `PENDING`, `REJECTED`, `ENDED`; `PREFERRED`, `IN_NETWORK`, `OUT_OF_NETWORK`) et de l'exemple `provider-network-check` sur `ProviderResource`.
 
 ## 2026-08-15 - Demandes d'adhésion au réseau prestataire
@@ -34,9 +34,9 @@ Suivez les changements de contrat public, les nouvelles pages et les corrections
 - Documentation du workflow complet : le prestataire liste les assureurs, soumet une demande `care_network` en statut `pending`, puis l'assureur la valide en `active` ou la rejette avec un motif `rejected_reason`.
 - Ajout des nouvelles pages dans la navigation prestataire et assureur, avec scopes publics `providers.network.view`, `providers.network.manage`, `insurer.providers.view` et `insurer.providers.manage`.
 
-## 2026-08-15 - Alignement des endpoints cliniques prestataire sur les BFF réels
+## 2026-08-15 - Alignement des endpoints cliniques prestataire sur l'API réelle
 
-- Correction de l'enum `encounter_type` sur les valeurs réelles du backend (`consultation`, `hospitalization`, `emergency`, `surgery`, `procedure`, `imaging`, `laboratory`) et suppression des valeurs inexistantes (`follow_up`, `lab_visit`, `pharmacy_visit`) dans l'OpenAPI et la page `encounters-create`.
+- Correction de l'enum `encounter_type` sur les valeurs réelles de l'API (`consultation`, `hospitalization`, `emergency`, `surgery`, `procedure`, `imaging`, `laboratory`) et suppression des valeurs inexistantes (`follow_up`, `lab_visit`, `pharmacy_visit`) dans l'OpenAPI et la page `encounters-create`.
 - Alignement des exemples de réponse `medications-list`, `medications-get`, `medications-search`, `medications-export` et `medications-resolve` sur `MedicationProductResource` (`designation`, `dci_raw`, `inn_name`, `market_status`, `source`, `marketing_authorization_holder`, `public_price`, `authorization_number`, `presentations`, `clinical_mapping`, `mappings`).
 - Réécriture de la réponse `medications-resolve` sur la structure réelle `best_match` / `candidates` / `confidence` (suppression des champs inventés `name`, `generic_name`, `dosage_form`, `strength`, `manufacturer`, `status`, `matched_by`).
 - Réécriture de la réponse `eligibility/member-card` : renvoie un tableau de candidats `CoveredPerson` (`covered_person_type`, `covered_person_uid`, `subscription_uid`, `policy_number`, `member_number`, `coverage_status`, `display_name`, `relationship`, `contact`), et non une carte physique (`card_number`, `card_type`, `qr_code`, `coverage_families` supprimés).

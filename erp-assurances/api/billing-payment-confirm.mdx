@@ -4,7 +4,7 @@ description: "Confirme qu'un paiement a été effectué."
 openapi: "/openapi/insurer-api.openapi.yml POST /api/v1/billing/payments/{uuid}/confirm"
 ---
 
-Cet endpoint confirme qu'un paiement a été effectué. La réponse attendue côté billing-service indique un paiement finalisé en statut `SUCCEEDED` lorsque la confirmation est acceptée.
+Cet endpoint confirme qu'un paiement a été effectué. La réponse indique un paiement finalisé en statut `SUCCEEDED` lorsque la confirmation est acceptée.
 
 ## Scope requis
 
@@ -22,7 +22,7 @@ Cet endpoint confirme qu'un paiement a été effectué. La réponse attendue cô
 | --- | --- | --- | --- |
 | `external_reference` | string | oui | Référence de la preuve de paiement externe (numéro de virement, de chèque, etc.). |
 | `paid_at` | string | non | Date effective du paiement au format ISO 8601. |
-| `proof_document_uid` | string | non | Référence media-service d'un justificatif scanné. |
+| `proof_document_uid` | string | non | Référence d'un justificatif scanné. |
 | `metadata` | object | non | Métadonnées libres. |
 
 ## Exemple de requête

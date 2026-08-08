@@ -4,7 +4,7 @@ description: "Crée un paiement pour une ou plusieurs factures."
 openapi: "/openapi/insurer-api.openapi.yml POST /api/v1/billing/payments"
 ---
 
-Cet endpoint crée un paiement et peut le répartir sur une ou plusieurs factures via les allocations. La réponse attendue côté billing-service indique un paiement créé en statut `CREATED`; confirmez ensuite le paiement avec `billing-payment-confirm` après exécution du règlement.
+Cet endpoint crée un paiement et peut le répartir sur une ou plusieurs factures via les allocations. La réponse indique un paiement créé en statut `CREATED` ; confirmez ensuite le paiement avec `billing-payment-confirm` après exécution du règlement.
 
 ## Scope requis
 
@@ -23,7 +23,7 @@ Cet endpoint crée un paiement et peut le répartir sur une ou plusieurs facture
 | `amount` | number | oui | Montant total du paiement. |
 | `currency` | string | non | Devise. Défaut courant : `XOF`. |
 | `requested_by` | string | non | Auteur de la demande. |
-| `allocations` | array | non | Répartition sur les factures. Le BFF accepte l'omission, mais le service billing peut appliquer ses propres règles de validation. |
+| `allocations` | array | non | Répartition sur les factures. L'API accepte l'omission, mais des règles de validation supplémentaires peuvent s'appliquer. |
 | `allocations[].payable_invoice_uuid` | string | oui | Identifiant de la facture si une allocation est fournie. |
 | `allocations[].payable_invoice_item_uuid` | string | non | Identifiant de la ligne, si l'allocation cible une ligne précise. |
 | `allocations[].amount` | number | oui | Montant alloué. |
