@@ -1,0 +1,43 @@
+---
+title: "Consulter une facture payable"
+description: "Retourne le détail d'un bordereau payable."
+openapi: "/openapi/provider-api.openapi.yml GET /api/v1/payable-invoices/{uuid}"
+---
+
+Cet endpoint retourne les informations détaillées d'un bordereau payable : montant total, devise, statut, date d'émission et lignes rattachées. Il complète la liste des bordereaux en apportant la lecture unitaire d'une facture.
+
+## Scope requis
+
+`billing.payable_invoices.view`
+
+## Paramètre de chemin
+
+| Paramètre | Type | Description |
+| --- | --- | --- |
+| `uuid` | string | Identifiant UUID du bordereau payable. |
+
+## Réponse
+
+La réponse contient les informations du bordereau : `uuid`, `invoice_number`, `total_amount`, `currency`, `status`, `issued_at`, `settled_at` et les métadonnées associées.
+
+## Exemple de réponse
+
+```json
+{
+  "uuid": "inv_sandbox_001",
+  "invoice_number": "INV-2026-001",
+  "total_amount": 450000,
+  "currency": "XOF",
+  "status": "settled",
+  "issued_at": "2026-08-01T00:00:00.000000Z",
+  "settled_at": "2026-08-05T00:00:00.000000Z"
+}
+```
+
+## Erreurs
+
+| Code | Description |
+| --- | --- |
+| 401 | Clé API manquante ou invalide. |
+| 403 | Scope `billing.payable_invoices.view` non autorisé. |
+| 404 | Bordereau introuvable. |

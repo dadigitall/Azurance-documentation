@@ -1,7 +1,7 @@
 ---
 title: "Consulter un paiement"
 description: "Retourne les informations d'un paiement."
-openapi: "/openapi/provider-api.openapi.yml GET /api/v1/payments/{paymentId}"
+openapi: "/openapi/provider-api.openapi.yml GET /api/v1/payments/{uuid}"
 ---
 
 Cet endpoint retourne les informations détaillées d'un paiement : montant, devise, statut, mode de règlement et bordereaux concernés. Il complète la lecture des bordereaux payables en apportant la trace du règlement effectif.
@@ -14,7 +14,7 @@ Cet endpoint retourne les informations détaillées d'un paiement : montant, dev
 
 | Paramètre | Type | Description |
 | --- | --- | --- |
-| `paymentId` | string | Identifiant du paiement. |
+| `uuid` | string | Identifiant du paiement. |
 
 ## Réponse
 

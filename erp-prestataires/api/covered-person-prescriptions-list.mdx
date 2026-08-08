@@ -1,7 +1,7 @@
 ---
 title: "Lister les prescriptions autorisées"
 description: "Retourne les prescriptions consultables avec consentement valide."
-openapi: "/openapi/provider-api.openapi.yml GET /api/v1/covered-persons/{type}/{uid}/prescriptions"
+openapi: "/openapi/provider-api.openapi.yml GET /api/v1/insured/{identityUid}/covered-persons/{coveredPersonType}/prescriptions"
 ---
 
 Cet endpoint liste les ordonnances d'une personne couverte consultables après consentement fort. L'accès est filtré selon le consentement validé et le prestataire authentifié : seules les prescriptions autorisées dans le périmètre du consentement sont renvoyées.
@@ -14,8 +14,8 @@ Cet endpoint liste les ordonnances d'une personne couverte consultables après c
 
 | Paramètre | Type | Description |
 | --- | --- | --- |
-| `type` | string | `policyholder` ou `beneficiary`. |
-| `uid` | string | Identifiant de la personne couverte. |
+| `identityUid` | string | Identifiant d'identité de la personne couverte. |
+| `coveredPersonType` | string | `policyholder` ou `beneficiary`. |
 
 ## Paramètres de requête requis
 

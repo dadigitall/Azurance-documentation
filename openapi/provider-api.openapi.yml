@@ -225,14 +225,62 @@ components:
         metadata:
           type: object
 paths:
-  /api/health:
+  /api/v1/auth/encryption-key:
     get:
-      operationId: healthCheck
+      operationId: getEncryptionKey
+      summary: Récupérer la clé publique de chiffrement
       security: []
-      summary: Healthcheck BFF prestataire
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
       responses:
         '200':
-          description: OK
+          description: Clé publique de chiffrement
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  key:
+                    type: string
+                  alg:
+                    type: string
+                  enc:
+                    type: string
+  /api/v1/auth/verify:
+    get:
+      operationId: verifyApiKey
+      summary: Vérifier la clé API et les scopes visibles
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+      responses:
+        '200':
+          description: Informations sur la clé API et les scopes
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  valid:
+                    type: boolean
+                  environment:
+                    type: string
+                  tenant_uid:
+                    type: string
+                  tenant_slug:
+                    type: string
+                  tenant_name:
+                    type: string
+                  subject_type:
+                    type: string
+                  subject_uid:
+                    type: string
+                  subject_name:
+                    type: string
+                  scopes:
+                    type: array
+                    items:
+                      type: string
   /api/v1/prior-authorizations:
     post:
       operationId: requestPriorAuthorization
@@ -858,6 +906,51 @@ paths:
           description: Recherche non indexée, wildcard ou identifiant trop court
         '429':
           description: Rate limit atteint
+  /api/v1/covered-persons/support-search:
+    post:
+      operationId: supportSearchCoveredPersons
+      summary: Recherche de support pour identifier une personne couverte
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [first_name, last_name]
+              properties:
+                first_name:
+                  type: string
+                  minLength: 2
+                  maxLength: 100
+                last_name:
+                  type: string
+                  minLength: 2
+                  maxLength: 100
+                date_of_birth:
+                  type: string
+                  format: date
+                phone_number:
+                  type: string
+                  maxLength: 30
+                policy_number:
+                  type: string
+                  maxLength: 50
+                national_id:
+                  type: string
+                  maxLength: 50
+                limit:
+                  type: integer
+                  minimum: 1
+                  maximum: 5
+      responses:
+        '200':
+          description: Résultats de recherche de support
+        '401':
+          description: API key absente ou invalide
+        '403':
+          description: Scope covered_persons.support_search insuffisant
   /api/v1/consent-requests:
     post:
       operationId: initiateConsentRequest
@@ -927,23 +1020,43 @@ paths:
           description: Consentement validé avec consent_ref
         '422':
           description: Challenge invalide ou expiré
-  /api/v1/covered-persons/{type}/{uid}/prescriptions:
+  /api/v1/consent-requests/{uid}:
+    get:
+      operationId: getConsentRequest
+      summary: Consulter une demande de consentement
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - in: path
+          name: uid
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Détail de la demande de consentement
+        '401':
+          description: API key absente ou invalide
+        '403':
+          description: Scope consent_requests.create insuffisant
+        '404':
+          description: Demande de consentement introuvable
+  /api/v1/insured/{identityUid}/covered-persons/{coveredPersonType}/prescriptions:
     get:
       operationId: listAuthorizedPrescriptions
       summary: Lister les ordonnances autorisées après consentement fort
       parameters:
         - $ref: '#/components/parameters/RequestId'
         - in: path
-          name: type
+          name: identityUid
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: coveredPersonType
           required: true
           schema:
             type: string
             enum: [policyholder, beneficiary]
-        - in: path
-          name: uid
-          required: true
-          schema:
-            type: string
         - in: query
           name: subscription_uid
           required: true
@@ -956,6 +1069,12 @@ paths:
           schema:
             type: string
             format: uuid
+        - in: query
+          name: page
+          schema: { type: integer, minimum: 1, default: 1 }
+        - in: query
+          name: per_page
+          schema: { type: integer, minimum: 1, default: 20 }
       responses:
         '200':
           description: Ordonnances filtrées selon le consentement et le prestataire
@@ -1053,6 +1172,67 @@ paths:
       responses:
         '200':
           description: Liste paginée
+  /api/v1/claims/{claimId}:
+    get:
+      operationId: getClaimStatus
+      summary: Consulter le statut d'un claim
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - in: path
+          name: claimId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Statut du claim
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Objet claim
+        '401':
+          description: API key absente ou invalide
+        '403':
+          description: Scope claims.view insuffisant
+        '404':
+          description: Claim introuvable
+  /api/v1/claims/{claimId}/documents:
+    post:
+      operationId: attachClaimDocument
+      summary: Attacher un document justificatif à un claim
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - in: path
+          name: claimId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [document_type]
+              properties:
+                document_type:
+                  type: string
+                media_uid:
+                  type: string
+                file_name:
+                  type: string
+                file_path:
+                  type: string
+      responses:
+        '201':
+          description: Document attaché au claim
+        '401':
+          description: API key absente ou invalide
+        '403':
+          description: Scope claims.documents.attach insuffisant
+        '404':
+          description: Claim introuvable
   /api/v1/service-executions:
     post:
       operationId: recordServiceExecution
@@ -1111,20 +1291,100 @@ paths:
       responses:
         '200':
           description: Liste paginée
-  /api/v1/payments/{paymentId}:
+  /api/v1/payable-invoices/{uuid}:
+    get:
+      operationId: getPayableInvoice
+      summary: Consulter une facture payable
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - in: path
+          name: uuid
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Détail de la facture payable
+        '401':
+          description: API key absente ou invalide
+        '403':
+          description: Scope billing.payable_invoices.view insuffisant
+        '404':
+          description: Facture payable introuvable
+  /api/v1/payable-invoices/{uuid}/items:
+    get:
+      operationId: listPayableInvoiceItems
+      summary: Lister les lignes d'une facture payable
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - in: path
+          name: uuid
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: filters
+          required: false
+          schema:
+            type: object
+            additionalProperties: true
+          description: Paramètres de filtrage arbitraires (Record<string, unknown>).
+      responses:
+        '200':
+          description: Liste des lignes de la facture payable
+        '401':
+          description: API key absente ou invalide
+        '403':
+          description: Scope billing.payable_invoices.view insuffisant
+        '404':
+          description: Facture payable introuvable
+  /api/v1/payments/{uuid}:
     get:
       operationId: getPayment
       summary: Consulter un paiement
       parameters:
         - $ref: '#/components/parameters/RequestId'
         - in: path
-          name: paymentId
+          name: uuid
           required: true
           schema:
             type: string
       responses:
         '200':
           description: Paiement
+        '401':
+          description: API key absente ou invalide
+        '403':
+          description: Scope billing.payments.view insuffisant
+        '404':
+          description: Paiement introuvable
+  /api/v1/payments/{uuid}/allocations:
+    get:
+      operationId: listPaymentAllocations
+      summary: Lister les allocations d'un paiement
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - in: path
+          name: uuid
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: filters
+          required: false
+          schema:
+            type: object
+            additionalProperties: true
+          description: Paramètres de filtrage arbitraires (Record<string, unknown>).
+      responses:
+        '200':
+          description: Liste des allocations du paiement
+        '401':
+          description: API key absente ou invalide
+        '403':
+          description: Scope billing.payments.view insuffisant
+        '404':
+          description: Paiement introuvable
   /api/v1/billing/sync:
     get:
       operationId: getBillingSync
@@ -1152,6 +1412,53 @@ paths:
       responses:
         '201':
           description: Souscription créée
+  /api/v1/webhook-subscriptions/{uuid}:
+    patch:
+      operationId: updateWebhookSubscription
+      summary: Modifier un abonnement webhook
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - in: path
+          name: uuid
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+              description: Champs à mettre à jour (Record<string, unknown>).
+      responses:
+        '200':
+          description: Abonnement webhook mis à jour
+        '401':
+          description: API key absente ou invalide
+        '403':
+          description: Scope billing.webhooks.manage insuffisant
+        '404':
+          description: Abonnement webhook introuvable
+    delete:
+      operationId: deleteWebhookSubscription
+      summary: Supprimer un abonnement webhook
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - in: path
+          name: uuid
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Abonnement webhook supprimé
+        '401':
+          description: API key absente ou invalide
+        '403':
+          description: Scope billing.webhooks.manage insuffisant
+        '404':
+          description: Abonnement webhook introuvable
   /api/v1/eligibility/member-card:
     post:
       operationId: getMemberCard
@@ -1316,23 +1623,29 @@ paths:
               properties:
                 act_code:
                   type: string
+                  maxLength: 20
                 act_label:
                   type: string
+                  maxLength: 300
                 act_category:
                   type: string
                   enum: [surgery, imaging, biology, consultation, physiotherapy, nursing, anesthesia, other]
                 quantity:
                   type: number
+                  minimum: 0
                   default: 1
                 unit_price:
                   type: number
+                  minimum: 0
                 performed_at:
                   type: string
                   format: date-time
                 performed_by:
                   type: string
+                  maxLength: 100
                 notes:
                   type: string
+                  maxLength: 1000
             example:
               act_code: CS-001
               act_label: Consultation générale
@@ -1547,7 +1860,7 @@ paths:
           description: Scope clinical.prescriptions.manage insuffisant
         '404':
           description: Consultation introuvable
-  /api/v1/prescriptions/{prescriptionUid}:
+  /api/v1/prescriptions/{prescriptionId}:
     get:
       operationId: getPrescription
       summary: Consulter le détail d'une ordonnance
@@ -1555,7 +1868,7 @@ paths:
       parameters:
         - $ref: '#/components/parameters/RequestId'
         - in: path
-          name: prescriptionUid
+          name: prescriptionId
           required: true
           schema: { type: string }
       responses:

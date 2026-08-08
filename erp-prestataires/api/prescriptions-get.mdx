@@ -1,7 +1,7 @@
 ---
 title: "Consulter une prescription"
 description: "Retourne le détail d'une prescription autorisée."
-openapi: "/openapi/provider-api.openapi.yml GET /api/v1/prescriptions/{prescriptionUid}"
+openapi: "/openapi/provider-api.openapi.yml GET /api/v1/prescriptions/{prescriptionId}"
 ---
 
 Cet endpoint retourne le détail complet d'une ordonnance : type, prescripteur, lignes de prescription, notes cliniques et statut.
@@ -14,7 +14,7 @@ Cet endpoint retourne le détail complet d'une ordonnance : type, prescripteur, 
 
 | Paramètre | Type | Description |
 | --- | --- | --- |
-| `prescriptionUid` | string | Identifiant UUID de l'ordonnance. |
+| `prescriptionId` | string | Identifiant UUID de l'ordonnance. |
 
 ## Accès après consentement
 

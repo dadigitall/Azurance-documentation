@@ -1,0 +1,63 @@
+---
+title: "Recherche de support"
+description: "Recherche une personne couverte par critères nominatifs pour le support."
+openapi: "/openapi/provider-api.openapi.yml POST /api/v1/covered-persons/support-search"
+---
+
+Cet endpoint permet au support prestataire de rechercher une personne couverte à partir de critères nominatifs (nom, prénom, date de naissance, etc.). Il est destiné aux cas où la résolution par identifiant direct (`POST /api/v1/covered-persons/resolve`) échoue et où une recherche floue est nécessaire.
+
+## Scope requis
+
+`covered_persons.support_search`
+
+Ce scope est séparé de `covered_persons.resolve` et doit être explicitement autorisé sur la clé API. Il est accordé uniquement aux comptes de support dûment habilités.
+
+## Corps de la requête
+
+| Champ | Type | Requis | Description |
+| --- | --- | --- | --- |
+| `first_name` | string | oui | Prénom (min 2, max 100). |
+| `last_name` | string | oui | Nom (min 2, max 100). |
+| `date_of_birth` | date | non | Date de naissance (format ISO 8601). |
+| `phone_number` | string | non | Numéro de téléphone (max 30). |
+| `policy_number` | string | non | Numéro de police (max 50). |
+| `national_id` | string | non | Identifiant national (max 50). |
+| `limit` | integer | non | Nombre max de résultats (min 1, max 5, défaut 5). |
+
+## Exemple de requête
+
+```json
+{
+  "first_name": "Koffi",
+  "last_name": "Adjoua",
+  "date_of_birth": "1985-03-15",
+  "phone_number": "+22901000000"
+}
+```
+
+## Exemple de réponse
+
+```json
+{
+  "data": [
+    {
+      "identity_uid": "idt_sandbox_001",
+      "covered_person_type": "policyholder",
+      "first_name": "Koffi",
+      "last_name": "Adjoua",
+      "date_of_birth": "1985-03-15",
+      "subscription_uid": "sub_sandbox_001",
+      "insurer_tenant_slug": "elenami-assurances"
+    }
+  ],
+  "total": 1
+}
+```
+
+## Erreurs
+
+| Code | Description |
+| --- | --- |
+| 400 | Champs de recherche insuffisants ou invalides. |
+| 401 | Clé API manquante ou invalide. |
+| 403 | Scope `covered_persons.support_search` non autorisé. |

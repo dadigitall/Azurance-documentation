@@ -1,15 +1,14 @@
 ---
 title: "Actes médicaux d'une consultation"
-description: "Liste ou ajoute des actes médicaux à une consultation."
+description: "Liste les actes médicaux rattachés à une consultation."
 openapi: "/openapi/provider-api.openapi.yml GET /api/v1/encounters/{encounterId}/medical-acts"
 ---
 
-Cet endpoint liste les actes médicaux rattachés à une consultation. Pour ajouter un acte, utilisez `POST /api/v1/encounters/{encounterId}/medical-acts` avec le même chemin.
+Cet endpoint liste les actes médicaux rattachés à une consultation. Pour ajouter un acte, utilisez `POST /api/v1/encounters/{encounterId}/medical-acts` (voir [Ajouter un acte médical](/erp-prestataires/api/encounters-medical-acts-add)).
 
 ## Scope requis
 
-- Lecture (`GET`) : `clinical.encounters.view`
-- Ajout (`POST`) : `clinical.encounters.manage`
+`clinical.encounters.view`
 
 ## Paramètres de chemin
 
@@ -17,57 +16,17 @@ Cet endpoint liste les actes médicaux rattachés à une consultation. Pour ajou
 | --- | --- | --- |
 | `encounterId` | string | Identifiant UUID de la consultation. |
 
-## Champs du body (POST)
-
-| Champ | Type | Requis | Description |
-| --- | --- | --- | --- |
-| `act_code` | string | oui | Code de l'acte (nomenclature locale ou CCAM, max 20). |
-| `act_label` | string | oui | Libellé de l'acte (max 300). |
-| `act_category` | string | non | Catégorie (voir ci-dessous). |
-| `quantity` | number | non | Nombre d'occurrences (min 0). |
-| `unit_price` | number | non | Prix unitaire (min 0). |
-| `performed_at` | date-time | non | Date et heure d'exécution. |
-| `performed_by` | string | non | Praticien ayant réalisé l'acte (max 100). |
-| `notes` | string | non | Notes spécifiques à cet acte (max 1000). |
-
-## Catégories d'actes
-
-| `act_category` | Usage |
-| --- | --- |
-| `surgery` | Acte chirurgical. |
-| `imaging` | Imagerie médicale. |
-| `biology` | Biologie ou analyse de laboratoire. |
-| `consultation` | Consultation ou visite. |
-| `physiotherapy` | Kinésithérapie ou rééducation. |
-| `nursing` | Soins infirmiers. |
-| `anesthesia` | Anesthésie. |
-| `other` | Autre acte. |
-
 ## Chiffrement
 
 Les réponses de cet endpoint sont chiffrées via JWE. Récupérez la clé publique RSA via `GET /api/v1/auth/encryption-key` pour déchiffrer la réponse.
 
-## Exemple de requête (POST)
-
-```json
-{
-  "act_code": "CS-001",
-  "act_label": "Consultation générale",
-  "act_category": "consultation",
-  "quantity": 1,
-  "unit_price": 15000,
-  "performed_at": "2026-08-15T10:30:00Z",
-  "performed_by": "Dr. KOUASSI"
-}
-```
-
-## Exemple de réponse (GET)
+## Exemple de réponse
 
 ```json
 {
   "data": [
     {
-      "id": 1,
+      "uid": "act_sandbox_001",
       "act_code": "CS-001",
       "act_label": "Consultation générale",
       "act_category": "consultation",
@@ -79,7 +38,7 @@ Les réponses de cet endpoint sont chiffrées via JWE. Récupérez la clé publi
       "created_at": "2026-08-15T10:30:00.000000Z"
     },
     {
-      "id": 2,
+      "uid": "act_sandbox_002",
       "act_code": "LAB-001",
       "act_label": "Analyse sanguine complète",
       "act_category": "biology",

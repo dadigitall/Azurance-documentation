@@ -1,0 +1,70 @@
+---
+title: "Ajouter un acte médical"
+description: "Ajoute un acte médical à une consultation existante."
+openapi: "/openapi/provider-api.openapi.yml POST /api/v1/encounters/{encounterId}/medical-acts"
+---
+
+Cet endpoint ajoute un acte médical (chirurgie, imagerie, biologie, consultation, kinésithérapie, soins infirmiers, anesthésie ou autre) à une consultation existante. Les actes sont rattachés à la consultation et peuvent être utilisés ensuite pour la facturation et les claims.
+
+## Scope requis
+
+`clinical.encounters.manage`
+
+## Paramètre de chemin
+
+| Paramètre | Type | Description |
+| --- | --- | --- |
+| `encounterId` | string | Identifiant UUID de la consultation. |
+
+## Corps de la requête
+
+| Champ | Type | Requis | Description |
+| --- | --- | --- | --- |
+| `act_code` | string | oui | Code de l'acte (nomenclature locale ou CCAM, max 20). |
+| `act_label` | string | oui | Libellé de l'acte (max 300). |
+| `act_category` | string | non | Catégorie (voir ci-dessous). |
+| `quantity` | number | non | Nombre d'occurrences (min 0). |
+| `unit_price` | number | non | Prix unitaire (min 0). |
+| `performed_at` | date-time | non | Date et heure d'exécution. |
+| `performed_by` | string | non | Praticien ayant réalisé l'acte (max 100). |
+| `notes` | string | non | Notes spécifiques à cet acte (max 1000). |
+
+## Catégories d'actes
+
+| `act_category` | Usage |
+| --- | --- |
+| `surgery` | Acte chirurgical. |
+| `imaging` | Imagerie médicale. |
+| `biology` | Biologie ou analyse de laboratoire. |
+| `consultation` | Consultation ou visite. |
+| `physiotherapy` | Kinésithérapie ou rééducation. |
+| `nursing` | Soins infirmiers. |
+| `anesthesia` | Anesthésie. |
+| `other` | Autre acte. |
+
+## Chiffrement
+
+Les réponses de cet endpoint sont chiffrées via JWE. Récupérez la clé publique RSA via `GET /api/v1/auth/encryption-key` pour déchiffrer la réponse.
+
+## Exemple de requête
+
+```json
+{
+  "act_code": "CS-001",
+  "act_label": "Consultation générale",
+  "act_category": "consultation",
+  "quantity": 1,
+  "unit_price": 15000,
+  "performed_at": "2026-08-15T10:30:00Z",
+  "performed_by": "Dr. KOUASSI"
+}
+```
+
+## Erreurs
+
+| Code | Description |
+| --- | --- |
+| 400 | Validation du body échouée. |
+| 401 | Clé API manquante ou invalide. |
+| 403 | Scope `clinical.encounters.manage` non autorisé. |
+| 404 | Consultation introuvable. |

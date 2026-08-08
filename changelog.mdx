@@ -6,6 +6,18 @@ icon: "list"
 
 Suivez les changements de contrat public, les nouvelles pages et les corrections importantes.
 
+## 2026-08-08 - Alignement API prestataire sur provider-api-bff réel
+
+- Suppression de `GET /api/health` du contrat OpenAPI prestataire : aucun controller `provider-api-bff` public correspondant n'a été trouvé.
+- Correction des chemins OpenAPI et MDX pour aligner avec le BFF réel :
+  - `payments/{paymentId}` → `payments/{uuid}`
+  - `prescriptions/{prescriptionUid}` → `prescriptions/{prescriptionId}`
+  - `covered-persons/{type}/{uid}/prescriptions` → `insured/{identityUid}/covered-persons/{coveredPersonType}/prescriptions`
+  - `consent-requests/{consentRequestUid}` → `consent-requests/{uid}`
+- Ajout des routes manquantes dans l'OpenAPI prestataire : `auth/encryption-key`, `auth/verify`, `claims/{claimId}`, `claims/{claimId}/documents`, `consent-requests/{uid}`, `payable-invoices/{uuid}`, `payable-invoices/{uuid}/items`, `payments/{uuid}/allocations`, `covered-persons/support-search`, `webhook-subscriptions/{uuid}` (PATCH + DELETE), `encounters/{encounterId}/medical-acts` (POST).
+- Suppression des pages orphelines `service-executions-get` et `webhook-subscriptions-list` (routes inexistantes dans le BFF) et retrait de `docs.json`.
+- Création d'un skill local `.devin/skills/audit-bff-docs/` avec script d'audit automatisé pour vérifier l'alignement BFF ↔ OpenAPI ↔ MDX ↔ docs.json.
+
 ## 2026-08-15 - Alignement API assurance sur insurer-bff réel
 
 - Suppression de `GET /api/v1/health` du contrat OpenAPI assureur : aucun controller `insurer-bff` public correspondant n'a été trouvé.
