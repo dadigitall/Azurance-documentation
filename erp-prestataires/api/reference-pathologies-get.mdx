@@ -1,0 +1,45 @@
+---
+title: "Consulter une pathologie"
+description: "Retourne le détail d'une pathologie du référentiel CIM-10."
+openapi: "/openapi/provider-api.openapi.yml GET /api/v1/reference/pathologies/{identifier}"
+---
+
+Cet endpoint retourne le détail d'une pathologie spécifique à partir de son identifiant (code CIM-10 ou UUID).
+
+## Scope requis
+
+`reference.medications.view`
+
+## Paramètre de chemin
+
+| Paramètre | Type | Description |
+| --- | --- | --- |
+| `identifier` | string | Code CIM-10 ou identifiant UUID de la pathologie. |
+
+## Exemple de requête
+
+```bash
+curl --request GET \
+  --url "https://provider-api-sandbox.elenami.com/api/v1/reference/pathologies/I10" \
+  --header "X-Api-Key: $AZURANCE_PROVIDER_API_KEY"
+```
+
+## Exemple de réponse
+
+```json
+{
+  "data": {
+    "code": "I10",
+    "label": "Hypertension essentielle (primitive)",
+    "chapter": "IX",
+    "description": "Hypertension artérielle essentielle sans cause identifiable."
+  }
+}
+```
+
+## Erreurs
+
+| Code | Description |
+| --- | --- |
+| 401 | Clé API manquante ou invalide. |
+| 404 | Pathologie introuvable. |

@@ -1,0 +1,61 @@
+---
+title: "Actes médicaux par catégorie"
+description: "Liste les actes médicaux d'une catégorie donnée."
+openapi: "/openapi/provider-api.openapi.yml GET /api/v1/reference/medical-acts/category/{category}"
+---
+
+Cet endpoint retourne la liste des actes médicaux appartenant à une catégorie spécifique. Les catégories disponibles sont consultables via `GET /api/v1/reference/medical-acts/categories`.
+
+## Scope requis
+
+`reference.medications.view`
+
+## Paramètre de chemin
+
+| Paramètre | Type | Description |
+| --- | --- | --- |
+| `category` | string | Code de la catégorie (ex. `consultation`, `surgery`, `imaging`). |
+
+## Paramètres de requête optionnels
+
+| Paramètre | Type | Description |
+| --- | --- | --- |
+| `per_page` | integer | Nombre de résultats par page (min 1). |
+
+## Exemple de requête
+
+```bash
+curl --request GET \
+  --url "https://provider-api-sandbox.elenami.com/api/v1/reference/medical-acts/category/consultation" \
+  --header "X-Api-Key: $AZURANCE_PROVIDER_API_KEY"
+```
+
+## Exemple de réponse
+
+```json
+{
+  "data": [
+    {
+      "code": "CS-001",
+      "label": "Consultation générale",
+      "category": "consultation"
+    },
+    {
+      "code": "CS-002",
+      "label": "Consultation spécialisée cardiologie",
+      "category": "consultation"
+    }
+  ],
+  "meta": {
+    "total": 2,
+    "per_page": 20
+  }
+}
+```
+
+## Erreurs
+
+| Code | Description |
+| --- | --- |
+| 401 | Clé API manquante ou invalide. |
+| 404 | Catégorie introuvable. |

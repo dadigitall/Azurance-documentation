@@ -6,6 +6,13 @@ icon: "list"
 
 Suivez les changements de contrat public, les nouvelles pages et les corrections importantes.
 
+## 2026-08-12 - Nouveaux endpoints prestataire : portrait, référentiels cliniques et refonte du path prescriptions
+
+- Ajout de `GET /api/v1/covered-persons/{coveredPersonUid}/portrait` pour récupérer le portrait biométrique d'une personne couverte via une URL signée à courte durée.
+- Ajout du référentiel des actes médicaux : `GET /api/v1/reference/medical-acts/categories`, `GET /api/v1/reference/medical-acts/category/{category}`, `GET /api/v1/reference/medical-acts/search`, `GET /api/v1/reference/medical-acts/{identifier}`.
+- Ajout du référentiel des pathologies (CIM-10) : `GET /api/v1/reference/pathologies/chapters`, `GET /api/v1/reference/pathologies/chapter/{chapterCode}`, `GET /api/v1/reference/pathologies/search`, `GET /api/v1/reference/pathologies/{identifier}`.
+- Refonte du path de l'endpoint prescriptions par personne couverte : `GET /api/v1/insured/{identityUid}/covered-persons/{coveredPersonType}/prescriptions` devient `GET /api/v1/covered-persons/{coveredPersonType}/{coveredPersonUid}/prescriptions`. Les paramètres `subscription_uid` et `consent_ref` restent requis en query.
+
 ## 2026-08-08 - Alignement API prestataire et dépublication du vocabulaire d'architecture interne
 
 - Suppression de `GET /api/health` du contrat OpenAPI prestataire : aucun endpoint public correspondant n'existe.

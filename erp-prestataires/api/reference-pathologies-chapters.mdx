@@ -1,0 +1,24 @@
+---
+title: "Chapitres de pathologies"
+description: "Liste les chapitres de la classification CIM-10 des pathologies."
+openapi: "/openapi/provider-api.openapi.yml GET /api/v1/reference/pathologies/chapters"
+---
+
+Cet endpoint retourne la liste des chapitres de la classification internationale des maladies (CIM-10). Chaque chapitre regroupe des pathologies par grande catégorie (maladies infectieuses, tumeurs, maladies de l'appareil circulatoire, etc.).
+
+## Scope requis
+
+`reference.medications.view`
+
+## Exemple de réponse
+
+```json
+{
+  "data": [
+    { "code": "I", "label": "Certaines maladies infectieuses et parasitaires" },
+    { "code": "II", "label": "Tumeurs" },
+    { "code": "IX", "label": "Maladies de l'appareil circulatoire" },
+    { "code": "X", "label": "Maladies de l'appareil respiratoire" }
+  ]
+}
+```

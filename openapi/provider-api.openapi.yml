@@ -828,6 +828,180 @@ paths:
                     $ref: '#/components/schemas/MedicationProduct'
         '404':
           description: Produit introuvable
+  /api/v1/reference/medical-acts/categories:
+    get:
+      operationId: listMedicalActCategories
+      summary: Lister les catégories d'actes médicaux
+      description: Nécessite le scope reference.medications.view.
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+      responses:
+        '200':
+          description: Liste des catégories d'actes médicaux
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+        '401':
+          description: API key absente ou invalide
+  /api/v1/reference/medical-acts/category/{category}:
+    get:
+      operationId: listMedicalActsByCategory
+      summary: Lister les actes médicaux d'une catégorie
+      description: Nécessite le scope reference.medications.view.
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - in: path
+          name: category
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: per_page
+          schema: { type: integer, minimum: 1 }
+      responses:
+        '200':
+          description: Liste des actes médicaux de la catégorie
+        '401':
+          description: API key absente ou invalide
+        '404':
+          description: Catégorie introuvable
+  /api/v1/reference/medical-acts/search:
+    get:
+      operationId: searchMedicalActs
+      summary: Rechercher des actes médicaux
+      description: Nécessite le scope reference.medications.view.
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - in: query
+          name: q
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: limit
+          schema: { type: integer, minimum: 1, maximum: 100 }
+        - in: query
+          name: category
+          schema:
+            type: string
+            enum: [consultation, surgery, imaging, biology, anesthesia, physiotherapy, nursing, vaccination, medication_administration, mental_health, prevention, other]
+      responses:
+        '200':
+          description: Résultats de recherche d'actes médicaux
+        '400':
+          description: Requête invalide
+        '401':
+          description: API key absente ou invalide
+  /api/v1/reference/medical-acts/{identifier}:
+    get:
+      operationId: getMedicalAct
+      summary: Consulter un acte médical
+      description: Nécessite le scope reference.medications.view.
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - in: path
+          name: identifier
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Détail de l'acte médical
+        '401':
+          description: API key absente ou invalide
+        '404':
+          description: Acte médical introuvable
+  /api/v1/reference/pathologies/chapters:
+    get:
+      operationId: listPathologyChapters
+      summary: Lister les chapitres de la classification des pathologies
+      description: Nécessite le scope reference.medications.view.
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+      responses:
+        '200':
+          description: Liste des chapitres de la classification des pathologies
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+        '401':
+          description: API key absente ou invalide
+  /api/v1/reference/pathologies/chapter/{chapterCode}:
+    get:
+      operationId: getPathologiesByChapter
+      summary: Lister les pathologies d'un chapitre
+      description: Nécessite le scope reference.medications.view.
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - in: path
+          name: chapterCode
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Liste des pathologies du chapitre
+        '401':
+          description: API key absente ou invalide
+        '404':
+          description: Chapitre introuvable
+  /api/v1/reference/pathologies/search:
+    get:
+      operationId: searchPathologies
+      summary: Rechercher des pathologies
+      description: Nécessite le scope reference.medications.view.
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - in: query
+          name: q
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: limit
+          schema: { type: integer, minimum: 1, maximum: 100 }
+        - in: query
+          name: chapter
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Résultats de recherche de pathologies
+        '400':
+          description: Requête invalide
+        '401':
+          description: API key absente ou invalide
+  /api/v1/reference/pathologies/{identifier}:
+    get:
+      operationId: getPathology
+      summary: Consulter une pathologie
+      description: Nécessite le scope reference.medications.view.
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - in: path
+          name: identifier
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Détail de la pathologie
+        '401':
+          description: API key absente ou invalide
+        '404':
+          description: Pathologie introuvable
   /api/v1/eligibility/check:
     post:
       operationId: checkEligibility
@@ -1040,23 +1214,24 @@ paths:
           description: Scope consent_requests.create insuffisant
         '404':
           description: Demande de consentement introuvable
-  /api/v1/insured/{identityUid}/covered-persons/{coveredPersonType}/prescriptions:
+  /api/v1/covered-persons/{coveredPersonType}/{coveredPersonUid}/prescriptions:
     get:
       operationId: listAuthorizedPrescriptions
       summary: Lister les ordonnances autorisées après consentement fort
+      description: Nécessite le scope clinical.prescriptions.view.
       parameters:
         - $ref: '#/components/parameters/RequestId'
-        - in: path
-          name: identityUid
-          required: true
-          schema:
-            type: string
         - in: path
           name: coveredPersonType
           required: true
           schema:
             type: string
             enum: [policyholder, beneficiary]
+        - in: path
+          name: coveredPersonUid
+          required: true
+          schema:
+            type: string
         - in: query
           name: subscription_uid
           required: true
@@ -1078,8 +1253,51 @@ paths:
       responses:
         '200':
           description: Ordonnances filtrées selon le consentement et le prestataire
+        '401':
+          description: API key absente ou invalide
         '403':
-          description: Consentement ou scope invalide
+          description: Consentement ou scope clinical.prescriptions.view insuffisant
+  /api/v1/covered-persons/{coveredPersonUid}/portrait:
+    get:
+      operationId: getCoveredPersonPortrait
+      summary: Récupérer le portrait biométrique d'une personne couverte
+      description: Nécessite le scope covered_persons.resolve.
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - in: path
+          name: coveredPersonUid
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: insurer_tenant_uid
+          required: true
+          schema:
+            type: string
+          description: Identifiant du tenant assureur.
+        - in: query
+          name: covered_person_type
+          required: true
+          schema:
+            type: string
+            enum: [policyholder, beneficiary]
+        - in: query
+          name: subscription_uid
+          required: false
+          schema:
+            type: string
+          description: Requis si covered_person_type=beneficiary.
+      responses:
+        '200':
+          description: Portrait biométrique de la personne couverte
+        '400':
+          description: subscription_uid requis lorsque covered_person_type=beneficiary
+        '401':
+          description: API key absente ou invalide
+        '403':
+          description: Scope covered_persons.resolve insuffisant
+        '404':
+          description: Personne couverte introuvable
   /api/v1/media/uploads:
     post:
       operationId: uploadMedia

@@ -1,0 +1,67 @@
+---
+title: "Récupérer le portrait biométrique"
+description: "Retourne une URL signée pour télécharger la photo de référence d'une personne couverte."
+openapi: "/openapi/provider-api.openapi.yml GET /api/v1/covered-persons/{coveredPersonUid}/portrait"
+---
+
+Cet endpoint retourne une URL signée à courte durée de validité (300 secondes) pour télécharger le portrait biométrique d'une personne couverte (assuré ou bénéficiaire). L'accès est tracé et nécessite une clé API autorisée.
+
+## Scope requis
+
+`covered_persons.resolve`
+
+## Paramètre de chemin
+
+| Paramètre | Type | Description |
+| --- | --- | --- |
+| `coveredPersonUid` | string | Identifiant de la personne couverte. |
+
+## Paramètres de requête requis
+
+| Paramètre | Type | Description |
+| --- | --- | --- |
+| `insurer_tenant_uid` | string | Identifiant du tenant assureur. |
+| `covered_person_type` | string | `policyholder` ou `beneficiary`. |
+
+## Paramètres de requête optionnels
+
+| Paramètre | Type | Description |
+| --- | --- | --- |
+| `subscription_uid` | string | Requis si `covered_person_type` est `beneficiary`. |
+
+## Réponse
+
+| Champ | Type | Description |
+| --- | --- | --- |
+| `data.media_uid` | string | Identifiant du média portrait. |
+| `data.signed_url` | string | URL signée à courte durée (300 s). |
+| `data.content_type` | string | Type MIME de l'image (ex. `image/jpeg`). |
+
+## Exemple de requête
+
+```bash
+curl --request GET \
+  --url "https://provider-api-sandbox.elenami.com/api/v1/covered-persons/cov_sandbox_001/portrait?insurer_tenant_uid=tnr_sandbox_001&covered_person_type=policyholder" \
+  --header "X-Api-Key: $AZURANCE_PROVIDER_API_KEY"
+```
+
+## Exemple de réponse
+
+```json
+{
+  "data": {
+    "media_uid": "med_sandbox_portrait_001",
+    "signed_url": "https://cdn.elenami.com/media/med_sandbox_portrait_001?sig=abc123&exp=1723392000",
+    "content_type": "image/jpeg"
+  }
+}
+```
+
+## Erreurs
+
+| Code | Description |
+| --- | --- |
+| 400 | `subscription_uid` requis pour un bénéficiaire. |
+| 401 | Clé API manquante ou invalide. |
+| 403 | Scope `covered_persons.resolve` non autorisé. |
+| 404 | Personne couverte ou portrait introuvable. |

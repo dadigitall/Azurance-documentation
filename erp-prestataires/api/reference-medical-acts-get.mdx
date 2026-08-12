@@ -1,0 +1,45 @@
+---
+title: "Consulter un acte médical"
+description: "Retourne le détail d'un acte médical du référentiel."
+openapi: "/openapi/provider-api.openapi.yml GET /api/v1/reference/medical-acts/{identifier}"
+---
+
+Cet endpoint retourne le détail d'un acte médical spécifique à partir de son identifiant (code ou UUID).
+
+## Scope requis
+
+`reference.medications.view`
+
+## Paramètre de chemin
+
+| Paramètre | Type | Description |
+| --- | --- | --- |
+| `identifier` | string | Code ou identifiant UUID de l'acte médical. |
+
+## Exemple de requête
+
+```bash
+curl --request GET \
+  --url "https://provider-api-sandbox.elenami.com/api/v1/reference/medical-acts/CS-001" \
+  --header "X-Api-Key: $AZURANCE_PROVIDER_API_KEY"
+```
+
+## Exemple de réponse
+
+```json
+{
+  "data": {
+    "code": "CS-001",
+    "label": "Consultation générale",
+    "category": "consultation",
+    "description": "Consultation médicale générale en cabinet ou en visite."
+  }
+}
+```
+
+## Erreurs
+
+| Code | Description |
+| --- | --- |
+| 401 | Clé API manquante ou invalide. |
+| 404 | Acte médical introuvable. |

@@ -1,0 +1,51 @@
+---
+title: "Pathologies par chapitre"
+description: "Liste les pathologies d'un chapitre CIM-10."
+openapi: "/openapi/provider-api.openapi.yml GET /api/v1/reference/pathologies/chapter/{chapterCode}"
+---
+
+Cet endpoint retourne la liste des pathologies appartenant à un chapitre spécifique de la classification CIM-10. Les chapitres disponibles sont consultables via `GET /api/v1/reference/pathologies/chapters`.
+
+## Scope requis
+
+`reference.medications.view`
+
+## Paramètre de chemin
+
+| Paramètre | Type | Description |
+| --- | --- | --- |
+| `chapterCode` | string | Code du chapitre CIM-10 (ex. `I`, `IX`, `X`). |
+
+## Exemple de requête
+
+```bash
+curl --request GET \
+  --url "https://provider-api-sandbox.elenami.com/api/v1/reference/pathologies/chapter/IX" \
+  --header "X-Api-Key: $AZURANCE_PROVIDER_API_KEY"
+```
+
+## Exemple de réponse
+
+```json
+{
+  "data": [
+    {
+      "code": "I10",
+      "label": "Hypertension essentielle (primitive)",
+      "chapter": "IX"
+    },
+    {
+      "code": "I20",
+      "label": "Angine de poitrine",
+      "chapter": "IX"
+    }
+  ]
+}
+```
+
+## Erreurs
+
+| Code | Description |
+| --- | --- |
+| 401 | Clé API manquante ou invalide. |
+| 404 | Chapitre introuvable. |

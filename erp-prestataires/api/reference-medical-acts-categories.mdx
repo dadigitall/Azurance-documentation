@@ -1,0 +1,36 @@
+---
+title: "Catégories d'actes médicaux"
+description: "Liste les catégories d'actes médicaux disponibles dans le référentiel."
+openapi: "/openapi/provider-api.openapi.yml GET /api/v1/reference/medical-acts/categories"
+---
+
+Cet endpoint retourne la liste des catégories d'actes médicaux disponibles dans le référentiel. Chaque catégorie regroupe des actes médicaux codifiés utilisables dans les consultations et les claims.
+
+## Scope requis
+
+`reference.medications.view`
+
+## Réponse
+
+La réponse contient un tableau de catégories. Chaque catégorie inclut un code et un libellé.
+
+## Exemple de réponse
+
+```json
+{
+  "data": [
+    { "code": "consultation", "label": "Consultation" },
+    { "code": "surgery", "label": "Chirurgie" },
+    { "code": "imaging", "label": "Imagerie médicale" },
+    { "code": "biology", "label": "Biologie médicale" },
+    { "code": "anesthesia", "label": "Anesthésie" },
+    { "code": "physiotherapy", "label": "Kinésithérapie" },
+    { "code": "nursing", "label": "Soins infirmiers" },
+    { "code": "vaccination", "label": "Vaccination" },
+    { "code": "medication_administration", "label": "Administration de médicaments" },
+    { "code": "mental_health", "label": "Santé mentale" },
+    { "code": "prevention", "label": "Prévention" },
+    { "code": "other", "label": "Autre" }
+  ]
+}
+```
