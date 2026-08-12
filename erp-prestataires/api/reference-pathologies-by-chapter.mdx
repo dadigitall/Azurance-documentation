@@ -4,7 +4,7 @@ description: "Liste les pathologies d'un chapitre CIM-10."
 openapi: "/openapi/provider-api.openapi.yml GET /api/v1/reference/pathologies/chapter/{chapterCode}"
 ---
 
-Cet endpoint retourne la liste des pathologies appartenant à un chapitre spécifique de la classification CIM-10. Les chapitres disponibles sont consultables via `GET /api/v1/reference/pathologies/chapters`.
+Cet endpoint retourne la liste des pathologies appartenant à un chapitre spécifique de la classification CIM-10, ainsi que la plage de codes couverte par ce chapitre. Les chapitres disponibles sont consultables via `GET /api/v1/reference/pathologies/chapters`.
 
 ## Scope requis
 
@@ -12,34 +12,87 @@ Cet endpoint retourne la liste des pathologies appartenant à un chapitre spéci
 
 ## Paramètre de chemin
 
-| Paramètre | Type | Description |
+| Paramètre | Type | Requis | Description |
+| --- | --- | --- | --- |
+| `chapterCode` | string | oui | Code du chapitre CIM-10 (ex. `I`, `J`, `A`). |
+
+## Champs de réponse
+
+La réponse contient les métadonnées du chapitre et un tableau `data` de `Pathology`.
+
+### Métadonnées du chapitre
+
+| Champ | Type | Description |
 | --- | --- | --- |
-| `chapterCode` | string | Code du chapitre CIM-10 (ex. `I`, `IX`, `X`). |
+| `chapter` | string | Code du chapitre en majuscules. |
+| `chapter_label` | string | Libellé du chapitre. |
+| `range` | string | Plage de codes CIM-10 couverte par le chapitre (ex. `I00-I99`). |
+| `total` | integer | Nombre de pathologies dans le chapitre. |
+
+### `Pathology`
+
+| Champ | Type | Description |
+| --- | --- | --- |
+| `uid` | uuid | Identifiant public de la pathologie. |
+| `icd10_code` | string | Code CIM-10 de la pathologie (ex. `I10`, `J45.0`). |
+| `chapter_code` | string | Code du chapitre CIM-10 (ex. `I`, `J`). |
+| `chapter_label` | string | Libellé du chapitre CIM-10. |
+| `block_code` | string\|null | Code du bloc CIM-10. |
+| `block_label` | string\|null | Libellé du bloc CIM-10. |
+| `icd11_code` | string\|null | Code CIM-11 correspondant. |
+| `icd11_entity_id` | string\|null | Identifiant d'entité CIM-11. |
+| `label_fr` | string | Libellé en français de la pathologie. |
+| `label_en` | string\|null | Libellé en anglais de la pathologie. |
+| `is_billable` | boolean | Indique si la pathologie est facturable. |
+| `is_active` | boolean | Indique si la pathologie est active dans le référentiel. |
+| `synced_at` | string\|null | Date de dernière synchronisation (ISO 8601). |
 
 ## Exemple de requête
 
-```bash
-curl --request GET \
-  --url "https://provider-api-sandbox.elenami.com/api/v1/reference/pathologies/chapter/IX" \
-  --header "X-Api-Key: $AZURANCE_PROVIDER_API_KEY"
+```
+GET /api/v1/reference/pathologies/chapter/I
 ```
 
 ## Exemple de réponse
 
 ```json
 {
+  "chapter": "I",
+  "chapter_label": "Maladies de l'appareil circulatoire",
+  "range": "I00-I99",
   "data": [
     {
-      "code": "I10",
-      "label": "Hypertension essentielle (primitive)",
-      "chapter": "IX"
+      "uid": "7a1f2c3e-4b5d-4a6e-9c8b-1d2e3f4a5b6c",
+      "icd10_code": "I10",
+      "chapter_code": "I",
+      "chapter_label": "Maladies de l'appareil circulatoire",
+      "block_code": "I10-I15",
+      "block_label": "Maladies hypertensives",
+      "icd11_code": "BA00",
+      "icd11_entity_id": "1234567890",
+      "label_fr": "Hypertension essentielle (primitive)",
+      "label_en": "Essential (primary) hypertension",
+      "is_billable": true,
+      "is_active": true,
+      "synced_at": "2025-01-14T08:30:00Z"
     },
     {
-      "code": "I20",
-      "label": "Angine de poitrine",
-      "chapter": "IX"
+      "uid": "8b2g3d4f-5c6e-4b7f-9d9c-2e3f4a5b6c7d",
+      "icd10_code": "I11.0",
+      "chapter_code": "I",
+      "chapter_label": "Maladies de l'appareil circulatoire",
+      "block_code": "I10-I15",
+      "block_label": "Maladies hypertensives",
+      "icd11_code": "BA01",
+      "icd11_entity_id": "1234567891",
+      "label_fr": "Cardiopathie hypertensive avec insuffisance cardiaque",
+      "label_en": "Hypertensive heart disease with heart failure",
+      "is_billable": true,
+      "is_active": true,
+      "synced_at": "2025-01-14T08:30:00Z"
     }
-  ]
+  ],
+  "total": 318
 }
 ```
 
@@ -48,4 +101,5 @@ curl --request GET \
 | Code | Description |
 | --- | --- |
 | 401 | Clé API manquante ou invalide. |
+| 403 | Scope `reference.pathologies.view` manquant. |
 | 404 | Chapitre introuvable. |

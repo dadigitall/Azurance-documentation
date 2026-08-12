@@ -4,7 +4,7 @@ description: "Recherche des actes médicaux par mot-clé et catégorie."
 openapi: "/openapi/provider-api.openapi.yml GET /api/v1/reference/medical-acts/search"
 ---
 
-Cet endpoint permet de rechercher des actes médicaux dans le référentiel à partir d'un mot-clé. La recherche peut être filtrée par catégorie.
+Cet endpoint effectue une recherche full-text dans le référentiel des actes médicaux. Il est conçu pour l'autocomplétion et la sélection d'un acte lors de la saisie d'une consultation ou d'un claim. La recherche peut être filtrée par catégorie.
 
 ## Scope requis
 
@@ -12,22 +12,45 @@ Cet endpoint permet de rechercher des actes médicaux dans le référentiel à p
 
 ## Paramètres de requête
 
-| Paramètre | Type | Requis | Description |
-| --- | --- | --- | --- |
-| `q` | string | oui | Terme de recherche. |
-| `limit` | integer | non | Nombre max de résultats (min 1, max 100). |
-| `category` | string | non | Filtrer par catégorie (voir la liste des catégories). |
+| Paramètre | Type | Requis | Défaut | Description |
+| --- | --- | --- | --- | --- |
+| `q` | string | oui | — | Terme de recherche (min 2 caractères, max 100). |
+| `limit` | integer | non | 20 | Nombre maximum de résultats (min 1, max 100). |
+| `category` | string | non | — | Filtrer par catégorie. Valeurs acceptées : `consultation`, `surgery`, `imaging`, `biology`, `anesthesia`, `physiotherapy`, `nursing`, `vaccination`, `medication_administration`, `mental_health`, `prevention`, `other`. |
 
-## Catégories acceptées
+## Champs de réponse
 
-`consultation`, `surgery`, `imaging`, `biology`, `anesthesia`, `physiotherapy`, `nursing`, `vaccination`, `medication_administration`, `mental_health`, `prevention`, `other`
+La réponse contient un tableau `data` d'objets `MedicalActReference` correspondant au terme de recherche, triés par pertinence décroissante. Le champ `source` indique l'origine des résultats et `total` le nombre de résultats renvoyés.
+
+### Enveloppe
+
+| Champ | Type | Description |
+| --- | --- | --- |
+| `data` | array | Tableau d'objets `MedicalActReference`. |
+| `source` | string | Source de recherche (`local`). |
+| `total` | integer | Nombre total de résultats renvoyés. |
+
+### `MedicalActReference`
+
+| Champ | Type | Description |
+| --- | --- | --- |
+| `uid` | uuid | Identifiant public de l'acte médical. |
+| `ichi_code` | string | Code ICHI (International Classification of Health Interventions) de l'acte. |
+| `title` | string | Libellé en anglais de l'acte médical. |
+| `title_fr` | string\|null | Libellé en français de l'acte médical. |
+| `category` | string | Catégorie de l'acte (`consultation`, `surgery`, `imaging`, `biology`, `anesthesia`, `physiotherapy`, `nursing`, `vaccination`, `medication_administration`, `mental_health`, `prevention`, `other`). |
+| `class_kind` | string | Type de classe ICHI (`category`, `block`, etc.). |
+| `depth_in_kind` | integer | Profondeur dans la hiérarchie ICHI. |
+| `is_leaf` | boolean | Indique si l'acte est un nœud terminal (pas de sous-actes). |
+| `is_residual` | boolean | Indique si l'acte est une catégorie résiduelle (autre / non classé). |
+| `block_id` | string\|null | Identifiant du bloc ICHI auquel appartient l'acte. |
+| `chapter_no` | string\|null | Numéro de chapitre ICHI. |
+| `is_active` | boolean | Indique si l'acte est actif dans le référentiel. |
 
 ## Exemple de requête
 
-```bash
-curl --request GET \
-  --url "https://provider-api-sandbox.elenami.com/api/v1/reference/medical-acts/search?q=consultation&limit=10" \
-  --header "X-Api-Key: $AZURANCE_PROVIDER_API_KEY"
+```
+GET /api/v1/reference/medical-acts/search?q=consultation&limit=10&category=consultation
 ```
 
 ## Exemple de réponse
@@ -36,19 +59,50 @@ curl --request GET \
 {
   "data": [
     {
-      "code": "CS-001",
-      "label": "Consultation générale",
-      "category": "consultation"
+      "uid": "ma_sandbox_001",
+      "ichi_code": "ichi_sandbox_001",
+      "title": "General medical consultation",
+      "title_fr": "Consultation médicale générale",
+      "category": "consultation",
+      "class_kind": "block",
+      "depth_in_kind": 2,
+      "is_leaf": true,
+      "is_residual": false,
+      "block_id": "ichi_block_sandbox_010",
+      "chapter_no": "1",
+      "is_active": true
     },
     {
-      "code": "CS-002",
-      "label": "Consultation spécialisée cardiologie",
-      "category": "consultation"
+      "uid": "ma_sandbox_002",
+      "ichi_code": "ichi_sandbox_002",
+      "title": "Specialized consultation in cardiology",
+      "title_fr": "Consultation spécialisée en cardiologie",
+      "category": "consultation",
+      "class_kind": "block",
+      "depth_in_kind": 3,
+      "is_leaf": true,
+      "is_residual": false,
+      "block_id": "ichi_block_sandbox_010",
+      "chapter_no": "1",
+      "is_active": true
+    },
+    {
+      "uid": "ma_sandbox_003",
+      "ichi_code": "ichi_sandbox_003",
+      "title": "Follow-up consultation",
+      "title_fr": "Consultation de suivi",
+      "category": "consultation",
+      "class_kind": "block",
+      "depth_in_kind": 3,
+      "is_leaf": true,
+      "is_residual": false,
+      "block_id": "ichi_block_sandbox_011",
+      "chapter_no": "1",
+      "is_active": true
     }
   ],
-  "meta": {
-    "total": 2
-  }
+  "source": "local",
+  "total": 3
 }
 ```
 
@@ -56,5 +110,7 @@ curl --request GET \
 
 | Code | Description |
 | --- | --- |
-| 400 | Paramètre `q` manquant ou invalide. |
+| 400 | Paramètre `q` manquant, trop court (min 2) ou trop long (max 100). |
+| 400 | Valeur de `category` non reconnue. |
 | 401 | Clé API manquante ou invalide. |
+| 403 | Scope `reference.medical_acts.view` manquant. |

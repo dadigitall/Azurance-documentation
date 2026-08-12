@@ -4,7 +4,7 @@ description: "Retourne une URL signée pour télécharger la photo de référenc
 openapi: "/openapi/provider-api.openapi.yml GET /api/v1/covered-persons/{coveredPersonUid}/portrait"
 ---
 
-Cet endpoint retourne une URL signée à courte durée de validité (300 secondes) pour télécharger le portrait biométrique d'une personne couverte (assuré ou bénéficiaire). L'accès est tracé et nécessite une clé API autorisée.
+Cet endpoint retourne une URL signée à courte durée de validité (300 secondes) pour télécharger le portrait biométrique d'une personne couverte (assuré principal ou bénéficiaire). L'accès est tracé par audit et nécessite une clé API autorisée.
 
 ## Scope requis
 
@@ -27,23 +27,15 @@ Cet endpoint retourne une URL signée à courte durée de validité (300 seconde
 
 | Paramètre | Type | Description |
 | --- | --- | --- |
-| `subscription_uid` | string | Requis si `covered_person_type` est `beneficiary`. |
+| `subscription_uid` | string | Requis si `covered_person_type` est `beneficiary`. Identifiant de la souscription rattachée au bénéficiaire. |
 
-## Réponse
+## Champs de réponse
 
 | Champ | Type | Description |
 | --- | --- | --- |
 | `data.media_uid` | string | Identifiant du média portrait. |
-| `data.signed_url` | string | URL signée à courte durée (300 s). |
-| `data.content_type` | string | Type MIME de l'image (ex. `image/jpeg`). |
-
-## Exemple de requête
-
-```bash
-curl --request GET \
-  --url "https://provider-api-sandbox.elenami.com/api/v1/covered-persons/cov_sandbox_001/portrait?insurer_tenant_uid=tnr_sandbox_001&covered_person_type=policyholder" \
-  --header "X-Api-Key: $AZURANCE_PROVIDER_API_KEY"
-```
+| `data.signed_url` | string | URL signée à courte durée (300 s). À consommer immédiatement. |
+| `data.content_type` | string | Type MIME de l'image (ex. `image/jpeg`, `image/png`). |
 
 ## Exemple de réponse
 
@@ -59,9 +51,11 @@ curl --request GET \
 
 ## Erreurs
 
-| Code | Description |
-| --- | --- |
-| 400 | `subscription_uid` requis pour un bénéficiaire. |
-| 401 | Clé API manquante ou invalide. |
-| 403 | Scope `covered_persons.resolve` non autorisé. |
-| 404 | Personne couverte ou portrait introuvable. |
+| Code | Code d'erreur | Description |
+| --- | --- | --- |
+| 400 | — | `subscription_uid` requis pour un bénéficiaire. |
+| 401 | — | Clé API manquante ou invalide. |
+| 403 | — | Scope `covered_persons.resolve` non autorisé. |
+| 404 | `PORTRAIT_NOT_FOUND` | Personne couverte ou portrait introuvable. |
+| 502 | `SIGNED_URL_FAILED` | Impossible de générer l'URL signée. |
+| 503 | `POLICY_SERVICE_UNAVAILABLE` | Service en amont indisponible. |

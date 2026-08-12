@@ -4,35 +4,52 @@ description: "Retourne le détail d'un acte médical du référentiel."
 openapi: "/openapi/provider-api.openapi.yml GET /api/v1/reference/medical-acts/{identifier}"
 ---
 
-Cet endpoint retourne le détail d'un acte médical spécifique à partir de son identifiant (code ou UUID).
+Cet endpoint retourne la fiche complète d'un acte médical du référentiel à partir de son code ICHI ou de son identifiant UUID public.
 
 ## Scope requis
 
 `reference.medical_acts.view`
 
-## Paramètre de chemin
+## Paramètres de chemin
 
-| Paramètre | Type | Description |
+| Paramètre | Type | Requis | Description |
+| --- | --- | --- | --- |
+| `identifier` | string | oui | Code ICHI ou identifiant UUID de l'acte médical. |
+
+## Champs de réponse (`MedicalActReference`)
+
+| Champ | Type | Description |
 | --- | --- | --- |
-| `identifier` | string | Code ou identifiant UUID de l'acte médical. |
-
-## Exemple de requête
-
-```bash
-curl --request GET \
-  --url "https://provider-api-sandbox.elenami.com/api/v1/reference/medical-acts/CS-001" \
-  --header "X-Api-Key: $AZURANCE_PROVIDER_API_KEY"
-```
+| `uid` | uuid | Identifiant public de l'acte médical. |
+| `ichi_code` | string | Code ICHI (International Classification of Health Interventions) de l'acte. |
+| `title` | string | Libellé en anglais de l'acte médical. |
+| `title_fr` | string\|null | Libellé en français de l'acte médical. |
+| `category` | string | Catégorie de l'acte (`consultation`, `surgery`, `imaging`, `biology`, `anesthesia`, `physiotherapy`, `nursing`, `vaccination`, `medication_administration`, `mental_health`, `prevention`, `other`). |
+| `class_kind` | string | Type de classe ICHI (`category`, `block`, etc.). |
+| `depth_in_kind` | integer | Profondeur dans la hiérarchie ICHI. |
+| `is_leaf` | boolean | Indique si l'acte est un nœud terminal (pas de sous-actes). |
+| `is_residual` | boolean | Indique si l'acte est une catégorie résiduelle (autre / non classé). |
+| `block_id` | string\|null | Identifiant du bloc ICHI auquel appartient l'acte. |
+| `chapter_no` | string\|null | Numéro de chapitre ICHI. |
+| `is_active` | boolean | Indique si l'acte est actif dans le référentiel. |
 
 ## Exemple de réponse
 
 ```json
 {
   "data": {
-    "code": "CS-001",
-    "label": "Consultation générale",
+    "uid": "ma_sandbox_001",
+    "ichi_code": "ichi_sandbox_001",
+    "title": "General medical consultation",
+    "title_fr": "Consultation médicale générale",
     "category": "consultation",
-    "description": "Consultation médicale générale en cabinet ou en visite."
+    "class_kind": "block",
+    "depth_in_kind": 2,
+    "is_leaf": true,
+    "is_residual": false,
+    "block_id": "ichi_block_sandbox_010",
+    "chapter_no": "1",
+    "is_active": true
   }
 }
 ```
@@ -42,4 +59,5 @@ curl --request GET \
 | Code | Description |
 | --- | --- |
 | 401 | Clé API manquante ou invalide. |
+| 403 | Scope `reference.medical_acts.view` manquant. |
 | 404 | Acte médical introuvable. |
