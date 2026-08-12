@@ -1,0 +1,115 @@
+---
+title: "Exporter les actes médicaux"
+description: "Exporte le référentiel des actes médicaux en JSON ou CSV."
+openapi: "/openapi/provider-api.openapi.yml GET /api/v1/reference/medical-acts/export"
+---
+
+Cet endpoint exporte l'intégralité du référentiel des actes médicaux actifs, avec possibilité de filtrer par catégorie. L'export est disponible en JSON (par défaut) ou en CSV. Il est conçu pour initialiser ou synchroniser le catalogue d'un ERP prestataire.
+
+## Scope requis
+
+`reference.medical_acts.view`
+
+## Paramètres de requête
+
+| Paramètre | Type | Requis | Défaut | Description |
+| --- | --- | --- | --- | --- |
+| `category` | string | non | — | Filtrer par catégorie. Valeurs acceptées : `consultation`, `surgery`, `imaging`, `biology`, `anesthesia`, `physiotherapy`, `nursing`, `vaccination`, `medication_administration`, `mental_health`, `prevention`, `other`. |
+| `format` | string | non | `json` | Format d'export (`json` ou `csv`). |
+| `per_page` | integer | non | 20000 | Nombre maximum d'actes à exporter (min 1, max 20000). |
+
+## Formats de réponse
+
+### JSON (défaut)
+
+La réponse contient un tableau `data` d'objets `MedicalActReference` et un objet `meta` avec le nombre d'actes renvoyés et le format.
+
+| Champ | Type | Description |
+| --- | --- | --- |
+| `data` | array | Tableau d'objets `MedicalActReference`. |
+| `meta.returned` | integer | Nombre d'actes renvoyés dans l'export. |
+| `meta.format` | string | Format de l'export (`json`). |
+
+### CSV
+
+Lorsque `format=csv`, la réponse est un fichier `text/csv` avec les en-têtes suivantes :
+
+| Colonne | Description |
+| --- | --- |
+| `uid` | Identifiant public de l'acte. |
+| `ichi_code` | Code ICHI. |
+| `title` | Libellé en anglais. |
+| `title_fr` | Libellé en français. |
+| `category` | Catégorie. |
+| `class_kind` | Type de classe ICHI. |
+| `depth_in_kind` | Profondeur hiérarchique. |
+| `is_leaf` | Nœud terminal. |
+| `is_residual` | Catégorie résiduelle. |
+| `block_id` | Identifiant du bloc ICHI. |
+| `chapter_no` | Numéro de chapitre ICHI. |
+| `is_active` | Actif. |
+
+### Champs de `MedicalActReference` (JSON)
+
+| Champ | Type | Description |
+| --- | --- | --- |
+| `uid` | uuid | Identifiant public de l'acte médical. |
+| `ichi_code` | string | Code ICHI de l'acte. |
+| `title` | string | Libellé en anglais. |
+| `title_fr` | string\|null | Libellé en français. |
+| `category` | string | Catégorie de l'acte. |
+| `class_kind` | string | Type de classe ICHI. |
+| `depth_in_kind` | integer | Profondeur dans la hiérarchie ICHI. |
+| `is_leaf` | boolean | Nœud terminal. |
+| `is_residual` | boolean | Catégorie résiduelle. |
+| `block_id` | string\|null | Identifiant du bloc ICHI. |
+| `chapter_no` | string\|null | Numéro de chapitre ICHI. |
+| `is_active` | boolean | Actif dans le référentiel. |
+
+## Exemple de requête
+
+```
+GET /api/v1/reference/medical-acts/export?format=csv&category=consultation
+```
+
+## Exemple de réponse (JSON)
+
+```json
+{
+  "data": [
+    {
+      "uid": "ma_sandbox_001",
+      "ichi_code": "ichi_sandbox_001",
+      "title": "General medical consultation",
+      "title_fr": "Consultation médicale générale",
+      "category": "consultation",
+      "class_kind": "block",
+      "depth_in_kind": 2,
+      "is_leaf": true,
+      "is_residual": false,
+      "block_id": "ichi_block_sandbox_010",
+      "chapter_no": "1",
+      "is_active": true
+    }
+  ],
+  "meta": {
+    "returned": 1284,
+    "format": "json"
+  }
+}
+```
+
+## Exemple de réponse (CSV)
+
+```csv
+uid,ichi_code,title,title_fr,category,class_kind,depth_in_kind,is_leaf,is_residual,block_id,chapter_no,is_active
+ma_sandbox_001,ichi_sandbox_001,General medical consultation,Consultation médicale générale,consultation,block,2,1,0,ichi_block_sandbox_010,1,1
+```
+
+## Erreurs
+
+| Code | Description |
+| --- | --- |
+| 400 | Valeur de `category` ou `format` non reconnue. |
+| 401 | Clé API manquante ou invalide. |
+| 403 | Scope `reference.medical_acts.view` manquant. |

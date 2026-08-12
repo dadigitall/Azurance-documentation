@@ -898,6 +898,63 @@ paths:
           description: Requête invalide
         '401':
           description: API key absente ou invalide
+  /api/v1/reference/medical-acts/export:
+    get:
+      operationId: exportMedicalActs
+      summary: Exporter le référentiel des actes médicaux
+      description: Nécessite le scope reference.medical_acts.view. Export en JSON ou CSV.
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - in: query
+          name: category
+          required: false
+          schema:
+            type: string
+            enum: [consultation, surgery, imaging, biology, anesthesia, physiotherapy, nursing, vaccination, medication_administration, mental_health, prevention, other]
+          description: Filtrer par catégorie.
+        - in: query
+          name: format
+          required: false
+          schema:
+            type: string
+            enum: [json, csv]
+            default: json
+          description: Format d'export (`json` ou `csv`).
+        - in: query
+          name: per_page
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 20000
+            default: 20000
+          description: Nombre maximum d'actes à exporter.
+      responses:
+        '200':
+          description: Export du référentiel (JSON ou CSV selon le paramètre format)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                  meta:
+                    type: object
+                    properties:
+                      returned:
+                        type: integer
+                      format:
+                        type: string
+            text/csv:
+              schema:
+                type: string
+        '401':
+          description: API key absente ou invalide
+        '403':
+          description: Scope reference.medical_acts.view manquant
   /api/v1/reference/medical-acts/{identifier}:
     get:
       operationId: getMedicalAct
@@ -983,6 +1040,63 @@ paths:
           description: Requête invalide
         '401':
           description: API key absente ou invalide
+  /api/v1/reference/pathologies/export:
+    get:
+      operationId: exportPathologies
+      summary: Exporter le référentiel des pathologies
+      description: Nécessite le scope reference.pathologies.view. Export en JSON ou CSV.
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - in: query
+          name: chapter
+          required: false
+          schema:
+            type: string
+            maxLength: 2
+          description: Filtrer par chapitre CIM-10 (ex. `I`, `J`).
+        - in: query
+          name: format
+          required: false
+          schema:
+            type: string
+            enum: [json, csv]
+            default: json
+          description: Format d'export (`json` ou `csv`).
+        - in: query
+          name: per_page
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 5000
+            default: 5000
+          description: Nombre maximum de pathologies à exporter.
+      responses:
+        '200':
+          description: Export du référentiel (JSON ou CSV selon le paramètre format)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                  meta:
+                    type: object
+                    properties:
+                      returned:
+                        type: integer
+                      format:
+                        type: string
+            text/csv:
+              schema:
+                type: string
+        '401':
+          description: API key absente ou invalide
+        '403':
+          description: Scope reference.pathologies.view manquant
   /api/v1/reference/pathologies/{identifier}:
     get:
       operationId: getPathology
