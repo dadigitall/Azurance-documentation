@@ -832,7 +832,7 @@ paths:
     get:
       operationId: listMedicalActCategories
       summary: Lister les catégories d'actes médicaux
-      description: Nécessite le scope reference.medications.view.
+      description: Nécessite le scope reference.medical_acts.view.
       parameters:
         - $ref: '#/components/parameters/RequestId'
       responses:
@@ -853,7 +853,7 @@ paths:
     get:
       operationId: listMedicalActsByCategory
       summary: Lister les actes médicaux d'une catégorie
-      description: Nécessite le scope reference.medications.view.
+      description: Nécessite le scope reference.medical_acts.view.
       parameters:
         - $ref: '#/components/parameters/RequestId'
         - in: path
@@ -875,7 +875,7 @@ paths:
     get:
       operationId: searchMedicalActs
       summary: Rechercher des actes médicaux
-      description: Nécessite le scope reference.medications.view.
+      description: Nécessite le scope reference.medical_acts.view.
       parameters:
         - $ref: '#/components/parameters/RequestId'
         - in: query
@@ -902,7 +902,7 @@ paths:
     get:
       operationId: getMedicalAct
       summary: Consulter un acte médical
-      description: Nécessite le scope reference.medications.view.
+      description: Nécessite le scope reference.medical_acts.view.
       parameters:
         - $ref: '#/components/parameters/RequestId'
         - in: path
@@ -921,7 +921,7 @@ paths:
     get:
       operationId: listPathologyChapters
       summary: Lister les chapitres de la classification des pathologies
-      description: Nécessite le scope reference.medications.view.
+      description: Nécessite le scope reference.pathologies.view.
       parameters:
         - $ref: '#/components/parameters/RequestId'
       responses:
@@ -942,7 +942,7 @@ paths:
     get:
       operationId: getPathologiesByChapter
       summary: Lister les pathologies d'un chapitre
-      description: Nécessite le scope reference.medications.view.
+      description: Nécessite le scope reference.pathologies.view.
       parameters:
         - $ref: '#/components/parameters/RequestId'
         - in: path
@@ -961,7 +961,7 @@ paths:
     get:
       operationId: searchPathologies
       summary: Rechercher des pathologies
-      description: Nécessite le scope reference.medications.view.
+      description: Nécessite le scope reference.pathologies.view.
       parameters:
         - $ref: '#/components/parameters/RequestId'
         - in: query
@@ -987,7 +987,7 @@ paths:
     get:
       operationId: getPathology
       summary: Consulter une pathologie
-      description: Nécessite le scope reference.medications.view.
+      description: Nécessite le scope reference.pathologies.view.
       parameters:
         - $ref: '#/components/parameters/RequestId'
         - in: path
