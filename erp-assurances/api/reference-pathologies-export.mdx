@@ -1,0 +1,116 @@
+---
+title: "Exporter les pathologies"
+description: "Exporte le référentiel des pathologies CIM-10 en JSON ou CSV."
+openapi: "/openapi/insurer-api.openapi.yml GET /api/v1/reference/pathologies/export"
+---
+
+Cet endpoint exporte l'intégralité du référentiel des pathologies actives (CIM-10), avec possibilité de filtrer par chapitre. L'export est disponible en JSON (par défaut) ou en CSV. Il est conçu pour initialiser ou synchroniser le catalogue de diagnostics d'un ERP assureur.
+
+## Scope requis
+
+`reference.pathologies.view`
+
+## Paramètres de requête
+
+| Paramètre | Type | Requis | Défaut | Description |
+| --- | --- | --- | --- | --- |
+| `chapter` | string | non | — | Filtrer par chapitre CIM-10 (ex. `I`, `J`, `A`). |
+| `format` | string | non | `json` | Format d'export (`json` ou `csv`). |
+| `per_page` | integer | non | 5000 | Nombre maximum de pathologies à exporter (min 1, max 5000). |
+
+## Formats de réponse
+
+### JSON (défaut)
+
+La réponse contient un tableau `data` d'objets `Pathology` et un objet `meta` avec le nombre de pathologies renvoyées et le format.
+
+| Champ | Type | Description |
+| --- | --- | --- |
+| `data` | array | Tableau d'objets `Pathology`. |
+| `meta.returned` | integer | Nombre de pathologies renvoyées dans l'export. |
+| `meta.format` | string | Format de l'export (`json`). |
+
+### CSV
+
+Lorsque `format=csv`, la réponse est un fichier `text/csv` avec les en-têtes suivantes :
+
+| Colonne | Description |
+| --- | --- |
+| `uid` | Identifiant public de la pathologie. |
+| `icd10_code` | Code CIM-10. |
+| `chapter_code` | Code du chapitre CIM-10. |
+| `chapter_label` | Libellé du chapitre. |
+| `block_code` | Code du bloc CIM-10. |
+| `block_label` | Libellé du bloc. |
+| `icd11_code` | Code CIM-11 correspondant. |
+| `label_fr` | Libellé en français. |
+| `label_en` | Libellé en anglais. |
+| `is_billable` | Facturable. |
+| `is_active` | Actif. |
+
+### Champs de `Pathology` (JSON)
+
+| Champ | Type | Description |
+| --- | --- | --- |
+| `uid` | uuid | Identifiant public de la pathologie. |
+| `icd10_code` | string | Code CIM-10 (ex. `I10`, `J45.0`). |
+| `chapter_code` | string | Code du chapitre CIM-10. |
+| `chapter_label` | string | Libellé du chapitre CIM-10. |
+| `block_code` | string\|null | Code du bloc CIM-10. |
+| `block_label` | string\|null | Libellé du bloc CIM-10. |
+| `icd11_code` | string\|null | Code CIM-11 correspondant. |
+| `icd11_entity_id` | string\|null | Identifiant d'entité CIM-11. |
+| `label_fr` | string | Libellé en français. |
+| `label_en` | string\|null | Libellé en anglais. |
+| `is_billable` | boolean | Pathologie facturable. |
+| `is_active` | boolean | Active dans le référentiel. |
+| `synced_at` | string\|null | Date de dernière synchronisation (ISO 8601). |
+
+## Exemple de requête
+
+```
+GET /api/v1/reference/pathologies/export?format=csv&chapter=I
+```
+
+## Exemple de réponse (JSON)
+
+```json
+{
+  "data": [
+    {
+      "uid": "7a1f2c3e-4b5d-4a6e-9c8b-1d2e3f4a5b6c",
+      "icd10_code": "I10",
+      "chapter_code": "I",
+      "chapter_label": "Maladies de l'appareil circulatoire",
+      "block_code": "I10-I15",
+      "block_label": "Maladies hypertensives",
+      "icd11_code": "BA00",
+      "icd11_entity_id": "1234567890",
+      "label_fr": "Hypertension essentielle (primitive)",
+      "label_en": "Essential (primary) hypertension",
+      "is_billable": true,
+      "is_active": true,
+      "synced_at": "2025-01-14T08:30:00Z"
+    }
+  ],
+  "meta": {
+    "returned": 318,
+    "format": "json"
+  }
+}
+```
+
+## Exemple de réponse (CSV)
+
+```csv
+uid,icd10_code,chapter_code,chapter_label,block_code,block_label,icd11_code,label_fr,label_en,is_billable,is_active
+7a1f2c3e-4b5d-4a6e-9c8b-1d2e3f4a5b6c,I10,I,Maladies de l'appareil circulatoire,I10-I15,Maladies hypertensives,BA00,Hypertension essentielle (primitive),Essential (primary) hypertension,1,1
+```
+
+## Erreurs
+
+| Code | Description |
+| --- | --- |
+| 400 | Valeur de `format` non reconnue. |
+| 401 | Clé API manquante ou invalide. |
+| 403 | Scope `reference.pathologies.view` manquant. |

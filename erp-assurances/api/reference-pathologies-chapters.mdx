@@ -1,0 +1,62 @@
+---
+title: "Chapitres de pathologies"
+description: "Liste les chapitres de la classification CIM-10 des pathologies."
+openapi: "/openapi/insurer-api.openapi.yml GET /api/v1/reference/pathologies/chapters"
+---
+
+Cet endpoint retourne la liste des chapitres de la classification internationale des maladies (CIM-10). Chaque chapitre regroupe des pathologies par grande catégorie (maladies infectieuses, tumeurs, maladies de l'appareil circulatoire, etc.) et indique le nombre de pathologies actives qu'il contient.
+
+## Scope requis
+
+`reference.pathologies.view`
+
+## Champs de réponse
+
+La réponse contient un tableau `data` dont chaque élément décrit un chapitre CIM-10.
+
+| Champ | Type | Description |
+| --- | --- | --- |
+| `chapter_code` | string | Code du chapitre CIM-10 (A-Z). |
+| `chapter_label` | string | Libellé du chapitre. |
+| `total` | integer | Nombre de pathologies actives dans le chapitre. |
+
+## Exemple de réponse
+
+```json
+{
+  "data": [
+    {
+      "chapter_code": "I",
+      "chapter_label": "Certaines maladies infectieuses et parasitaires",
+      "total": 842
+    },
+    {
+      "chapter_code": "II",
+      "chapter_label": "Tumeurs",
+      "total": 573
+    },
+    {
+      "chapter_code": "IX",
+      "chapter_label": "Maladies de l'appareil circulatoire",
+      "total": 318
+    },
+    {
+      "chapter_code": "X",
+      "chapter_label": "Maladies de l'appareil respiratoire",
+      "total": 296
+    },
+    {
+      "chapter_code": "J",
+      "chapter_label": "Maladies de l'appareil respiratoire",
+      "total": 296
+    }
+  ]
+}
+```
+
+## Erreurs
+
+| Code | Description |
+| --- | --- |
+| 401 | Clé API manquante ou invalide. |
+| 403 | Scope `reference.pathologies.view` manquant. |

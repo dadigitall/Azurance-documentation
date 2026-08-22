@@ -1,0 +1,104 @@
+---
+title: "Actes médicaux par catégorie"
+description: "Liste les actes médicaux d'une catégorie donnée."
+openapi: "/openapi/insurer-api.openapi.yml GET /api/v1/reference/medical-acts/category/{category}"
+---
+
+Cet endpoint retourne la liste paginée des actes médicaux appartenant à une catégorie spécifique. Les catégories disponibles sont consultables via `GET /api/v1/reference/medical-acts/categories`.
+
+## Scope requis
+
+`reference.medical_acts.view`
+
+## Paramètres de chemin
+
+| Paramètre | Type | Requis | Description |
+| --- | --- | --- | --- |
+| `category` | string | oui | Code de la catégorie (`consultation`, `surgery`, `imaging`, `biology`, `anesthesia`, `physiotherapy`, `nursing`, `vaccination`, `medication_administration`, `mental_health`, `prevention`, `other`). |
+
+## Paramètres de requête
+
+| Paramètre | Type | Requis | Défaut | Description |
+| --- | --- | --- | --- | --- |
+| `per_page` | integer | non | 50 | Nombre de résultats par page (min 1). |
+
+## Champs de réponse
+
+La réponse contient le code de la catégorie demandée, un tableau `data` d'objets `MedicalActReference` et des métadonnées de pagination.
+
+### Enveloppe
+
+| Champ | Type | Description |
+| --- | --- | --- |
+| `category` | string | Code de la catégorie demandée. |
+| `data` | array | Tableau d'objets `MedicalActReference`. |
+| `total` | integer | Nombre total d'actes dans la catégorie. |
+| `current_page` | integer | Page courante. |
+| `last_page` | integer | Dernière page disponible. |
+
+### `MedicalActReference`
+
+| Champ | Type | Description |
+| --- | --- | --- |
+| `uid` | uuid | Identifiant public de l'acte médical. |
+| `ichi_code` | string | Code ICHI (International Classification of Health Interventions) de l'acte. |
+| `title` | string | Libellé en anglais de l'acte médical. |
+| `title_fr` | string\|null | Libellé en français de l'acte médical. |
+| `category` | string | Catégorie de l'acte (`consultation`, `surgery`, `imaging`, `biology`, `anesthesia`, `physiotherapy`, `nursing`, `vaccination`, `medication_administration`, `mental_health`, `prevention`, `other`). |
+| `class_kind` | string | Type de classe ICHI (`category`, `block`, etc.). |
+| `depth_in_kind` | integer | Profondeur dans la hiérarchie ICHI. |
+| `is_leaf` | boolean | Indique si l'acte est un nœud terminal (pas de sous-actes). |
+| `is_residual` | boolean | Indique si l'acte est une catégorie résiduelle (autre / non classé). |
+| `block_id` | string\|null | Identifiant du bloc ICHI auquel appartient l'acte. |
+| `chapter_no` | string\|null | Numéro de chapitre ICHI. |
+| `is_active` | boolean | Indique si l'acte est actif dans le référentiel. |
+
+## Exemple de réponse
+
+```json
+{
+  "category": "consultation",
+  "data": [
+    {
+      "uid": "ma_sandbox_001",
+      "ichi_code": "ichi_sandbox_001",
+      "title": "General medical consultation",
+      "title_fr": "Consultation médicale générale",
+      "category": "consultation",
+      "class_kind": "block",
+      "depth_in_kind": 2,
+      "is_leaf": true,
+      "is_residual": false,
+      "block_id": "ichi_block_sandbox_010",
+      "chapter_no": "1",
+      "is_active": true
+    },
+    {
+      "uid": "ma_sandbox_002",
+      "ichi_code": "ichi_sandbox_002",
+      "title": "Specialized consultation in cardiology",
+      "title_fr": "Consultation spécialisée en cardiologie",
+      "category": "consultation",
+      "class_kind": "block",
+      "depth_in_kind": 3,
+      "is_leaf": true,
+      "is_residual": false,
+      "block_id": "ichi_block_sandbox_010",
+      "chapter_no": "1",
+      "is_active": true
+    }
+  ],
+  "total": 1284,
+  "current_page": 1,
+  "last_page": 26
+}
+```
+
+## Erreurs
+
+| Code | Description |
+| --- | --- |
+| 400 | Valeur de `per_page` invalide. |
+| 401 | Clé API manquante ou invalide. |
+| 403 | Scope `reference.medical_acts.view` manquant. |
+| 404 | Catégorie introuvable. |

@@ -1,0 +1,96 @@
+---
+title: "Export médicaments"
+description: "Exporte le référentiel médicaments au format JSON ou CSV."
+openapi: "/openapi/insurer-api.openapi.yml GET /api/v1/reference/medications/export"
+---
+
+Cet endpoint exporte le référentiel médicaments au format JSON paginé ou CSV. Il est conçu pour la synchronisation initiale ou périodique du catalogue d'un ERP assureur.
+
+## Scope requis
+
+`reference.medications.view`
+
+## Paramètres de requête
+
+| Paramètre | Type | Défaut | Description |
+| --- | --- | --- | --- |
+| `country_code` | string | `BJ` | Pays du référentiel produit. |
+| `market_status` | string | `LOCAL_AUTHORIZED` | Filtre le statut commercial. |
+| `format` | string | `json` | Format d'export (`json` ou `csv`). |
+| `page` | integer | `1` | Numéro de page (format JSON uniquement). |
+| `per_page` | integer | `1000` | Taille de page (max 5000, format JSON uniquement). |
+
+## Réponse
+
+- **Format JSON** : réponse paginée avec un tableau `data` de `MedicationProduct` et un objet `meta` (`page`, `per_page`, `returned`, `format`).
+- **Format CSV** : réponse `text/csv` avec une ligne d'en-tête et une ligne par produit. Les champs sont les mêmes que ceux du format JSON, aplatis.
+
+## Champs de réponse (`MedicationProduct`)
+
+| Champ | Type | Description |
+| --- | --- | --- |
+| `uid` | uuid | Identifiant public du produit médicament. |
+| `country_code` | string | Pays du référentiel produit. |
+| `market_status` | string | Statut commercial. |
+| `source` | string | Source d'import. |
+| `source_details` | object | Détails de la source. |
+| `designation` | string | Désignation officielle ou importée. |
+| `display_name` | string | Nom d'affichage. |
+| `dci_raw` | string | DCI/substances. |
+| `inn_name` | string | Dénomination commune internationale. |
+| `marketing_authorization_holder` | string | Titulaire de l'AMM. |
+| `origin_country` | string | Pays d'origine. |
+| `public_price` | number | Prix public. |
+| `authorization_number` | string | Numéro AMM. |
+| `authorization_expires_at` | date | Date d'expiration de l'autorisation. |
+| `source_url` | string | URL source. |
+| `is_active` | boolean | Produit actif. |
+| `presentations` | array | Présentations (si chargées). |
+| `clinical_mapping` | object | Mapping clinique ATC/RxCUI (si chargé). |
+| `mappings` | array | Mappings cliniques complets (si chargés). |
+
+## Exemple de requête
+
+```
+GET /api/v1/reference/medications/export?country_code=BJ&format=json&per_page=100
+```
+
+## Exemple de réponse (JSON)
+
+```json
+{
+  "data": [
+    {
+      "uid": "60000000-0000-4000-8000-000000000001",
+      "country_code": "BJ",
+      "market_status": "LOCAL_AUTHORIZED",
+      "source": "ABMED_BENIN",
+      "source_details": {
+        "code": "ABMED_BENIN",
+        "label": "ABMed Bénin",
+        "confidence": "official_local"
+      },
+      "designation": "Paracétamol 500mg, comprimé",
+      "display_name": "Paracétamol 500mg, comprimé",
+      "dci_raw": "Paracétamol",
+      "inn_name": "Paracétamol",
+      "marketing_authorization_holder": "PharmaLab BJ",
+      "origin_country": "BJ",
+      "public_price": 500,
+      "authorization_number": "AMM-BJ-2018-0042",
+      "authorization_expires_at": "2028-12-31",
+      "source_url": null,
+      "is_active": true,
+      "presentations": [],
+      "clinical_mapping": null,
+      "mappings": []
+    }
+  ],
+  "meta": {
+    "page": 1,
+    "per_page": 100,
+    "returned": 100,
+    "format": "json"
+  }
+}
+```

@@ -1,0 +1,102 @@
+---
+title: "Référentiel médicaments"
+description: "Liste les médicaments du référentiel."
+openapi: "/openapi/insurer-api.openapi.yml GET /api/v1/reference/medications"
+---
+
+Cet endpoint retourne les produits médicaments du référentiel pivot Azurance. Il sert à initialiser ou synchroniser le catalogue d'un ERP assureur (pharmacie, hôpital, laboratoire) et ne renvoie ni stock, ni lot, ni prix réel pharmacie.
+
+## Scope requis
+
+`reference.medications.view`
+
+## Paramètres de requête
+
+| Paramètre | Type | Défaut | Description |
+| --- | --- | --- | --- |
+| `country_code` | string | `BJ` | Pays du référentiel produit. |
+| `market_status` | string | `LOCAL_AUTHORIZED` | Filtre le statut commercial (voir ci-dessous). |
+| `source` | string | — | Filtre par source d'import (`ABMED_BENIN`, `BDPM_FR`, `MEDICAMENTS_API_FR`, `CSV`). |
+| `include_candidates` | boolean | `false` | Inclut les produits candidats non encore validés localement. |
+| `page` | integer | `1` | Numéro de page. |
+| `per_page` | integer | `100` | Taille de page, maximum 500. |
+
+## Statuts commerciaux
+
+| `market_status` | Usage |
+| --- | --- |
+| `LOCAL_AUTHORIZED` | Produit autorisé localement (valeur par défaut). |
+| `CANDIDATE` | Source externe candidate, non validée. |
+| `UNVERIFIED` | Import non vérifié. |
+| `WITHDRAWN` | Produit retiré du marché. |
+| `REJECTED` | Produit rejeté par le référentiel. |
+
+## Champs de réponse (`MedicationProduct`)
+
+| Champ | Type | Description |
+| --- | --- | --- |
+| `uid` | uuid | Identifiant public du produit médicament. |
+| `country_code` | string | Pays du référentiel produit. |
+| `market_status` | string | Statut commercial (voir ci-dessus). |
+| `source` | string | Source d'import (`ABMED_BENIN`, `BDPM_FR`, `MEDICAMENTS_API_FR`, `CSV`). |
+| `source_details` | object | Détails de la source (`code`, `label`, `confidence`). |
+| `designation` | string | Désignation officielle ou importée du produit. |
+| `display_name` | string | Nom d'affichage (identique à `designation`). |
+| `dci_raw` | string | DCI/substances lorsque disponibles. |
+| `inn_name` | string | Dénomination commune internationale (identique à `dci_raw`). |
+| `marketing_authorization_holder` | string | Titulaire de l'autorisation de mise sur le marché. |
+| `origin_country` | string | Pays d'origine du produit. |
+| `public_price` | number | Prix public. |
+| `authorization_number` | string | Numéro AMM ou identifiant d'autorisation. |
+| `authorization_expires_at` | date | Date d'expiration de l'autorisation. |
+| `source_url` | string | URL source du produit. |
+| `is_active` | boolean | Produit actif. |
+| `presentations` | array | Présentations du produit (si chargées). |
+| `clinical_mapping` | object | Mapping clinique ATC/RxCUI (si chargé). |
+| `mappings` | array | Mappings cliniques complets (si chargés). |
+
+## Réponse
+
+La réponse est paginée et contient un tableau `data` de `MedicationProduct` ainsi qu'un objet `meta` avec la pagination. Pour récupérer un produit précis, utilisez `GET /api/v1/reference/medications/{uid}`.
+
+## Exemple de réponse
+
+```json
+{
+  "data": [
+    {
+      "uid": "60000000-0000-4000-8000-000000000001",
+      "country_code": "BJ",
+      "market_status": "LOCAL_AUTHORIZED",
+      "source": "ABMED_BENIN",
+      "source_details": {
+        "code": "ABMED_BENIN",
+        "label": "ABMed Bénin",
+        "confidence": "official_local"
+      },
+      "designation": "Paracétamol 500mg, comprimé",
+      "display_name": "Paracétamol 500mg, comprimé",
+      "dci_raw": "Paracétamol",
+      "inn_name": "Paracétamol",
+      "marketing_authorization_holder": "PharmaLab BJ",
+      "origin_country": "BJ",
+      "public_price": 500,
+      "authorization_number": "AMM-BJ-2018-0042",
+      "authorization_expires_at": "2028-12-31",
+      "source_url": null,
+      "is_active": true,
+      "presentations": [],
+      "clinical_mapping": null,
+      "mappings": []
+    }
+  ],
+  "meta": {
+    "page": 1,
+    "per_page": 100,
+    "total": 5000,
+    "total_pages": 50,
+    "has_next": true,
+    "has_previous": false
+  }
+}
+```

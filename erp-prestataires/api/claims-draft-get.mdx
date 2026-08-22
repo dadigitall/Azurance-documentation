@@ -1,0 +1,59 @@
+---
+title: "Consulter un brouillon de claim"
+description: "Retourne les données d'un brouillon de claim en statut draft."
+openapi: "/openapi/provider-api.openapi.yml GET /api/v1/claims/{claimId}/draft"
+---
+
+Cet endpoint retourne toutes les données d'un brouillon de claim. Le claim doit être en statut `draft`.
+
+## Scope requis
+
+`claims.view`
+
+## Paramètres de chemin
+
+| Paramètre | Type | Requis | Description |
+| --- | --- | --- | --- |
+| `claimId` | string | oui | Identifiant du claim en brouillon. |
+
+## Exemple de requête
+
+```bash
+curl --request GET \
+  --url "https://provider-api-sandbox.elenami.com/api/v1/claims/claim_sandbox_draft_001/draft" \
+  --header "X-Api-Key: $AZURANCE_PROVIDER_API_KEY"
+```
+
+## Exemple de réponse
+
+```json
+{
+  "data": {
+    "uuid": "claim_sandbox_draft_001",
+    "claim_number": "CLM-2026-001234",
+    "status": "draft",
+    "subscription_id": "sub_sandbox_001",
+    "policyholder_id": "mbr_sandbox_001",
+    "coverage_type_code": "OUTPATIENT_PHARMACY",
+    "service_date": "2026-01-15",
+    "amount_claimed": 50000,
+    "currency": "XOF",
+    "items": [
+      {
+        "description": "Consultation générale",
+        "quantity": 1,
+        "unit_price": 50000
+      }
+    ],
+    "documents": []
+  }
+}
+```
+
+## Erreurs
+
+| Code | Description |
+| --- | --- |
+| 401 | Clé API manquante ou invalide. |
+| 403 | Scope `claims.view` manquant. |
+| 404 | Claim introuvable ou n'est pas un brouillon. |

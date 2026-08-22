@@ -1,0 +1,89 @@
+---
+title: "Décider un claim (PUT)"
+description: "Met à jour le statut et la décision de traitement d'un claim via PUT."
+openapi: "/openapi/insurer-api.openapi.yml PUT /api/v1/claims/{claimId}/status"
+---
+
+Cet endpoint met à jour le statut d'un claim via `PUT`. Il a exactement le même comportement que `PATCH /api/v1/claims/{claimId}/status` : même validation, même traitement. Les deux verbes sont acceptés sur le même chemin.
+
+## Scope requis
+
+`insurer.claims.manage`
+
+## Paramètres de chemin
+
+| Paramètre | Type | Requis | Description |
+| --- | --- | --- | --- |
+| `claimId` | string | oui | Identifiant du claim. |
+
+## Champs du body
+
+| Champ | Type | Requis | Description |
+| --- | --- | --- | --- |
+| `status` | string | oui | Statut cible. L'API accepte `PENDING`, `UNDER_REVIEW`, `APPROVED`, `REJECTED`, `PAID` et leurs variantes minuscules, puis normalise la valeur en majuscules. |
+| `reason` | string | non | Motif principal de la décision. Prioritaire sur les alias ci-dessous. |
+| `rejection_reason` | string | non | Alias historique de `reason`, utilisé seulement si `reason` est absent. |
+| `reviewer_notes` | string | non | Second alias de `reason`, utilisé seulement si `reason` et `rejection_reason` sont absents. |
+| `reviewed_by` | string | non | Identifiant de l'opérateur ayant pris la décision. |
+
+## Normalisation
+
+L'API transmet un payload normalisé :
+
+- `status` est converti en majuscules ;
+- `reason` est choisi avec la priorité `reason` → `rejection_reason` → `reviewer_notes` ;
+- `reviewed_by` est transmis uniquement s'il est fourni.
+
+## Exemple de requête
+
+```bash
+curl --request PUT \
+  --url "https://insurer-api-sandbox.elenami.com/api/v1/claims/clm_sandbox_001/status" \
+  --header "X-Api-Key: $AZURANCE_INSURER_API_KEY" \
+  --header "Content-Type: application/json" \
+  --data '{
+    "status": "APPROVED",
+    "reason": "Documents justificatifs validés.",
+    "reviewed_by": "insurer-ops-claims-team"
+  }'
+```
+
+## Exemple de réponse
+
+```json
+{
+  "data": {
+    "uuid": "clm_sandbox_001",
+    "claim_number": "CLM-001",
+    "status": "APPROVED",
+    "amount_claimed": 50000.00,
+    "amount_approved": 40000.00,
+    "amount_paid": 0.00,
+    "currency": "XOF",
+    "service_date": "2026-01-10",
+    "reviewed_at": "2026-01-15T14:30:00.000Z",
+    "reviewed_by": "insurer-ops-claims-team",
+    "rejection_reason": null,
+    "updated_at": "2026-01-15T14:30:00.000Z"
+  }
+}
+```
+
+## Cas d'usage
+
+- Approuver un claim après vérification des pièces.
+- Rejeter un claim non couvert par le plan.
+- Marquer un claim approuvé comme payé après règlement.
+
+## Bonnes pratiques
+
+Fournissez un `reason` clair lors d'un rejet ou d'une demande de correction. Préférez `reason` aux alias historiques `rejection_reason` et `reviewer_notes` pour éviter toute ambiguïté.
+
+## Erreurs
+
+| Code | Description |
+| --- | --- |
+| 401 | Clé API manquante ou invalide. |
+| 403 | Scope `insurer.claims.manage` manquant. |
+| 404 | Claim introuvable. |
+| 422 | Statut invalide ou champ requis manquant. |

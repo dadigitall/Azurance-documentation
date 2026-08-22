@@ -1,0 +1,116 @@
+---
+title: "Rechercher des actes médicaux"
+description: "Recherche des actes médicaux par mot-clé et catégorie."
+openapi: "/openapi/insurer-api.openapi.yml GET /api/v1/reference/medical-acts/search"
+---
+
+Cet endpoint effectue une recherche full-text dans le référentiel des actes médicaux. Il est conçu pour l'autocomplétion et la sélection d'un acte lors de la saisie d'une consultation ou d'un claim. La recherche peut être filtrée par catégorie.
+
+## Scope requis
+
+`reference.medical_acts.view`
+
+## Paramètres de requête
+
+| Paramètre | Type | Requis | Défaut | Description |
+| --- | --- | --- | --- | --- |
+| `q` | string | oui | — | Terme de recherche (min 2 caractères, max 100). |
+| `limit` | integer | non | 20 | Nombre maximum de résultats (min 1, max 100). |
+| `category` | string | non | — | Filtrer par catégorie. Valeurs acceptées : `consultation`, `surgery`, `imaging`, `biology`, `anesthesia`, `physiotherapy`, `nursing`, `vaccination`, `medication_administration`, `mental_health`, `prevention`, `other`. |
+
+## Champs de réponse
+
+La réponse contient un tableau `data` d'objets `MedicalActReference` correspondant au terme de recherche, triés par pertinence décroissante. Le champ `source` indique l'origine des résultats et `total` le nombre de résultats renvoyés.
+
+### Enveloppe
+
+| Champ | Type | Description |
+| --- | --- | --- |
+| `data` | array | Tableau d'objets `MedicalActReference`. |
+| `source` | string | Source de recherche (`local`). |
+| `total` | integer | Nombre total de résultats renvoyés. |
+
+### `MedicalActReference`
+
+| Champ | Type | Description |
+| --- | --- | --- |
+| `uid` | uuid | Identifiant public de l'acte médical. |
+| `ichi_code` | string | Code ICHI (International Classification of Health Interventions) de l'acte. |
+| `title` | string | Libellé en anglais de l'acte médical. |
+| `title_fr` | string\|null | Libellé en français de l'acte médical. |
+| `category` | string | Catégorie de l'acte (`consultation`, `surgery`, `imaging`, `biology`, `anesthesia`, `physiotherapy`, `nursing`, `vaccination`, `medication_administration`, `mental_health`, `prevention`, `other`). |
+| `class_kind` | string | Type de classe ICHI (`category`, `block`, etc.). |
+| `depth_in_kind` | integer | Profondeur dans la hiérarchie ICHI. |
+| `is_leaf` | boolean | Indique si l'acte est un nœud terminal (pas de sous-actes). |
+| `is_residual` | boolean | Indique si l'acte est une catégorie résiduelle (autre / non classé). |
+| `block_id` | string\|null | Identifiant du bloc ICHI auquel appartient l'acte. |
+| `chapter_no` | string\|null | Numéro de chapitre ICHI. |
+| `is_active` | boolean | Indique si l'acte est actif dans le référentiel. |
+
+## Exemple de requête
+
+```
+GET /api/v1/reference/medical-acts/search?q=consultation&limit=10&category=consultation
+```
+
+## Exemple de réponse
+
+```json
+{
+  "data": [
+    {
+      "uid": "ma_sandbox_001",
+      "ichi_code": "ichi_sandbox_001",
+      "title": "General medical consultation",
+      "title_fr": "Consultation médicale générale",
+      "category": "consultation",
+      "class_kind": "block",
+      "depth_in_kind": 2,
+      "is_leaf": true,
+      "is_residual": false,
+      "block_id": "ichi_block_sandbox_010",
+      "chapter_no": "1",
+      "is_active": true
+    },
+    {
+      "uid": "ma_sandbox_002",
+      "ichi_code": "ichi_sandbox_002",
+      "title": "Specialized consultation in cardiology",
+      "title_fr": "Consultation spécialisée en cardiologie",
+      "category": "consultation",
+      "class_kind": "block",
+      "depth_in_kind": 3,
+      "is_leaf": true,
+      "is_residual": false,
+      "block_id": "ichi_block_sandbox_010",
+      "chapter_no": "1",
+      "is_active": true
+    },
+    {
+      "uid": "ma_sandbox_003",
+      "ichi_code": "ichi_sandbox_003",
+      "title": "Follow-up consultation",
+      "title_fr": "Consultation de suivi",
+      "category": "consultation",
+      "class_kind": "block",
+      "depth_in_kind": 3,
+      "is_leaf": true,
+      "is_residual": false,
+      "block_id": "ichi_block_sandbox_011",
+      "chapter_no": "1",
+      "is_active": true
+    }
+  ],
+  "source": "local",
+  "total": 3
+}
+```
+
+## Erreurs
+
+| Code | Description |
+| --- | --- |
+| 400 | Paramètre `q` manquant, trop court (min 2) ou trop long (max 100). |
+| 400 | Valeur de `category` non reconnue. |
+| 401 | Clé API manquante ou invalide. |
+| 403 | Scope `reference.medical_acts.view` manquant. |

@@ -1,0 +1,48 @@
+---
+title: "Chapitres des actes médicaux"
+description: "Liste les chapitres de la classification des actes médicaux (ICHI et CCAM)."
+openapi: "/openapi/insurer-api.openapi.yml GET /api/v1/reference/medical-acts/chapters"
+---
+
+Cet endpoint retourne la liste des chapitres de la classification des actes médicaux (ICHI et CCAM), accompagnés du nombre d'actes dans chaque chapitre.
+
+## Scope requis
+
+`reference.medical_acts.view`
+
+## Champs de réponse
+
+| Champ | Type | Description |
+| --- | --- | --- |
+| `data` | array | Tableau d'objets chapitre. |
+| `data[].chapter_no` | string | Numéro du chapitre. |
+| `data[].title` | string | Titre du chapitre. |
+| `data[].act_count` | integer | Nombre d'actes dans le chapitre. |
+
+## Exemple de requête
+
+```bash
+curl --request GET \
+  --url "https://insurer-api-sandbox.elenami.com/api/v1/reference/medical-acts/chapters" \
+  --header "X-Api-Key: $AZURANCE_INSURER_API_KEY"
+```
+
+## Exemple de réponse
+
+```json
+{
+  "data": [
+    { "chapter_no": "01", "title": "Chirurgie digestive", "act_count": 1245 },
+    { "chapter_no": "02", "title": "Chirurgie orthopédique", "act_count": 980 },
+    { "chapter_no": "03", "title": "Imagerie médicale", "act_count": 642 },
+    { "chapter_no": "04", "title": "Biologie médicale", "act_count": 518 }
+  ]
+}
+```
+
+## Erreurs
+
+| Code | Description |
+| --- | --- |
+| 401 | Clé API manquante ou invalide. |
+| 403 | Scope `reference.medical_acts.view` manquant. |

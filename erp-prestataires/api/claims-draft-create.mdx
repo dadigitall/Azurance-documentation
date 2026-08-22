@@ -1,0 +1,107 @@
+---
+title: "Créer un brouillon de claim"
+description: "Crée un claim en statut draft sans check final ni réservation de plafond."
+openapi: "/openapi/provider-api.openapi.yml POST /api/v1/claims/draft"
+---
+
+Cet endpoint crée un brouillon de claim en statut `draft`. Aucun check final d'éligibilité n'est effectué et aucun plafond n'est réservé. Le brouillon peut être complété avec des documents justificatifs via `POST /api/v1/claims/{claimId}/documents`, puis soumis via `POST /api/v1/claims/{claimId}/submit`.
+
+## Scope requis
+
+`claims.create`
+
+## En-têtes
+
+| Header | Requis | Description |
+| --- | --- | --- |
+| `X-Api-Key` | oui | Clé API prestataire. |
+| `X-Request-Id` | non | Identifiant de corrélation. |
+| `Idempotency-Key` | recommandé | UUID pour éviter les soumissions en double. |
+
+## Champs du body
+
+| Champ | Type | Requis | Description |
+| --- | --- | --- | --- |
+| `subscription_id` | string | oui | Identifiant de souscription. |
+| `policyholder_id` | string | oui | Identifiant du titulaire de police. |
+| `coverage_type_code` | string | oui | Code de garantie visée. |
+| `service_date` | date | oui | Date de la prestation (`YYYY-MM-DD`). |
+| `amount_claimed` | number | oui | Montant réclamé (min 0.01). |
+| `currency` | string | non | Devise, `XOF` par défaut. |
+| `items` | array | oui | Lignes de prestation (`MedicationReferenceLine`). |
+| `covered_person_type` | string | non | `policyholder` ou `beneficiary`. |
+| `covered_person_uid` | string | non | Identifiant de la personne couverte. |
+| `consent_ref` | uuid | non | Référence de consentement fort. |
+| `service_execution_uid` | uuid | non | Prestation enregistrée liée au claim. |
+| `prior_authorization_uid` | uuid | non | Pré-autorisation consommée. |
+| `precheck_eligibility_uuid` | uuid | non | UUID d'un précheck d'éligibilité réutilisé. |
+| `documents` | array | non | Documents justificatifs à attacher. |
+| `notes` | string | non | Notes libres. |
+
+## Exemple de requête
+
+```bash
+curl --request POST \
+  --url "https://provider-api-sandbox.elenami.com/api/v1/claims/draft" \
+  --header "X-Api-Key: $AZURANCE_PROVIDER_API_KEY" \
+  --header "Content-Type: application/json" \
+  --header "Idempotency-Key: 550e8400-e29b-41d4-a716-446655440000" \
+  --data '{
+    "subscription_id": "sub_sandbox_001",
+    "policyholder_id": "mbr_sandbox_001",
+    "coverage_type_code": "OUTPATIENT_PHARMACY",
+    "service_date": "2026-01-15",
+    "amount_claimed": 50000,
+    "currency": "XOF",
+    "covered_person_type": "policyholder",
+    "covered_person_uid": "mbr_sandbox_001",
+    "items": [
+      {
+        "description": "Consultation générale",
+        "quantity": 1,
+        "unit_price": 50000
+      }
+    ]
+  }'
+```
+
+## Exemple de réponse
+
+```json
+{
+  "data": {
+    "uuid": "claim_sandbox_draft_001",
+    "claim_number": "CLM-2026-001234",
+    "status": "draft",
+    "subscription_id": "sub_sandbox_001",
+    "policyholder_id": "mbr_sandbox_001",
+    "coverage_type_code": "OUTPATIENT_PHARMACY",
+    "service_date": "2026-01-15",
+    "amount_claimed": 50000,
+    "currency": "XOF",
+    "items": [
+      {
+        "description": "Consultation générale",
+        "quantity": 1,
+        "unit_price": 50000
+      }
+    ],
+    "documents": []
+  }
+}
+```
+
+## Workflow
+
+1. Créer un brouillon via `POST /api/v1/claims/draft`.
+2. Attacher les documents justificatifs via `POST /api/v1/claims/{claimId}/documents`.
+3. Soumettre le brouillon via `POST /api/v1/claims/{claimId}/submit` avec le `consent_ref`.
+4. Suivre le statut via `GET /api/v1/claims/{claimId}`.
+
+## Erreurs
+
+| Code | Description |
+| --- | --- |
+| 401 | Clé API manquante ou invalide. |
+| 403 | Scope `claims.create` manquant. |
+| 422 | Validation du body échouée. |

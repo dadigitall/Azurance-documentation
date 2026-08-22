@@ -1,0 +1,8 @@
+# Skills locaux (non versionnés)
+.devin/skills/sync-bff-docs/
+
+# Fichiers temporaires
+*.tmp
+*.log
+node_modules/
+.mintlify/

@@ -1,0 +1,104 @@
+---
+title: "Rechercher des pathologies"
+description: "Recherche des pathologies par mot-clé et chapitre."
+openapi: "/openapi/insurer-api.openapi.yml GET /api/v1/reference/pathologies/search"
+---
+
+Cet endpoint permet de rechercher des pathologies dans le référentiel CIM-10 à partir d'un mot-clé. La recherche porte sur le code CIM-10 et les libellés (français et anglais). Elle peut être filtrée par chapitre et est conçue pour l'autocomplétion lors de la saisie d'un diagnostic ou d'une prescription.
+
+## Scope requis
+
+`reference.pathologies.view`
+
+## Paramètres de requête
+
+| Paramètre | Type | Requis | Description |
+| --- | --- | --- | --- |
+| `q` | string | oui | Terme de recherche. |
+| `limit` | integer | non | Nombre maximum de résultats (min 1, max 100, défaut 15). |
+| `chapter` | string | non | Filtrer par chapitre CIM-10 (ex. `I`, `J`). |
+
+## Champs de réponse
+
+La réponse contient un tableau `data` de `Pathology`, trié par pertinence décroissante, ainsi que la source de recherche et le nombre total de résultats.
+
+### Enveloppe
+
+| Champ | Type | Description |
+| --- | --- | --- |
+| `data` | array | Tableau de `Pathology` correspondant au terme de recherche. |
+| `source` | string | Source de recherche (`local`). |
+| `total` | integer | Nombre total de résultats correspondants. |
+
+### `Pathology`
+
+| Champ | Type | Description |
+| --- | --- | --- |
+| `uid` | uuid | Identifiant public de la pathologie. |
+| `icd10_code` | string | Code CIM-10 de la pathologie (ex. `I10`, `J45.0`). |
+| `chapter_code` | string | Code du chapitre CIM-10 (ex. `I`, `J`). |
+| `chapter_label` | string | Libellé du chapitre CIM-10. |
+| `block_code` | string\|null | Code du bloc CIM-10. |
+| `block_label` | string\|null | Libellé du bloc CIM-10. |
+| `icd11_code` | string\|null | Code CIM-11 correspondant. |
+| `icd11_entity_id` | string\|null | Identifiant d'entité CIM-11. |
+| `label_fr` | string | Libellé en français de la pathologie. |
+| `label_en` | string\|null | Libellé en anglais de la pathologie. |
+| `is_billable` | boolean | Indique si la pathologie est facturable. |
+| `is_active` | boolean | Indique si la pathologie est active dans le référentiel. |
+| `synced_at` | string\|null | Date de dernière synchronisation (ISO 8601). |
+
+## Exemple de requête
+
+```
+GET /api/v1/reference/pathologies/search?q=hypertension&limit=10
+```
+
+## Exemple de réponse
+
+```json
+{
+  "data": [
+    {
+      "uid": "7a1f2c3e-4b5d-4a6e-9c8b-1d2e3f4a5b6c",
+      "icd10_code": "I10",
+      "chapter_code": "I",
+      "chapter_label": "Maladies de l'appareil circulatoire",
+      "block_code": "I10-I15",
+      "block_label": "Maladies hypertensives",
+      "icd11_code": "BA00",
+      "icd11_entity_id": "1234567890",
+      "label_fr": "Hypertension essentielle (primitive)",
+      "label_en": "Essential (primary) hypertension",
+      "is_billable": true,
+      "is_active": true,
+      "synced_at": "2025-01-14T08:30:00Z"
+    },
+    {
+      "uid": "8b2g3d4f-5c6e-4b7f-9d9c-2e3f4a5b6c7d",
+      "icd10_code": "I11.0",
+      "chapter_code": "I",
+      "chapter_label": "Maladies de l'appareil circulatoire",
+      "block_code": "I10-I15",
+      "block_label": "Maladies hypertensives",
+      "icd11_code": "BA01",
+      "icd11_entity_id": "1234567891",
+      "label_fr": "Cardiopathie hypertensive avec insuffisance cardiaque",
+      "label_en": "Hypertensive heart disease with heart failure",
+      "is_billable": true,
+      "is_active": true,
+      "synced_at": "2025-01-14T08:30:00Z"
+    }
+  ],
+  "source": "local",
+  "total": 2
+}
+```
+
+## Erreurs
+
+| Code | Description |
+| --- | --- |
+| 400 | Paramètre `q` manquant ou invalide. |
+| 401 | Clé API manquante ou invalide. |
+| 403 | Scope `reference.pathologies.view` manquant. |

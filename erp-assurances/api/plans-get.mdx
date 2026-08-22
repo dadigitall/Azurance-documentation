@@ -1,7 +1,7 @@
 ---
 title: "Consulter un plan"
 description: "Retourne le détail d'un plan d'assurance par son code métier."
-openapi: "/openapi/insurer-api.openapi.yml GET /api/v1/plans/{planId}"
+openapi: "/openapi/insurer-api.openapi.yml GET /api/v1/plans/{code}"
 ---
 
 Cet endpoint retourne le détail complet d'un plan d'assurance. Le paramètre de chemin correspond au `plan_code` du plan, par exemple `GOLD` ou `PLAN_ESSENTIAL`.
@@ -14,7 +14,7 @@ Cet endpoint retourne le détail complet d'un plan d'assurance. Le paramètre de
 
 | Paramètre | Type | Requis | Description |
 | --- | --- | --- | --- |
-| `planId` | string | oui | Code métier du plan (`plan_code`). Le nom du paramètre reste `planId` dans l'OpenAPI pour partager le même path item que `PUT` et `DELETE`, mais le GET attend un code. |
+| `code` | string | oui | Code métier du plan (`plan_code`), par exemple `PLAN_ESSENTIAL` ou `GOLD`. |
 
 ## Réponse
 

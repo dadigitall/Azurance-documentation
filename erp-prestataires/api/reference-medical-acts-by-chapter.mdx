@@ -1,0 +1,71 @@
+---
+title: "Actes médicaux d'un chapitre"
+description: "Liste les actes médicaux d'un chapitre donné (ICHI ou CCAM)."
+openapi: "/openapi/provider-api.openapi.yml GET /api/v1/reference/medical-acts/chapter/{chapterNo}"
+---
+
+Cet endpoint retourne les actes médicaux d'un chapitre donné, identifié par son numéro (ICHI ou CCAM).
+
+## Scope requis
+
+`reference.medical_acts.view`
+
+## Paramètres de chemin
+
+| Paramètre | Type | Requis | Description |
+| --- | --- | --- | --- |
+| `chapterNo` | string | oui | Numéro du chapitre (ex. `01`, `02`). |
+
+## Paramètres de requête
+
+| Paramètre | Type | Requis | Défaut | Description |
+| --- | --- | --- | --- | --- |
+| `per_page` | integer | non | 50 | Nombre de résultats par page. |
+
+## Exemple de requête
+
+```bash
+curl --request GET \
+  --url "https://provider-api-sandbox.elenami.com/api/v1/reference/medical-acts/chapter/01?per_page=50" \
+  --header "X-Api-Key: $AZURANCE_PROVIDER_API_KEY"
+```
+
+## Exemple de réponse
+
+```json
+{
+  "data": [
+    {
+      "uid": "ma_sandbox_001",
+      "ichi_code": "DEQP003",
+      "title": "Appendectomy",
+      "title_fr": "Appendicectomie",
+      "category": "surgery",
+      "chapter_no": "01",
+      "is_active": true
+    },
+    {
+      "uid": "ma_sandbox_002",
+      "ichi_code": "DEQP004",
+      "title": "Cholecystectomy",
+      "title_fr": "Cholécystectomie",
+      "category": "surgery",
+      "chapter_no": "01",
+      "is_active": true
+    }
+  ],
+  "meta": {
+    "current_page": 1,
+    "per_page": 50,
+    "total": 1245
+  }
+}
+```
+
+## Erreurs
+
+| Code | Description |
+| --- | --- |
+| 401 | Clé API manquante ou invalide. |
+| 403 | Scope `reference.medical_acts.view` manquant. |
+| 404 | Chapitre introuvable. |

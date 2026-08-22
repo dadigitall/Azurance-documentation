@@ -27,6 +27,78 @@ components:
         type: string
       description: Identifiant de corrélation propagé aux services internes.
   schemas:
+    SubmitClaimRequest:
+      type: object
+      required: [subscription_id, policyholder_id, coverage_type_code, service_date, amount_claimed, items]
+      properties:
+        subscription_id:
+          type: string
+          description: Identifiant de souscription.
+        policyholder_id:
+          type: string
+          description: Identifiant du titulaire de police.
+        service_execution_uid:
+          type: string
+          format: uuid
+          description: Prestation enregistrée liée au claim.
+        prior_authorization_uid:
+          type: string
+          format: uuid
+          description: Pré-autorisation consommée.
+        covered_person_type:
+          type: string
+          enum: [policyholder, beneficiary]
+          description: Type de personne couverte.
+        covered_person_uid:
+          type: string
+          description: Identifiant de la personne couverte.
+        subscription_uid:
+          type: string
+          format: uuid
+        consent_ref:
+          type: string
+          format: uuid
+          description: Référence de consentement fort.
+        coverage_type_code:
+          type: string
+          description: Code de garantie visée.
+        provider_reference:
+          type: string
+          description: Référence externe du prestataire (idempotence pharmacie).
+        service_date:
+          type: string
+          format: date
+          description: Date de la prestation.
+        amount_claimed:
+          type: number
+          minimum: 0.01
+          description: Montant réclamé.
+        currency:
+          type: string
+          default: XOF
+        precheck_eligibility_uuid:
+          type: string
+          format: uuid
+          description: UUID d'un précheck d'éligibilité réutilisé.
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/MedicationReferenceLine'
+        documents:
+          type: array
+          items:
+            type: object
+            properties:
+              document_type:
+                type: string
+              media_uid:
+                type: string
+              file_name:
+                type: string
+              file_path:
+                type: string
+        notes:
+          type: string
     Error:
       type: object
       properties:
@@ -955,6 +1027,99 @@ paths:
           description: API key absente ou invalide
         '403':
           description: Scope reference.medical_acts.view manquant
+  /api/v1/reference/medical-acts/chapters:
+    get:
+      operationId: listMedicalActChapters
+      summary: Lister les chapitres des actes médicaux
+      description: >-
+        Retourne la liste des chapitres de la classification des actes médicaux
+        (ICHI et CCAM). Nécessite le scope `reference.medical_acts.view`.
+      x-codeSamples:
+        - lang: curl
+          source: |
+            curl --request GET \
+              --url "https://provider-api-sandbox.elenami.com/api/v1/reference/medical-acts/chapters" \
+              --header "X-Api-Key: $AZURANCE_PROVIDER_API_KEY"
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+      responses:
+        '200':
+          description: Liste des chapitres
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        chapter_no:
+                          type: string
+                        title:
+                          type: string
+                        act_count:
+                          type: integer
+              example:
+                data:
+                  - chapter_no: '01'
+                    title: Chirurgie digestive
+                    act_count: 1245
+                  - chapter_no: '02'
+                    title: Chirurgie orthopédique
+                    act_count: 980
+                  - chapter_no: '03'
+                    title: Imagerie médicale
+                    act_count: 642
+        '401':
+          description: API key absente ou invalide
+        '403':
+          description: Scope reference.medical_acts.view manquant
+  /api/v1/reference/medical-acts/chapter/{chapterNo}:
+    get:
+      operationId: listMedicalActsByChapter
+      summary: Lister les actes médicaux d'un chapitre
+      description: >-
+        Retourne les actes médicaux d'un chapitre donné (numéro ICHI ou CCAM).
+        Nécessite le scope `reference.medical_acts.view`.
+      x-codeSamples:
+        - lang: curl
+          source: |
+            curl --request GET \
+              --url "https://provider-api-sandbox.elenami.com/api/v1/reference/medical-acts/chapter/01?per_page=50" \
+              --header "X-Api-Key: $AZURANCE_PROVIDER_API_KEY"
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - in: path
+          name: chapterNo
+          required: true
+          schema:
+            type: string
+          description: Numéro du chapitre (ex. `01`, `02`).
+        - in: query
+          name: per_page
+          schema: { type: integer, minimum: 1, default: 50 }
+      responses:
+        '200':
+          description: Liste des actes médicaux du chapitre
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                  meta:
+                    type: object
+        '401':
+          description: API key absente ou invalide
+        '403':
+          description: Scope reference.medical_acts.view manquant
+        '404':
+          description: Chapitre introuvable
   /api/v1/reference/medical-acts/{identifier}:
     get:
       operationId: getMedicalAct
@@ -1444,6 +1609,11 @@ paths:
     post:
       operationId: submitClaim
       summary: Soumettre un claim après recheck final obligatoire
+      deprecated: true
+      description: >-
+        ⚠️ Déprécié. Utilisez le workflow en deux étapes : `POST /api/v1/claims/draft`
+        pour créer un brouillon, puis `POST /api/v1/claims/{claimId}/submit` pour
+        le soumettre après vérification. Cet endpoint sera retiré dans une prochaine version.
       parameters:
         - $ref: '#/components/parameters/RequestId'
       requestBody:
@@ -1565,6 +1735,271 @@ paths:
           description: Scope claims.documents.attach insuffisant
         '404':
           description: Claim introuvable
+  /api/v1/claims/draft:
+    post:
+      operationId: createClaimDraft
+      summary: Créer un brouillon de claim
+      description: >-
+        Crée un claim en statut `draft` sans effectuer le check final d'éligibilité
+        ni réserver les plafonds. Le brouillon peut ensuite être complété avec des
+        documents justificatifs puis soumis via `POST /api/v1/claims/{claimId}/submit`.
+      x-codeSamples:
+        - lang: curl
+          source: |
+            curl --request POST \
+              --url "https://provider-api-sandbox.elenami.com/api/v1/claims/draft" \
+              --header "X-Api-Key: $AZURANCE_PROVIDER_API_KEY" \
+              --header "Content-Type: application/json" \
+              --header "Idempotency-Key: $(uuidgen)" \
+              --data '{"subscription_id":"sub_sandbox_001","policyholder_id":"mbr_sandbox_001","coverage_type_code":"OUTPATIENT_PHARMACY","service_date":"2026-01-15","amount_claimed":50000,"currency":"XOF","items":[{"description":"Consultation générale","quantity":1,"unit_price":50000}]}'
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubmitClaimRequest'
+            example:
+              subscription_id: sub_sandbox_001
+              policyholder_id: mbr_sandbox_001
+              coverage_type_code: OUTPATIENT_PHARMACY
+              service_date: '2026-01-15'
+              amount_claimed: 50000
+              currency: XOF
+              covered_person_type: policyholder
+              covered_person_uid: mbr_sandbox_001
+              items:
+                - description: Consultation générale
+                  quantity: 1
+                  unit_price: 50000
+      responses:
+        '201':
+          description: Brouillon de claim créé
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      uuid:
+                        type: string
+                        format: uuid
+                      claim_number:
+                        type: string
+                      status:
+                        type: string
+                        example: draft
+                      subscription_id:
+                        type: string
+                      policyholder_id:
+                        type: string
+                      coverage_type_code:
+                        type: string
+                      service_date:
+                        type: string
+                        format: date
+                      amount_claimed:
+                        type: number
+                      currency:
+                        type: string
+                      items:
+                        type: array
+                        items:
+                          type: object
+              example:
+                data:
+                  uuid: claim_sandbox_draft_001
+                  claim_number: CLM-2026-001234
+                  status: draft
+                  subscription_id: sub_sandbox_001
+                  policyholder_id: mbr_sandbox_001
+                  coverage_type_code: OUTPATIENT_PHARMACY
+                  service_date: '2026-01-15'
+                  amount_claimed: 50000
+                  currency: XOF
+                  items:
+                    - description: Consultation générale
+                      quantity: 1
+                      unit_price: 50000
+        '401':
+          description: API key absente ou invalide
+        '403':
+          description: Scope `claims.create` manquant
+        '422':
+          description: Validation du body échouée
+  /api/v1/claims/{claimId}/draft:
+    get:
+      operationId: getClaimDraft
+      summary: Consulter un brouillon de claim
+      description: >-
+        Retourne le brouillon d'un claim avec toutes ses données. Le claim doit être
+        en statut `draft`.
+      x-codeSamples:
+        - lang: curl
+          source: |
+            curl --request GET \
+              --url "https://provider-api-sandbox.elenami.com/api/v1/claims/claim_sandbox_draft_001/draft" \
+              --header "X-Api-Key: $AZURANCE_PROVIDER_API_KEY"
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - in: path
+          name: claimId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Brouillon du claim
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+              example:
+                data:
+                  uuid: claim_sandbox_draft_001
+                  claim_number: CLM-2026-001234
+                  status: draft
+                  subscription_id: sub_sandbox_001
+                  policyholder_id: mbr_sandbox_001
+                  coverage_type_code: OUTPATIENT_PHARMACY
+                  service_date: '2026-01-15'
+                  amount_claimed: 50000
+                  currency: XOF
+                  items:
+                    - description: Consultation générale
+                      quantity: 1
+                      unit_price: 50000
+                  documents: []
+        '401':
+          description: API key absente ou invalide
+        '403':
+          description: Scope `claims.view` manquant
+        '404':
+          description: Claim introuvable ou n'est pas un brouillon
+    delete:
+      operationId: cancelClaimDraft
+      summary: Annuler un brouillon de claim
+      description: >-
+        Supprime un brouillon de claim. Le claim doit être en statut `draft`.
+        Cette action est irréversible.
+      x-codeSamples:
+        - lang: curl
+          source: |
+            curl --request DELETE \
+              --url "https://provider-api-sandbox.elenami.com/api/v1/claims/claim_sandbox_draft_001/draft" \
+              --header "X-Api-Key: $AZURANCE_PROVIDER_API_KEY"
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - in: path
+          name: claimId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Brouillon annulé
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+              example:
+                message: Draft claim cancelled
+        '401':
+          description: API key absente ou invalide
+        '403':
+          description: Scope `claims.create` manquant
+        '404':
+          description: Claim introuvable ou n'est pas un brouillon
+  /api/v1/claims/{claimId}/submit:
+    post:
+      operationId: submitClaimDraft
+      summary: Soumettre un brouillon de claim
+      description: >-
+        Soumet un brouillon de claim : effectue le check final d'éligibilité,
+        calcule les plafonds, réserve les montants et fait passer le claim en
+        statut `submitted`. Le `consent_ref` est requis pour valider le consentement
+        fort associé.
+      x-codeSamples:
+        - lang: curl
+          source: |
+            curl --request POST \
+              --url "https://provider-api-sandbox.elenami.com/api/v1/claims/claim_sandbox_draft_001/submit" \
+              --header "X-Api-Key: $AZURANCE_PROVIDER_API_KEY" \
+              --header "Content-Type: application/json" \
+              --data '{"consent_ref":"a1b2c3d4-0000-4000-8000-000000000001"}'
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - in: path
+          name: claimId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [consent_ref]
+              properties:
+                consent_ref:
+                  type: string
+                  format: uuid
+                  description: Référence du consentement fort validé.
+            example:
+              consent_ref: a1b2c3d4-0000-4000-8000-000000000001
+      responses:
+        '200':
+          description: Claim soumis
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      uuid:
+                        type: string
+                      claim_number:
+                        type: string
+                      status:
+                        type: string
+                        example: submitted
+                      amount_claimed:
+                        type: number
+                      amount_approved:
+                        type: number
+                        nullable: true
+                      currency:
+                        type: string
+              example:
+                data:
+                  uuid: claim_sandbox_draft_001
+                  claim_number: CLM-2026-001234
+                  status: submitted
+                  amount_claimed: 50000
+                  amount_approved: null
+                  currency: XOF
+        '401':
+          description: API key absente ou invalide
+        '403':
+          description: Scope `claims.create` manquant
+        '404':
+          description: Claim introuvable ou n'est pas un brouillon
+        '422':
+          description: Check final refusé, claim non soumis
+        '503':
+          description: Service interne indisponible
   /api/v1/service-executions:
     post:
       operationId: recordServiceExecution

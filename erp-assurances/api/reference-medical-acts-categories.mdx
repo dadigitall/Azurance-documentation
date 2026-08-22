@@ -1,0 +1,48 @@
+---
+title: "Catégories d'actes médicaux"
+description: "Liste les catégories d'actes médicaux disponibles dans le référentiel."
+openapi: "/openapi/insurer-api.openapi.yml GET /api/v1/reference/medical-acts/categories"
+---
+
+Cet endpoint retourne la liste des catégories d'actes médicaux disponibles dans le référentiel, accompagnées du nombre d'actes dans chaque catégorie. Les catégories sont triées par nombre d'actes décroissant. Elles permettent de filtrer les actes médicaux lors d'une recherche ou d'une consultation par catégorie.
+
+## Scope requis
+
+`reference.medical_acts.view`
+
+## Champs de réponse
+
+La réponse contient un tableau `data`. Chaque élément décrit une catégorie et le nombre d'actes qu'elle regroupe.
+
+| Champ | Type | Description |
+| --- | --- | --- |
+| `category` | string | Code de la catégorie (`consultation`, `surgery`, `imaging`, `biology`, `anesthesia`, `physiotherapy`, `nursing`, `vaccination`, `medication_administration`, `mental_health`, `prevention`, `other`). |
+| `count` | integer | Nombre d'actes médicaux dans cette catégorie. |
+
+## Exemple de réponse
+
+```json
+{
+  "data": [
+    { "category": "consultation", "count": 1284 },
+    { "category": "surgery", "count": 976 },
+    { "category": "imaging", "count": 642 },
+    { "category": "biology", "count": 518 },
+    { "category": "nursing", "count": 387 },
+    { "category": "physiotherapy", "count": 214 },
+    { "category": "anesthesia", "count": 168 },
+    { "category": "vaccination", "count": 132 },
+    { "category": "medication_administration", "count": 96 },
+    { "category": "mental_health", "count": 74 },
+    { "category": "prevention", "count": 58 },
+    { "category": "other", "count": 41 }
+  ]
+}
+```
+
+## Erreurs
+
+| Code | Description |
+| --- | --- |
+| 401 | Clé API manquante ou invalide. |
+| 403 | Scope `reference.medical_acts.view` manquant. |

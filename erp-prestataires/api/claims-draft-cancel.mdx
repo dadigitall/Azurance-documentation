@@ -1,0 +1,41 @@
+---
+title: "Annuler un brouillon de claim"
+description: "Supprime un brouillon de claim en statut draft. Action irréversible."
+openapi: "/openapi/provider-api.openapi.yml DELETE /api/v1/claims/{claimId}/draft"
+---
+
+Cet endpoint annule définitivement un brouillon de claim. Le claim doit être en statut `draft`. Cette action est irréversible.
+
+## Scope requis
+
+`claims.create`
+
+## Paramètres de chemin
+
+| Paramètre | Type | Requis | Description |
+| --- | --- | --- | --- |
+| `claimId` | string | oui | Identifiant du claim en brouillon. |
+
+## Exemple de requête
+
+```bash
+curl --request DELETE \
+  --url "https://provider-api-sandbox.elenami.com/api/v1/claims/claim_sandbox_draft_001/draft" \
+  --header "X-Api-Key: $AZURANCE_PROVIDER_API_KEY"
+```
+
+## Exemple de réponse
+
+```json
+{
+  "message": "Draft claim cancelled"
+}
+```
+
+## Erreurs
+
+| Code | Description |
+| --- | --- |
+| 401 | Clé API manquante ou invalide. |
+| 403 | Scope `claims.create` manquant. |
+| 404 | Claim introuvable ou n'est pas un brouillon. |

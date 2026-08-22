@@ -1,0 +1,71 @@
+---
+title: "Consulter une pathologie"
+description: "Retourne le détail d'une pathologie du référentiel CIM-10."
+openapi: "/openapi/insurer-api.openapi.yml GET /api/v1/reference/pathologies/{identifier}"
+---
+
+Cet endpoint retourne le détail d'une pathologie spécifique à partir de son identifiant. L'identifiant peut être un code CIM-10 (ex. `I10`) ou l'identifiant UUID public de la pathologie.
+
+## Scope requis
+
+`reference.pathologies.view`
+
+## Paramètre de chemin
+
+| Paramètre | Type | Requis | Description |
+| --- | --- | --- | --- |
+| `identifier` | string | oui | Code CIM-10 (ex. `I10`) ou identifiant UUID de la pathologie. |
+
+## Champs de réponse (`Pathology`)
+
+| Champ | Type | Description |
+| --- | --- | --- |
+| `uid` | uuid | Identifiant public de la pathologie. |
+| `icd10_code` | string | Code CIM-10 de la pathologie (ex. `I10`, `J45.0`). |
+| `chapter_code` | string | Code du chapitre CIM-10 (ex. `I`, `J`). |
+| `chapter_label` | string | Libellé du chapitre CIM-10. |
+| `block_code` | string\|null | Code du bloc CIM-10. |
+| `block_label` | string\|null | Libellé du bloc CIM-10. |
+| `icd11_code` | string\|null | Code CIM-11 correspondant. |
+| `icd11_entity_id` | string\|null | Identifiant d'entité CIM-11. |
+| `label_fr` | string | Libellé en français de la pathologie. |
+| `label_en` | string\|null | Libellé en anglais de la pathologie. |
+| `is_billable` | boolean | Indique si la pathologie est facturable. |
+| `is_active` | boolean | Indique si la pathologie est active dans le référentiel. |
+| `synced_at` | string\|null | Date de dernière synchronisation (ISO 8601). |
+
+## Exemple de requête
+
+```
+GET /api/v1/reference/pathologies/I10
+```
+
+## Exemple de réponse
+
+```json
+{
+  "data": {
+    "uid": "7a1f2c3e-4b5d-4a6e-9c8b-1d2e3f4a5b6c",
+    "icd10_code": "I10",
+    "chapter_code": "I",
+    "chapter_label": "Maladies de l'appareil circulatoire",
+    "block_code": "I10-I15",
+    "block_label": "Maladies hypertensives",
+    "icd11_code": "BA00",
+    "icd11_entity_id": "1234567890",
+    "label_fr": "Hypertension essentielle (primitive)",
+    "label_en": "Essential (primary) hypertension",
+    "is_billable": true,
+    "is_active": true,
+    "synced_at": "2025-01-14T08:30:00Z"
+  }
+}
+```
+
+## Erreurs
+
+| Code | Description |
+| --- | --- |
+| 401 | Clé API manquante ou invalide. |
+| 403 | Scope `reference.pathologies.view` manquant. |
+| 404 | Pathologie introuvable. |

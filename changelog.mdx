@@ -6,6 +6,21 @@ icon: "list"
 
 Suivez les changements de contrat public, les nouvelles pages et les corrections importantes.
 
+## 2026-08-22 - Synchronisation automatique BFF ↔ documentation
+
+### ERP Prestataires
+
+- **Dépréciation** de `POST /api/v1/claims` : remplacé par le workflow en deux étapes `POST /api/v1/claims/draft` puis `POST /api/v1/claims/{claimId}/submit`. L'endpoint déprécié sera retiré dans une prochaine version.
+- **Ajout** du workflow de brouillon de claim : `POST /api/v1/claims/draft` (création), `GET /api/v1/claims/{claimId}/draft` (consultation), `POST /api/v1/claims/{claimId}/submit` (soumission avec check final), `DELETE /api/v1/claims/{claimId}/draft` (annulation).
+- **Ajout** des endpoints `GET /api/v1/reference/medical-acts/chapters` et `GET /api/v1/reference/medical-acts/chapter/{chapterNo}` pour lister les chapitres des actes médicaux (ICHI et CCAM).
+
+### ERP Assurances
+
+- **Correction** du chemin `GET /api/v1/plans/{planId}` → `GET /api/v1/plans/{code}` : le paramètre de chemin est désormais `code` (le `plan_code` métier), aligné avec le BFF réel. Les opérations `PUT` et `DELETE` conservent `{planId}` (UUID).
+- **Ajout** des endpoints de référentiel clinique côté assureur : `GET /api/v1/reference/medical-acts/{search,export,categories,category/{category},chapters,chapter/{chapterNo},{identifier}}`, `GET /api/v1/reference/medications/{,search,export,{uid}}`, `GET /api/v1/reference/pathologies/{search,export,chapters,chapter/{chapterCode},{identifier}}`.
+- **Ajout** de la page `PUT /api/v1/claims/{claimId}/status` (alias strict de `PATCH`, même comportement).
+- **Ajout** du schéma `MedicationProduct` dans l'OpenAPI assureur pour les endpoints de référentiel médicaments.
+
 ## 2026-08-12 - Nouveaux endpoints prestataire : portrait, référentiels cliniques et refonte du path prescriptions
 
 - Ajout de `GET /api/v1/covered-persons/{coveredPersonUid}/portrait` pour récupérer le portrait biométrique d'une personne couverte via une URL signée à courte durée.

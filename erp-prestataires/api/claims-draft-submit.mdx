@@ -1,0 +1,67 @@
+---
+title: "Soumettre un brouillon de claim"
+description: "Soumet un brouillon : check final, réservation des plafonds et passage en submitted."
+openapi: "/openapi/provider-api.openapi.yml POST /api/v1/claims/{claimId}/submit"
+---
+
+Cet endpoint soumet un brouillon de claim : il effectue le check final d'éligibilité, calcule les plafonds applicables, réserve les montants et fait passer le claim en statut `submitted`. Le `consent_ref` est requis pour valider le consentement fort associé. Aucun claim n'est soumis si le check final est refusé.
+
+## Scope requis
+
+`claims.create`
+
+## Paramètres de chemin
+
+| Paramètre | Type | Requis | Description |
+| --- | --- | --- | --- |
+| `claimId` | string | oui | Identifiant du claim en brouillon. |
+
+## Champs du body
+
+| Champ | Type | Requis | Description |
+| --- | --- | --- | --- |
+| `consent_ref` | uuid | oui | Référence du consentement fort validé. |
+
+## Exemple de requête
+
+```bash
+curl --request POST \
+  --url "https://provider-api-sandbox.elenami.com/api/v1/claims/claim_sandbox_draft_001/submit" \
+  --header "X-Api-Key: $AZURANCE_PROVIDER_API_KEY" \
+  --header "Content-Type: application/json" \
+  --data '{
+    "consent_ref": "a1b2c3d4-0000-4000-8000-000000000001"
+  }'
+```
+
+## Exemple de réponse
+
+```json
+{
+  "data": {
+    "uuid": "claim_sandbox_draft_001",
+    "claim_number": "CLM-2026-001234",
+    "status": "submitted",
+    "amount_claimed": 50000,
+    "amount_approved": null,
+    "currency": "XOF"
+  }
+}
+```
+
+## Workflow
+
+1. Créer un brouillon via `POST /api/v1/claims/draft`.
+2. Attacher les documents justificatifs via `POST /api/v1/claims/{claimId}/documents`.
+3. Soumettre le brouillon via cet endpoint avec le `consent_ref`.
+4. Suivre le statut via `GET /api/v1/claims/{claimId}`.
+
+## Erreurs
+
+| Code | Description |
+| --- | --- |
+| 401 | Clé API manquante ou invalide. |
+| 403 | Scope `claims.create` manquant. |
+| 404 | Claim introuvable ou n'est pas un brouillon. |
+| 422 | Check final refusé, claim non soumis. |
+| 503 | Service interne indisponible, réessayer avec backoff sur `5xx`. |
