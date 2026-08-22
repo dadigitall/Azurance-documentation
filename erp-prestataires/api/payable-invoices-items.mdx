@@ -1,10 +1,10 @@
 ---
 title: "Lignes d'une facture"
-description: "Liste les lignes d'une facture à payer."
+description: "Liste paginée des lignes d'un bordereau payable."
 openapi: "/openapi/provider-api.openapi.yml GET /api/v1/payable-invoices/{uuid}/items"
 ---
 
-Cet endpoint liste les lignes d'un bordereau payable : chaque ligne correspond à un claim ou une prestation remboursable rattaché au bordereau. Il est utilisé pour le rapprochement fin entre les prestations effectuées et les remboursements reçus.
+Cet endpoint liste **uniquement les lignes** d'un bordereau payable, avec **pagination**. Chaque ligne correspond à un claim ou une prestation remboursable rattaché au bordereau. Il est utilisé pour le rapprochement fin entre les prestations effectuées et les remboursements reçus, page par page.
 
 ## Scope requis
 
@@ -15,6 +15,15 @@ Cet endpoint liste les lignes d'un bordereau payable : chaque ligne correspond �
 | Paramètre | Type | Description |
 | --- | --- | --- |
 | `uuid` | uuid | Identifiant du bordereau payable. |
+
+## Différence avec `payable-invoices-get`
+
+| Endpoint | Lignes incluses | Pagination | Cas d'usage |
+| --- | --- | --- | --- |
+| **Détail** (`payable-invoices-get`) | Oui, toutes d'un coup | Non | Afficher le bordereau complet en un seul appel. |
+| **Lignes** (cette page) | Uniquement les lignes | Oui, par page | Paginer les lignes d'un bordereau volumineux. |
+
+En pratique : utilisez cet endpoint uniquement quand le bordereau a trop de lignes et que le détail complet devient trop lourd. Pour un affichage standard, préférez `payable-invoices-get` qui retourne tout en un seul appel.
 
 ## Réponse
 

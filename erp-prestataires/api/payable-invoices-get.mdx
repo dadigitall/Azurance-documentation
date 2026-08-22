@@ -1,10 +1,10 @@
 ---
 title: "Consulter une facture payable"
-description: "Retourne le détail d'un bordereau payable."
+description: "Retourne le détail d'un bordereau payable, avec ses lignes embarquées."
 openapi: "/openapi/provider-api.openapi.yml GET /api/v1/payable-invoices/{uuid}"
 ---
 
-Cet endpoint retourne les informations détaillées d'un bordereau payable : montant total, devise, statut, date d'émission et lignes rattachées. Il complète la liste des bordereaux en apportant la lecture unitaire d'une facture.
+Cet endpoint retourne les informations détaillées d'un bordereau payable : montant total, devise, statut, date d'émission **et les lignes rattachées embarquées dans la même réponse** (sans pagination). Il complète la liste des bordereaux en apportant la lecture unitaire d'une facture.
 
 ## Scope requis
 
@@ -18,7 +18,16 @@ Cet endpoint retourne les informations détaillées d'un bordereau payable : mon
 
 ## Réponse
 
-La réponse contient les informations du bordereau : `uuid`, `invoice_number`, `total_amount`, `currency`, `status`, `issued_at`, `settled_at` et les métadonnées associées.
+La réponse contient les informations du bordereau : `uuid`, `invoice_number`, `total_amount`, `currency`, `status`, `issued_at`, `settled_at`, les métadonnées associées **et un tableau `items` avec toutes les lignes**.
+
+## Différence avec `payable-invoices-items`
+
+| Endpoint | Lignes incluses | Pagination | Cas d'usage |
+| --- | --- | --- | --- |
+| **Détail** (cette page) | Oui, toutes d'un coup | Non | Afficher le bordereau complet en un seul appel. |
+| **Lignes** (`/items`) | Uniquement les lignes | Oui, par page | Paginer les lignes d'un bordereau volumineux. |
+
+En pratique : utilisez le **détail** pour afficher un bordereau dans un UI. S'il a trop de lignes et que la réponse devient lourde, basculez sur l'endpoint **lignes** pour paginer.
 
 ## Exemple de réponse
 

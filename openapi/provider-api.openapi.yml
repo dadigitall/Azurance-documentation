@@ -8,8 +8,8 @@ info:
 servers:
   - url: https://provider-api-sandbox.elenami.com
     description: Sandbox publique
-  - url: http://localhost:3101
-    description: Développement local
+  - url: https://provider-api.elenami.com
+    description: Production
 security:
   - ApiKeyAuth: []
 components:
@@ -1606,66 +1606,6 @@ paths:
         '201':
           description: Média créé
   /api/v1/claims:
-    post:
-      operationId: submitClaim
-      summary: Soumettre un claim après recheck final obligatoire
-      deprecated: true
-      description: >-
-        ⚠️ Déprécié. Utilisez le workflow en deux étapes : `POST /api/v1/claims/draft`
-        pour créer un brouillon, puis `POST /api/v1/claims/{claimId}/submit` pour
-        le soumettre après vérification. Cet endpoint sera retiré dans une prochaine version.
-      parameters:
-        - $ref: '#/components/parameters/RequestId'
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [subscription_id, policyholder_id, coverage_type_code, service_date, amount_claimed, currency, items]
-              properties:
-                subscription_id:
-                  type: string
-                service_execution_uid:
-                  type: string
-                  format: uuid
-                prior_authorization_uid:
-                  type: string
-                  format: uuid
-                covered_person_type:
-                  type: string
-                  enum: [policyholder, beneficiary]
-                covered_person_uid:
-                  type: string
-                consent_ref:
-                  type: string
-                  format: uuid
-                policyholder_id:
-                  type: string
-                coverage_type_code:
-                  type: string
-                service_date:
-                  type: string
-                  format: date
-                amount_claimed:
-                  type: number
-                currency:
-                  type: string
-                  example: XOF
-                precheck_eligibility_uuid:
-                  type: string
-                  format: uuid
-                items:
-                  type: array
-                  items:
-                    $ref: '#/components/schemas/MedicationReferenceLine'
-      responses:
-        '201':
-          description: Claim créé
-        '422':
-          description: Check final refusé, aucun claim créé
-        '503':
-          description: Service interne indisponible, aucun claim créé
     get:
       operationId: listClaims
       summary: Lister les claims du prestataire lié à la clé API

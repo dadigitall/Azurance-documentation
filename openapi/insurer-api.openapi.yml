@@ -12,8 +12,8 @@ info:
 servers:
 - url: https://insurer-api-sandbox.elenami.com
   description: Sandbox publique
-- url: http://localhost:3102
-  description: Développement local
+- url: https://insurer-api.elenami.com
+  description: Production
 security:
 - ApiKeyAuth: []
 components:

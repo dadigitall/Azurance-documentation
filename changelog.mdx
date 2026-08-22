@@ -10,7 +10,7 @@ Suivez les changements de contrat public, les nouvelles pages et les corrections
 
 ### ERP Prestataires
 
-- **Dépréciation** de `POST /api/v1/claims` : remplacé par le workflow en deux étapes `POST /api/v1/claims/draft` puis `POST /api/v1/claims/{claimId}/submit`. L'endpoint déprécié sera retiré dans une prochaine version.
+- **Retrait définitif** de `POST /api/v1/claims` : remplacé par le workflow en deux étapes `POST /api/v1/claims/draft` puis `POST /api/v1/claims/{claimId}/submit`. L'ancien endpoint et sa page de référence ont été supprimés.
 - **Ajout** du workflow de brouillon de claim : `POST /api/v1/claims/draft` (création), `GET /api/v1/claims/{claimId}/draft` (consultation), `POST /api/v1/claims/{claimId}/submit` (soumission avec check final), `DELETE /api/v1/claims/{claimId}/draft` (annulation).
 - **Ajout** des endpoints `GET /api/v1/reference/medical-acts/chapters` et `GET /api/v1/reference/medical-acts/chapter/{chapterNo}` pour lister les chapitres des actes médicaux (ICHI et CCAM).
 

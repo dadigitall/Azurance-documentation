@@ -144,7 +144,6 @@
               "erp-prestataires/api/reference-pathologies-get",
               "erp-prestataires/api/service-executions-create",
               "erp-prestataires/api/service-executions-list",
-              "erp-prestataires/api/claims-create",
               "erp-prestataires/api/claims-draft-create",
               "erp-prestataires/api/claims-draft-get",
               "erp-prestataires/api/claims-draft-submit",

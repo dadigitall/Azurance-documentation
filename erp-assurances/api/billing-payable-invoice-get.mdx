@@ -1,10 +1,10 @@
 ---
 title: "Détail d'une facture"
-description: "Récupère le détail d'une facture à payer."
+description: "Récupère le détail d'une facture à payer, avec ses lignes embarquées."
 openapi: "/openapi/insurer-api.openapi.yml GET /api/v1/billing/payable-invoices/{uuid}"
 ---
 
-Cet endpoint récupère le détail d'une facture à payer : prestataire émetteur, montant, statut et échéance.
+Cet endpoint récupère le détail complet d'une facture à payer : prestataire émetteur, montant, statut, échéance **et les lignes de la facture embarquées dans la même réponse** (sans pagination).
 
 ## Scope requis
 
@@ -35,7 +35,16 @@ Cet endpoint récupère le détail d'une facture à payer : prestataire émetteu
 | `period_start` | string | Début de période facturée. |
 | `period_end` | string | Fin de période facturée. |
 | `issued_at` | string | Date d'émission au format ISO 8601. |
-| `items` | array | Lignes de la facture (voir `billing-payable-invoice-items`). |
+| `items` | array | Lignes de la facture, embarquées **sans pagination**. Pour paginer les lignes d'une facture volumineuse, utilisez `billing-payable-invoice-items`. |
+
+## Différence avec `billing-payable-invoice-items`
+
+| Endpoint | Lignes incluses | Pagination | Cas d'usage |
+| --- | --- | --- | --- |
+| **Détail** (cette page) | Oui, toutes d'un coup | Non | Afficher la facture complète en un seul appel. |
+| **Lignes** (`/items`) | Uniquement les lignes | Oui, par curseur (100/page) | Paginer les lignes d'une facture à plusieurs centaines de lignes. |
+
+En pratique : utilisez le **détail** pour afficher une facture dans un UI. Si elle a trop de lignes et que la réponse devient lourde, basculez sur l'endpoint **lignes** pour paginer.
 
 ## Cas d'usage
 
@@ -45,7 +54,7 @@ Cet endpoint récupère le détail d'une facture à payer : prestataire émetteu
 
 ## Bonnes pratiques
 
-Pour consulter les lignes détaillées de la facture, utilisez `billing-payable-invoice-items`. Pour enregistrer un règlement, utilisez `billing-payment-create` avec une allocation sur cette facture.
+Pour enregistrer un règlement, utilisez `billing-payment-create` avec une allocation sur cette facture.
 
 ## Exemple de réponse
 

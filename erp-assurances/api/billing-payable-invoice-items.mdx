@@ -1,10 +1,10 @@
 ---
 title: "Lignes d'une facture"
-description: "Liste les lignes d'une facture à payer."
+description: "Liste paginée des lignes d'une facture à payer."
 openapi: "/openapi/insurer-api.openapi.yml GET /api/v1/billing/payable-invoices/{uuid}/items"
 ---
 
-Cet endpoint liste les lignes d'une facture à payer. Chaque ligne correspond à un acte ou une prestation facturée par le prestataire.
+Cet endpoint liste **uniquement les lignes** d'une facture à payer, avec **pagination par curseur** (100 lignes par page). Chaque ligne correspond à un acte ou une prestation facturée par le prestataire.
 
 ## Scope requis
 
@@ -16,11 +16,18 @@ Cet endpoint liste les lignes d'une facture à payer. Chaque ligne correspond à
 | --- | --- | --- | --- |
 | `uuid` | string | oui | Identifiant unique de la facture. |
 
+## Paramètres de requête
+
+| Paramètre | Type | Requis | Défaut | Description |
+| --- | --- | --- | --- | --- |
+| `limit` | integer | non | 100 | Nombre de lignes par page. |
+| `cursor` | string | non | — | Curseur de pagination (valeur de `meta.next_cursor` de la page précédente). |
+
 ## Réponse
 
 | Champ | Type | Description |
 | --- | --- | --- |
-| `data` | array | Liste des lignes. |
+| `data` | array | Liste des lignes (page courante). |
 | `data[].uuid` | string | Identifiant de la ligne. |
 | `data[].payable_invoice_uuid` | string | Identifiant de la facture rattachée. |
 | `data[].claim_uuid` | string | Identifiant du claim associé. |
@@ -34,17 +41,26 @@ Cet endpoint liste les lignes d'une facture à payer. Chaque ligne correspond à
 | `data[].paid_amount` | number | Montant réglé. |
 | `data[].remaining_amount` | number | Reste à régler. |
 | `data[].currency` | string | Devise. |
-| `meta` | object | Métadonnées de pagination. |
+| `meta` | object | Métadonnées de pagination (curseur suivant). |
+
+## Différence avec `billing-payable-invoice-get`
+
+| Endpoint | Lignes incluses | Pagination | Cas d'usage |
+| --- | --- | --- | --- |
+| **Détail** (`billing-payable-invoice-get`) | Oui, toutes d'un coup | Non | Afficher la facture complète en un seul appel. |
+| **Lignes** (cette page) | Uniquement les lignes | Oui, par curseur (100/page) | Paginer les lignes d'une facture volumineuse. |
+
+En pratique : utilisez cet endpoint uniquement quand la facture a trop de lignes et que le détail complet devient trop lourd. Pour un affichage standard, préférez `billing-payable-invoice-get` qui retourne tout en un seul appel.
 
 ## Cas d'usage
 
-- Vérifier le détail des actes avant de valider un paiement.
-- Contrôler la cohérence entre lignes et claims associés.
+- Vérifier le détail des actes avant de valider un paiement, page par page.
+- Contrôler la cohérence entre lignes et claims associés sur une facture volumineuse.
 - Préparer une contestation sur une ligne incorrecte.
 
 ## Bonnes pratiques
 
-Le total des lignes doit correspondre au montant de la facture. En cas d'écart, ouvrez un litige plutôt que de payer un montant incohérent. Pour le détail de la facture, utilisez `billing-payable-invoice-get`.
+Le total des lignes doit correspondre au montant de la facture. En cas d'écart, ouvrez un litige plutôt que de payer un montant incohérent.
 
 ## Exemple de réponse
 
