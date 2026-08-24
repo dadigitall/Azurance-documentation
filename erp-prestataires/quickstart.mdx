@@ -152,6 +152,8 @@ POST /api/v1/encounters
 }
 ```
 
+Au moins un diagnostic doit être fourni à la création : un tableau `icd10_codes` contenant au moins un code, ou un `chief_complaint` non vide. Pour ajouter un diagnostic structuré plus tard, utilisez `POST /api/v1/encounters/{encounterId}/diagnoses`.
+
 Les laboratoires, pharmacies et autres prestataires peuvent rattacher leurs documents au parcours clinique lorsque la prestation découle d'une consultation ou d'une prescription.
 
 ## 8. Enregistrer la prestation effectuée

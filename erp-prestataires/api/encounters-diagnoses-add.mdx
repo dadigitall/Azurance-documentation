@@ -1,0 +1,59 @@
+---
+title: "Ajouter un diagnostic à une consultation"
+description: "Ajoute un diagnostic CIM-10 structuré à une consultation."
+openapi: "/openapi/provider-api.openapi.yml POST /api/v1/encounters/{encounterId}/diagnoses"
+---
+
+Ajoutez un diagnostic structuré après la création d'une consultation ou lorsque le diagnostic est précisé pendant le parcours de soins. Le code `icd10_code` doit exister dans le référentiel des pathologies Azurance.
+
+## Scope requis
+
+`clinical.encounters.manage`
+
+## Paramètre de chemin
+
+| Paramètre | Type | Requis | Description |
+| --- | --- | --- | --- |
+| `encounterId` | uuid | oui | Identifiant public de la consultation. |
+
+## Champs du body
+
+| Champ | Type | Requis | Description |
+| --- | --- | --- | --- |
+| `icd10_code` | string | oui | Code CIM-10 du diagnostic, jusqu'à 10 caractères. |
+| `is_primary` | boolean | non | Indique le diagnostic principal. Un seul diagnostic est principal par consultation. Défaut : `false`. |
+| `diagnosis_type` | string | non | `definitive`, `provisional` ou `differential`. |
+
+## Exemple de requête
+
+```json
+{
+  "icd10_code": "J06.9",
+  "is_primary": true,
+  "diagnosis_type": "definitive"
+}
+```
+
+## Réponse
+
+La réponse `200` retourne la liste des diagnostics liés à la consultation, avec le libellé français et anglais, le chapitre CIM-10 et les métadonnées de diagnostic.
+
+```json
+{
+  "data": [
+    {
+      "uid": "8b7c6d5e-0000-4000-8000-000000000031",
+      "icd10_code": "J06.9",
+      "icd11_code": null,
+      "label_fr": "Infection aiguë des voies respiratoires supérieures",
+      "label_en": "Acute upper respiratory infection, unspecified",
+      "chapter_code": "J",
+      "chapter_label": "Maladies de l'appareil respiratoire",
+      "is_primary": true,
+      "diagnosis_type": "definitive"
+    }
+  ]
+}
+```
+
+Un code absent du référentiel retourne `422`. Une consultation absente du périmètre de la clé retourne `404`. La mise à `true` de `is_primary` retire automatiquement ce statut à l'ancien diagnostic principal.

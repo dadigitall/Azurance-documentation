@@ -150,6 +150,37 @@ components:
           type: string
           format: uuid
           nullable: true
+    EncounterDiagnosis:
+      type: object
+      description: Diagnostic CIM-10 rattaché à une consultation.
+      properties:
+        uid:
+          type: string
+          format: uuid
+        icd10_code:
+          type: string
+          description: Code CIM-10 du référentiel Azurance.
+        icd11_code:
+          type: string
+          nullable: true
+        label_fr:
+          type: string
+          nullable: true
+        label_en:
+          type: string
+          nullable: true
+        chapter_code:
+          type: string
+          nullable: true
+        chapter_label:
+          type: string
+          nullable: true
+        is_primary:
+          type: boolean
+        diagnosis_type:
+          type: string
+          nullable: true
+          enum: [definitive, provisional, differential]
     ProviderNetworkRelationship:
       type: object
       description: Relation conventionnelle entre le prestataire authentifié par X-Api-Key et une compagnie d'assurance.
@@ -357,7 +388,7 @@ paths:
     post:
       operationId: requestPriorAuthorization
       summary: Demander une préautorisation de prestation
-      description: Crée une demande formelle de prévalidation avant exécution, par exemple proforma de kinésithérapie ou matériel médical.
+      description: Nécessite le scope prior_authorizations.create. Crée une demande formelle de prévalidation avant exécution, par exemple proforma de kinésithérapie ou matériel médical.
       x-codeSamples:
         - lang: curl
           source: |
@@ -415,6 +446,7 @@ paths:
     get:
       operationId: listPriorAuthorizations
       summary: Lister les préautorisations du prestataire
+      description: Nécessite le scope prior_authorizations.view.
       x-codeSamples:
         - lang: curl
           source: |
@@ -435,6 +467,7 @@ paths:
     get:
       operationId: getPriorAuthorization
       summary: Consulter une préautorisation
+      description: Nécessite le scope prior_authorizations.view.
       parameters:
         - in: path
           name: uid
@@ -447,6 +480,7 @@ paths:
     post:
       operationId: attachPriorAuthorizationDocument
       summary: Ajouter une pièce à une préautorisation
+      description: Nécessite le scope prior_authorizations.documents.
       parameters:
         - in: path
           name: uid
@@ -459,6 +493,7 @@ paths:
     post:
       operationId: cancelPriorAuthorization
       summary: Annuler une préautorisation
+      description: Nécessite le scope prior_authorizations.cancel.
       parameters:
         - in: path
           name: uid
@@ -2222,16 +2257,22 @@ paths:
                   nullable: true
                 icd10_codes:
                   type: array
+                  minItems: 1
                   items:
                     type: string
                 chief_complaint:
                   type: string
+                  minLength: 1
+                  maxLength: 500
                 clinical_summary:
                   type: string
                 department:
                   type: string
                 attending_physician:
                   type: string
+              anyOf:
+                - required: [icd10_codes]
+                - required: [chief_complaint]
             example:
               insured_uid: 9a1b2c3d-4e5f-4061-8f2a-1b2c3d4e5f60
               encounter_type: consultation
@@ -2286,6 +2327,84 @@ paths:
           description: Détail de la consultation
         '401':
           description: API key absente ou invalide
+        '403':
+          description: Scope clinical.encounters.view insuffisant
+        '404':
+          description: Consultation introuvable
+  /api/v1/encounters/{encounterId}/diagnoses:
+    post:
+      operationId: addEncounterDiagnosis
+      summary: Ajouter un diagnostic structuré à une consultation
+      description: Nécessite le scope clinical.encounters.manage. Le code doit exister dans le référentiel CIM-10 Azurance.
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - in: path
+          name: encounterId
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [icd10_code]
+              properties:
+                icd10_code:
+                  type: string
+                  maxLength: 10
+                  description: Code CIM-10 présent dans le référentiel pathologies.
+                is_primary:
+                  type: boolean
+                  default: false
+                  description: Marque ce diagnostic comme principal. Un seul diagnostic est principal par consultation.
+                diagnosis_type:
+                  type: string
+                  enum: [definitive, provisional, differential]
+              example:
+                icd10_code: J06.9
+                is_primary: true
+                diagnosis_type: definitive
+      responses:
+        '200':
+          description: Liste des diagnostics de la consultation après ajout
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/EncounterDiagnosis'
+        '403':
+          description: Scope clinical.encounters.manage insuffisant
+        '404':
+          description: Consultation introuvable
+        '422':
+          description: Body invalide ou code CIM-10 absent du référentiel
+    get:
+      operationId: listEncounterDiagnoses
+      summary: Lister les diagnostics structurés d'une consultation
+      description: Nécessite le scope clinical.encounters.view.
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+        - in: path
+          name: encounterId
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Diagnostics CIM-10 liés à la consultation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/EncounterDiagnosis'
         '403':
           description: Scope clinical.encounters.view insuffisant
         '404':

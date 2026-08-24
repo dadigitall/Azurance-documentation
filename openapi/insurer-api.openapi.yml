@@ -1781,6 +1781,126 @@ components:
         decision_reason:
           type: string
           nullable: true
+    ClaimClinicalContext:
+      type: object
+      description: Contexte clinique normalisé utilisé pour la revue d'un claim.
+      properties:
+        claim_uuid:
+          type: string
+          format: uuid
+        covered_person_uid:
+          type: string
+          nullable: true
+        encounters:
+          type: array
+          items:
+            $ref: '#/components/schemas/ClinicalEncounterContext'
+        prescriptions:
+          type: array
+          items:
+            $ref: '#/components/schemas/ClinicalPrescriptionContext'
+        warnings:
+          type: array
+          description: Éléments cliniques non récupérés; ces avertissements ne bloquent pas la réponse.
+          items:
+            type: object
+            additionalProperties: true
+    ClinicalEncounterContext:
+      type: object
+      properties:
+        uid:
+          type: string
+          format: uuid
+        encounter_type:
+          type: string
+          nullable: true
+        encounter_date:
+          type: string
+          nullable: true
+        discharge_date:
+          type: string
+          nullable: true
+        icd10_codes:
+          type: array
+          items:
+            type: string
+        chief_complaint:
+          type: string
+          nullable: true
+        clinical_summary:
+          type: string
+          nullable: true
+        department:
+          type: string
+          nullable: true
+        attending_physician:
+          type: string
+          nullable: true
+        status:
+          type: string
+          nullable: true
+        diagnoses:
+          type: array
+          items:
+            $ref: '#/components/schemas/ClinicalDiagnosisContext'
+        prescriptions:
+          type: array
+          items:
+            $ref: '#/components/schemas/ClinicalPrescriptionContext'
+    ClinicalDiagnosisContext:
+      type: object
+      properties:
+        icd10_code:
+          type: string
+        label:
+          type: string
+          nullable: true
+        is_primary:
+          type: boolean
+        diagnosis_type:
+          type: string
+          nullable: true
+    ClinicalPrescriptionContext:
+      type: object
+      properties:
+        uid:
+          type: string
+          format: uuid
+        prescriber_name:
+          type: string
+          nullable: true
+        prescriber_registration_number:
+          type: string
+          nullable: true
+        issued_at:
+          type: string
+          nullable: true
+        valid_until:
+          type: string
+          nullable: true
+        clinical_notes:
+          type: string
+          nullable: true
+        prescription_type:
+          type: string
+          nullable: true
+        status:
+          type: string
+          nullable: true
+        lines:
+          type: array
+          items:
+            type: object
+            properties:
+              uid: { type: string, format: uuid }
+              code: { type: string, nullable: true }
+              label: { type: string, nullable: true }
+              dosage: { type: string, nullable: true }
+              frequency: { type: string, nullable: true }
+              duration: { type: string, nullable: true }
+              quantity: { type: number, nullable: true }
+              instructions: { type: string, nullable: true }
+              indication: { type: string, nullable: true }
     PriorAuthorization:
       type: object
       description: Demande de prévalidation prestataire à revoir par la compagnie
@@ -2907,7 +3027,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/AuthError'
         '403':
-          description: Scope `insurer.prior_authorizations.view` manquant
+          description: Scope `insurer.prior_authorizations.manage` manquant
           content:
             application/json:
               schema:
@@ -4321,6 +4441,64 @@ paths:
                 $ref: '#/components/schemas/Error'
               example:
                 message: No query results for model [App\Models\Claim] 7c3f9e10-2b4a-4f61-9d3e-1a2b3c4d5e6f
+  /api/v1/claims/{claimId}/clinical-context:
+    get:
+      operationId: getClaimClinicalContext
+      summary: Récupérer le contexte clinique d'un claim
+      description: >
+        Retourne les consultations, diagnostics et prescriptions rattachés aux prescriptions
+        référencées par les lignes du claim. Les éléments indisponibles sont signalés dans
+        `warnings` afin de ne pas bloquer la revue du claim.
+      parameters:
+      - $ref: '#/components/parameters/RequestId'
+      - $ref: '#/components/parameters/ClaimId'
+      responses:
+        '200':
+          description: Contexte clinique normalisé pour la revue du claim
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClaimClinicalContext'
+              example:
+                claim_uuid: 7c3f9e10-2b4a-4f61-9d3e-1a2b3c4d5e6f
+                covered_person_uid: mbr_sandbox_001
+                encounters:
+                - uid: 7a8b9c0d-0000-4000-8000-000000000041
+                  encounter_type: consultation
+                  encounter_date: '2026-08-15'
+                  discharge_date: null
+                  icd10_codes: [J06.9]
+                  chief_complaint: Fièvre et toux persistante
+                  clinical_summary: Infection respiratoire haute sans signe de gravité.
+                  department: médecine générale
+                  attending_physician: Dr. KOUASSI
+                  status: null
+                  diagnoses:
+                  - icd10_code: J06.9
+                    label: Infection aiguë des voies respiratoires supérieures
+                    is_primary: true
+                    diagnosis_type: definitive
+                  prescriptions: []
+                prescriptions: []
+                warnings: []
+        '401':
+          description: En-tête X-Api-Key manquant ou invalide
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthError'
+        '403':
+          description: Scope insurer.claims.view insuffisant
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthError'
+        '404':
+          description: Aucun claim avec cet UUID pour ce tenant
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
   /api/v1/claims/{claimId}/status:
     put:
       operationId: updateClaimStatusPut

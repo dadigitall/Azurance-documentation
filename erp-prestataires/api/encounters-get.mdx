@@ -18,7 +18,7 @@ Cet endpoint retourne le détail complet d'une consultation, incluant les actes 
 
 ## Réponse
 
-La réponse contient les informations de la consultation (`encounter_type`, `encounter_date`, `chief_complaint`, `clinical_summary`) ainsi que les listes d'actes médicaux, d'ordonnances et de documents associées (chargées si disponibles).
+La réponse contient les informations de la consultation (`encounter_type`, `encounter_date`, `chief_complaint`, `clinical_summary`) ainsi que les listes d'actes médicaux, d'ordonnances et de documents associées (chargées si disponibles). Les diagnostics structurés se consultent avec `GET /api/v1/encounters/{encounterId}/diagnoses`.
 
 ## Chiffrement
 

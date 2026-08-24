@@ -27,6 +27,26 @@ POST /api/v1/encounters
 
 Types courants: `consultation`, `hospitalization`, `emergency`, `surgery`, `procedure`, `imaging`, `laboratory`.
 
+Une consultation doit contenir au moins un diagnostic : `icd10_codes` avec au moins un code, ou `chief_complaint` non vide. Les deux champs peuvent être fournis ensemble.
+
+## Gérer les diagnostics structurés
+
+Pour ajouter un diagnostic CIM-10 après la création de la consultation :
+
+```http
+POST /api/v1/encounters/{encounterId}/diagnoses
+```
+
+```json
+{
+  "icd10_code": "J06.9",
+  "is_primary": true,
+  "diagnosis_type": "definitive"
+}
+```
+
+Le code doit appartenir au référentiel des pathologies. Utilisez `GET /api/v1/encounters/{encounterId}/diagnoses` pour relire les diagnostics associés et identifier le diagnostic principal.
+
 ## Ajouter un acte médical
 
 ```http

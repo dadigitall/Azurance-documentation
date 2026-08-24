@@ -30,11 +30,13 @@ Cet endpoint déclare une nouvelle consultation ou hospitalisation dans le dossi
 | `encounter_type` | string | oui | Type de consultation (voir ci-dessus). |
 | `encounter_date` | date | oui | Date de la consultation. |
 | `discharge_date` | date | non | Date de sortie (hospitalisation uniquement). |
-| `icd10_codes` | array | non | Codes CIM-10 associés au diagnostic. |
-| `chief_complaint` | string | non | Motif de consultation (max 500). |
+| `icd10_codes` | array | conditionnel | Au moins un code CIM-10 si `chief_complaint` est absent ou vide. |
+| `chief_complaint` | string | conditionnel | Motif de consultation (max 500) si `icd10_codes` est absent ou vide. |
 | `clinical_summary` | string | non | Résumé clinique (antécédents, examen, conclusion, max 5000). |
 | `department` | string | non | Service ou département (ex: `cardiologie`, `urgences`). |
 | `attending_physician` | string | non | Médecin ou praticien responsable. |
+
+`icd10_codes` ou `chief_complaint` doit être fourni. Les deux peuvent être envoyés ensemble, mais un tableau vide et un motif vide ne sont pas acceptés.
 
 ## Chiffrement
 

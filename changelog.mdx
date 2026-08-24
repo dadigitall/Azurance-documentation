@@ -6,6 +6,19 @@ icon: "list"
 
 Suivez les changements de contrat public, les nouvelles pages et les corrections importantes.
 
+## 2026-08-24 - Diagnostic structuré et contexte clinique de revue
+
+### ERP Prestataires
+
+- Le body de `POST /api/v1/encounters` exige désormais au moins un diagnostic CIM-10 ou un `chief_complaint` non vide.
+- Ajout de `POST /api/v1/encounters/{encounterId}/diagnoses` et `GET /api/v1/encounters/{encounterId}/diagnoses` pour gérer les diagnostics structurés (`icd10_code`, `is_primary`, `diagnosis_type`).
+- Les scopes utilisés sont `clinical.encounters.manage` pour l'ajout et `clinical.encounters.view` pour la lecture.
+
+### ERP Assurances
+
+- Ajout de `GET /api/v1/claims/{claimId}/clinical-context` pour exposer les consultations, diagnostics et prescriptions utiles à la revue médicale d'un claim.
+- Correction du scope de décision des pré-autorisations : `insurer.prior_authorizations.manage`.
+
 ## 2026-08-22 - Synchronisation automatique BFF ↔ documentation
 
 ### ERP Prestataires

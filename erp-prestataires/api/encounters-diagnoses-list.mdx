@@ -1,0 +1,41 @@
+---
+title: "Lister les diagnostics d'une consultation"
+description: "Récupère les diagnostics CIM-10 structurés d'une consultation."
+openapi: "/openapi/provider-api.openapi.yml GET /api/v1/encounters/{encounterId}/diagnoses"
+---
+
+Cet endpoint retourne les diagnostics CIM-10 structurés associés à une consultation. Utilisez-le pour afficher le diagnostic principal et les diagnostics secondaires, ou pour vérifier le contexte avant d'ajouter un acte, une prescription ou une pièce clinique.
+
+## Scope requis
+
+`clinical.encounters.view`
+
+## Paramètre de chemin
+
+| Paramètre | Type | Requis | Description |
+| --- | --- | --- | --- |
+| `encounterId` | uuid | oui | Identifiant public de la consultation. |
+
+## Réponse
+
+La réponse `200` contient un tableau `data`. `is_primary=true` identifie le diagnostic principal de la consultation.
+
+```json
+{
+  "data": [
+    {
+      "uid": "8b7c6d5e-0000-4000-8000-000000000031",
+      "icd10_code": "J06.9",
+      "icd11_code": null,
+      "label_fr": "Infection aiguë des voies respiratoires supérieures",
+      "label_en": "Acute upper respiratory infection, unspecified",
+      "chapter_code": "J",
+      "chapter_label": "Maladies de l'appareil respiratoire",
+      "is_primary": true,
+      "diagnosis_type": "definitive"
+    }
+  ]
+}
+```
+
+Si la consultation n'existe pas dans le périmètre de la clé API, l'API retourne `404`.

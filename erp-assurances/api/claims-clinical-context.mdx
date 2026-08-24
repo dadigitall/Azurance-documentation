@@ -1,0 +1,74 @@
+---
+title: "Contexte clinique d'un claim"
+description: "Récupère les consultations, diagnostics et prescriptions utiles à la revue d'un claim."
+openapi: "/openapi/insurer-api.openapi.yml GET /api/v1/claims/{claimId}/clinical-context"
+---
+
+Cet endpoint rassemble le contexte clinique utile à la revue d'un claim : consultations liées aux prescriptions référencées dans ses lignes, diagnostics structurés CIM-10 et détails des prescriptions. Il est destiné au back-office assureur et aux conseillers médicaux.
+
+## Scope requis
+
+`insurer.claims.view`
+
+## Paramètre de chemin
+
+| Paramètre | Type | Requis | Description |
+| --- | --- | --- | --- |
+| `claimId` | uuid | oui | UUID public du claim. |
+
+## Fonctionnement
+
+1. L'API charge le claim et identifie les `prescription_uid` de ses lignes.
+2. Les prescriptions et leurs consultations sont récupérées depuis le dossier clinique.
+3. Les diagnostics structurés de chaque consultation sont inclus dans `encounters[].diagnoses`.
+4. Une donnée clinique indisponible est signalée dans `warnings`; elle ne bloque pas la réponse complète.
+
+Les résultats sont limités au périmètre du claim et de la clé API assureur. Aucun identifiant de tenant ou de prestataire n'est requis dans la requête.
+
+## Réponse
+
+| Champ | Type | Description |
+| --- | --- | --- |
+| `claim_uuid` | uuid | UUID du claim consulté. |
+| `covered_person_uid` | string\|null | Personne couverte concernée. |
+| `encounters` | array | Consultations rattachées aux prescriptions du claim. |
+| `encounters[].diagnoses` | array | Diagnostics CIM-10 normalisés (`icd10_code`, `label`, `is_primary`, `diagnosis_type`). |
+| `encounters[].prescriptions` | array | Prescriptions de la consultation qui sont référencées par le claim. |
+| `prescriptions` | array | Prescriptions normalisées retrouvées à partir des lignes du claim. |
+| `warnings` | array | Avertissements de récupération, par exemple `prescription_not_found` ou `encounter_not_found`. |
+
+## Exemple de réponse
+
+```json
+{
+  "claim_uuid": "7c3f9e10-2b4a-4f61-9d3e-1a2b3c4d5e6f",
+  "covered_person_uid": "mbr_sandbox_001",
+  "encounters": [
+    {
+      "uid": "7a8b9c0d-0000-4000-8000-000000000041",
+      "encounter_type": "consultation",
+      "encounter_date": "2026-08-15",
+      "discharge_date": null,
+      "icd10_codes": ["J06.9"],
+      "chief_complaint": "Fièvre et toux persistante",
+      "clinical_summary": "Infection respiratoire haute sans signe de gravité.",
+      "department": "médecine générale",
+      "attending_physician": "Dr. KOUASSI",
+      "status": null,
+      "diagnoses": [
+        {
+          "icd10_code": "J06.9",
+          "label": "Infection aiguë des voies respiratoires supérieures",
+          "is_primary": true,
+          "diagnosis_type": "definitive"
+        }
+      ],
+      "prescriptions": []
+    }
+  ],
+  "prescriptions": [],
+  "warnings": []
+}
+```
+
+Pour une décision de claim, utilisez ensuite `PATCH /api/v1/claims/{claimId}/status`. Le contexte clinique est en lecture seule et n'effectue aucune décision automatiquement.

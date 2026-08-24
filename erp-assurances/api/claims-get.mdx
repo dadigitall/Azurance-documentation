@@ -6,6 +6,8 @@ openapi: "/openapi/insurer-api.openapi.yml GET /api/v1/claims/{claimId}"
 
 Cet endpoint retourne le détail complet d'un claim : prestataire, souscription, actes facturés, statut et décision.
 
+Pour récupérer le contexte médical lié aux prescriptions du claim, utilisez ensuite `GET /api/v1/claims/{claimId}/clinical-context`.
+
 ## Scope requis
 
 `insurer.claims.view`
