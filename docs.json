@@ -93,7 +93,8 @@
                 "pages": [
                   "erp-prestataires/api/auth-encryption-key",
                   "erp-prestataires/api/auth-verify"
-                ]
+                ],
+                "expanded": true
               },
               {
                 "group": "Réseau prestataires",
@@ -104,7 +105,8 @@
                   "erp-prestataires/api/provider-insurer-relationships",
                   "erp-prestataires/api/network-insurers",
                   "erp-prestataires/api/network-request"
-                ]
+                ],
+                "expanded": true
               },
               {
                 "group": "Personnes couvertes",
@@ -112,7 +114,8 @@
                   "erp-prestataires/api/covered-persons-resolve",
                   "erp-prestataires/api/covered-persons-support-search",
                   "erp-prestataires/api/covered-persons-portrait"
-                ]
+                ],
+                "expanded": true
               },
               {
                 "group": "Consentement",
@@ -120,20 +123,23 @@
                   "erp-prestataires/api/consent-requests-create",
                   "erp-prestataires/api/consent-requests-get",
                   "erp-prestataires/api/consent-requests-verify"
-                ]
+                ],
+                "expanded": true
               },
               {
                 "group": "Éligibilité",
                 "pages": [
                   "erp-prestataires/api/eligibility-check",
                   "erp-prestataires/api/eligibility-member-card"
-                ]
+                ],
+                "expanded": true
               },
               {
                 "group": "Médias",
                 "pages": [
                   "erp-prestataires/api/media-uploads-create"
-                ]
+                ],
+                "expanded": true
               },
               {
                 "group": "Pré-autorisations",
@@ -143,7 +149,8 @@
                   "erp-prestataires/api/prior-authorizations-get",
                   "erp-prestataires/api/prior-authorizations-documents",
                   "erp-prestataires/api/prior-authorizations-cancel"
-                ]
+                ],
+                "expanded": true
               },
               {
                 "group": "Consultations cliniques",
@@ -156,7 +163,8 @@
                   "erp-prestataires/api/encounters-medical-acts",
                   "erp-prestataires/api/encounters-medical-acts-add",
                   "erp-prestataires/api/encounters-documents"
-                ]
+                ],
+                "expanded": true
               },
               {
                 "group": "Ordonnances",
@@ -166,7 +174,8 @@
                   "erp-prestataires/api/prescriptions-get",
                   "erp-prestataires/api/covered-person-prescriptions-list",
                   "erp-prestataires/api/insured-prescriptions"
-                ]
+                ],
+                "expanded": true
               },
               {
                 "group": "Dossier médical",
@@ -175,7 +184,8 @@
                   "erp-prestataires/api/medical-record-update",
                   "erp-prestataires/api/medical-record-summary",
                   "erp-prestataires/api/medical-record-timeline"
-                ]
+                ],
+                "expanded": true
               },
               {
                 "group": "Référentiels cliniques",
@@ -197,14 +207,16 @@
                   "erp-prestataires/api/reference-pathologies-search",
                   "erp-prestataires/api/reference-pathologies-export",
                   "erp-prestataires/api/reference-pathologies-get"
-                ]
+                ],
+                "expanded": true
               },
               {
                 "group": "Prestations",
                 "pages": [
                   "erp-prestataires/api/service-executions-create",
                   "erp-prestataires/api/service-executions-list"
-                ]
+                ],
+                "expanded": true
               },
               {
                 "group": "Claims",
@@ -216,7 +228,8 @@
                   "erp-prestataires/api/claims-list",
                   "erp-prestataires/api/claims-get",
                   "erp-prestataires/api/claim-documents-attach"
-                ]
+                ],
+                "expanded": true
               },
               {
                 "group": "Facturation",
@@ -227,7 +240,8 @@
                   "erp-prestataires/api/payments-get",
                   "erp-prestataires/api/payments-allocations",
                   "erp-prestataires/api/billing-sync"
-                ]
+                ],
+                "expanded": true
               },
               {
                 "group": "Webhooks",
@@ -235,7 +249,8 @@
                   "erp-prestataires/api/webhook-subscriptions-create",
                   "erp-prestataires/api/webhook-subscriptions-update",
                   "erp-prestataires/api/webhook-subscriptions-delete"
-                ]
+                ],
+                "expanded": true
               }
             ]
           }
@@ -275,7 +290,8 @@
                 "group": "Authentification",
                 "pages": [
                   "erp-assurances/api/auth-verify"
-                ]
+                ],
+                "expanded": true
               },
               {
                 "group": "Membres",
@@ -286,7 +302,8 @@
                   "erp-assurances/api/members-update",
                   "erp-assurances/api/member-portrait-upload",
                   "erp-assurances/api/member-portrait-status"
-                ]
+                ],
+                "expanded": true
               },
               {
                 "group": "Souscriptions",
@@ -296,7 +313,8 @@
                   "erp-assurances/api/subscriptions-get",
                   "erp-assurances/api/subscriptions-update-status",
                   "erp-assurances/api/subscriptions-renew"
-                ]
+                ],
+                "expanded": true
               },
               {
                 "group": "Bénéficiaires",
@@ -306,14 +324,16 @@
                   "erp-assurances/api/beneficiaries-update-status",
                   "erp-assurances/api/beneficiary-portrait-upload",
                   "erp-assurances/api/beneficiary-portrait-status"
-                ]
+                ],
+                "expanded": true
               },
               {
                 "group": "Éligibilité",
                 "pages": [
                   "erp-assurances/api/eligibility-check",
                   "erp-assurances/api/eligibility-check-batch"
-                ]
+                ],
+                "expanded": true
               },
               {
                 "group": "Claims",
@@ -325,7 +345,8 @@
                   "erp-assurances/api/claims-update-status",
                   "erp-assurances/api/claims-update-status-put",
                   "erp-assurances/api/claim-documents-list"
-                ]
+                ],
+                "expanded": true
               },
               {
                 "group": "Pré-autorisations",
@@ -333,7 +354,8 @@
                   "erp-assurances/api/prior-authorizations-list",
                   "erp-assurances/api/prior-authorizations-get",
                   "erp-assurances/api/prior-authorizations-decision"
-                ]
+                ],
+                "expanded": true
               },
               {
                 "group": "Détection de fraude",
@@ -342,7 +364,8 @@
                   "erp-assurances/api/fraud-assessment-get",
                   "erp-assurances/api/fraud-assessment-by-uuid",
                   "erp-assurances/api/fraud-assessment-feedback"
-                ]
+                ],
+                "expanded": true
               },
               {
                 "group": "Plans & couvertures",
@@ -355,7 +378,8 @@
                   "erp-assurances/api/coverage-types-list",
                   "erp-assurances/api/coverage-types-get",
                   "erp-assurances/api/reimbursement-calculate"
-                ]
+                ],
+                "expanded": true
               },
               {
                 "group": "Référentiels cliniques",
@@ -376,7 +400,8 @@
                   "erp-assurances/api/reference-pathologies-search",
                   "erp-assurances/api/reference-pathologies-export",
                   "erp-assurances/api/reference-pathologies-get"
-                ]
+                ],
+                "expanded": true
               },
               {
                 "group": "Réseau prestataires",
@@ -389,7 +414,8 @@
                   "erp-assurances/api/provider-network-requests",
                   "erp-assurances/api/provider-network-request-approve",
                   "erp-assurances/api/provider-network-request-reject"
-                ]
+                ],
+                "expanded": true
               },
               {
                 "group": "Facturation",
@@ -403,7 +429,8 @@
                   "erp-assurances/api/billing-payment-confirm",
                   "erp-assurances/api/billing-payment-allocations",
                   "erp-assurances/api/billing-sync"
-                ]
+                ],
+                "expanded": true
               },
               {
                 "group": "Webhooks",
@@ -412,7 +439,8 @@
                   "erp-assurances/api/webhooks-create",
                   "erp-assurances/api/webhooks-update",
                   "erp-assurances/api/webhooks-delete"
-                ]
+                ],
+                "expanded": true
               },
               {
                 "group": "Analytics",
@@ -422,7 +450,8 @@
                   "erp-assurances/api/analytics-loss-ratio",
                   "erp-assurances/api/analytics-provider-performance",
                   "erp-assurances/api/analytics-coverage-utilization"
-                ]
+                ],
+                "expanded": true
               },
               {
                 "group": "Notifications",
@@ -432,7 +461,8 @@
                   "erp-assurances/api/notifications-mark-read",
                   "erp-assurances/api/notifications-preferences-get",
                   "erp-assurances/api/notifications-preferences-update"
-                ]
+                ],
+                "expanded": true
               }
             ]
           }
