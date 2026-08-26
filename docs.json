@@ -87,81 +87,158 @@
           {
             "group": "Référence API",
             "pages": [
-              "erp-prestataires/reference-api",
-              "erp-prestataires/api/auth-encryption-key",
-              "erp-prestataires/api/auth-verify",
-              "erp-prestataires/api/network-status",
-              "erp-prestataires/api/network-profile",
-              "erp-prestataires/api/network-relationships",
-              "erp-prestataires/api/provider-insurer-relationships",
-              "erp-prestataires/api/network-insurers",
-              "erp-prestataires/api/network-request",
-              "erp-prestataires/api/covered-persons-resolve",
-              "erp-prestataires/api/covered-persons-support-search",
-              "erp-prestataires/api/covered-persons-portrait",
-              "erp-prestataires/api/consent-requests-create",
-              "erp-prestataires/api/consent-requests-get",
-              "erp-prestataires/api/consent-requests-verify",
-              "erp-prestataires/api/eligibility-check",
-              "erp-prestataires/api/eligibility-member-card",
-              "erp-prestataires/api/media-uploads-create",
-              "erp-prestataires/api/prior-authorizations-create",
-              "erp-prestataires/api/prior-authorizations-list",
-              "erp-prestataires/api/prior-authorizations-get",
-              "erp-prestataires/api/prior-authorizations-documents",
-              "erp-prestataires/api/prior-authorizations-cancel",
-              "erp-prestataires/api/encounters-create",
-              "erp-prestataires/api/encounters-list",
-              "erp-prestataires/api/encounters-get",
-              "erp-prestataires/api/encounters-diagnoses-add",
-              "erp-prestataires/api/encounters-diagnoses-list",
-              "erp-prestataires/api/encounters-medical-acts",
-              "erp-prestataires/api/encounters-medical-acts-add",
-              "erp-prestataires/api/encounters-documents",
-              "erp-prestataires/api/prescriptions-create",
-              "erp-prestataires/api/prescriptions-list",
-              "erp-prestataires/api/prescriptions-get",
-              "erp-prestataires/api/covered-person-prescriptions-list",
-              "erp-prestataires/api/insured-prescriptions",
-              "erp-prestataires/api/medical-record-get",
-              "erp-prestataires/api/medical-record-update",
-              "erp-prestataires/api/medical-record-summary",
-              "erp-prestataires/api/medical-record-timeline",
-              "erp-prestataires/api/medications-list",
-              "erp-prestataires/api/medications-search",
-              "erp-prestataires/api/medications-export",
-              "erp-prestataires/api/medications-resolve",
-              "erp-prestataires/api/medications-get",
-              "erp-prestataires/api/reference-medical-acts-categories",
-              "erp-prestataires/api/reference-medical-acts-by-category",
-              "erp-prestataires/api/reference-medical-acts-search",
-              "erp-prestataires/api/reference-medical-acts-export",
-              "erp-prestataires/api/reference-medical-acts-chapters",
-              "erp-prestataires/api/reference-medical-acts-by-chapter",
-              "erp-prestataires/api/reference-medical-acts-get",
-              "erp-prestataires/api/reference-pathologies-chapters",
-              "erp-prestataires/api/reference-pathologies-by-chapter",
-              "erp-prestataires/api/reference-pathologies-search",
-              "erp-prestataires/api/reference-pathologies-export",
-              "erp-prestataires/api/reference-pathologies-get",
-              "erp-prestataires/api/service-executions-create",
-              "erp-prestataires/api/service-executions-list",
-              "erp-prestataires/api/claims-draft-create",
-              "erp-prestataires/api/claims-draft-get",
-              "erp-prestataires/api/claims-draft-submit",
-              "erp-prestataires/api/claims-draft-cancel",
-              "erp-prestataires/api/claims-list",
-              "erp-prestataires/api/claims-get",
-              "erp-prestataires/api/claim-documents-attach",
-              "erp-prestataires/api/payable-invoices-list",
-              "erp-prestataires/api/payable-invoices-get",
-              "erp-prestataires/api/payable-invoices-items",
-              "erp-prestataires/api/payments-get",
-              "erp-prestataires/api/payments-allocations",
-              "erp-prestataires/api/billing-sync",
-              "erp-prestataires/api/webhook-subscriptions-create",
-              "erp-prestataires/api/webhook-subscriptions-update",
-              "erp-prestataires/api/webhook-subscriptions-delete"
+              "erp-prestataires/reference-api"
+            ],
+            "groups": [
+              {
+                "group": "Authentification",
+                "pages": [
+                  "erp-prestataires/api/auth-encryption-key",
+                  "erp-prestataires/api/auth-verify"
+                ]
+              },
+              {
+                "group": "Réseau prestataires",
+                "pages": [
+                  "erp-prestataires/api/network-status",
+                  "erp-prestataires/api/network-profile",
+                  "erp-prestataires/api/network-relationships",
+                  "erp-prestataires/api/provider-insurer-relationships",
+                  "erp-prestataires/api/network-insurers",
+                  "erp-prestataires/api/network-request"
+                ]
+              },
+              {
+                "group": "Personnes couvertes",
+                "pages": [
+                  "erp-prestataires/api/covered-persons-resolve",
+                  "erp-prestataires/api/covered-persons-support-search",
+                  "erp-prestataires/api/covered-persons-portrait"
+                ]
+              },
+              {
+                "group": "Consentement",
+                "pages": [
+                  "erp-prestataires/api/consent-requests-create",
+                  "erp-prestataires/api/consent-requests-get",
+                  "erp-prestataires/api/consent-requests-verify"
+                ]
+              },
+              {
+                "group": "Éligibilité",
+                "pages": [
+                  "erp-prestataires/api/eligibility-check",
+                  "erp-prestataires/api/eligibility-member-card"
+                ]
+              },
+              {
+                "group": "Médias",
+                "pages": [
+                  "erp-prestataires/api/media-uploads-create"
+                ]
+              },
+              {
+                "group": "Pré-autorisations",
+                "pages": [
+                  "erp-prestataires/api/prior-authorizations-create",
+                  "erp-prestataires/api/prior-authorizations-list",
+                  "erp-prestataires/api/prior-authorizations-get",
+                  "erp-prestataires/api/prior-authorizations-documents",
+                  "erp-prestataires/api/prior-authorizations-cancel"
+                ]
+              },
+              {
+                "group": "Consultations cliniques",
+                "pages": [
+                  "erp-prestataires/api/encounters-create",
+                  "erp-prestataires/api/encounters-list",
+                  "erp-prestataires/api/encounters-get",
+                  "erp-prestataires/api/encounters-diagnoses-add",
+                  "erp-prestataires/api/encounters-diagnoses-list",
+                  "erp-prestataires/api/encounters-medical-acts",
+                  "erp-prestataires/api/encounters-medical-acts-add",
+                  "erp-prestataires/api/encounters-documents"
+                ]
+              },
+              {
+                "group": "Ordonnances",
+                "pages": [
+                  "erp-prestataires/api/prescriptions-create",
+                  "erp-prestataires/api/prescriptions-list",
+                  "erp-prestataires/api/prescriptions-get",
+                  "erp-prestataires/api/covered-person-prescriptions-list",
+                  "erp-prestataires/api/insured-prescriptions"
+                ]
+              },
+              {
+                "group": "Dossier médical",
+                "pages": [
+                  "erp-prestataires/api/medical-record-get",
+                  "erp-prestataires/api/medical-record-update",
+                  "erp-prestataires/api/medical-record-summary",
+                  "erp-prestataires/api/medical-record-timeline"
+                ]
+              },
+              {
+                "group": "Référentiels cliniques",
+                "pages": [
+                  "erp-prestataires/api/medications-list",
+                  "erp-prestataires/api/medications-search",
+                  "erp-prestataires/api/medications-export",
+                  "erp-prestataires/api/medications-resolve",
+                  "erp-prestataires/api/medications-get",
+                  "erp-prestataires/api/reference-medical-acts-categories",
+                  "erp-prestataires/api/reference-medical-acts-by-category",
+                  "erp-prestataires/api/reference-medical-acts-search",
+                  "erp-prestataires/api/reference-medical-acts-export",
+                  "erp-prestataires/api/reference-medical-acts-chapters",
+                  "erp-prestataires/api/reference-medical-acts-by-chapter",
+                  "erp-prestataires/api/reference-medical-acts-get",
+                  "erp-prestataires/api/reference-pathologies-chapters",
+                  "erp-prestataires/api/reference-pathologies-by-chapter",
+                  "erp-prestataires/api/reference-pathologies-search",
+                  "erp-prestataires/api/reference-pathologies-export",
+                  "erp-prestataires/api/reference-pathologies-get"
+                ]
+              },
+              {
+                "group": "Prestations",
+                "pages": [
+                  "erp-prestataires/api/service-executions-create",
+                  "erp-prestataires/api/service-executions-list"
+                ]
+              },
+              {
+                "group": "Claims",
+                "pages": [
+                  "erp-prestataires/api/claims-draft-create",
+                  "erp-prestataires/api/claims-draft-get",
+                  "erp-prestataires/api/claims-draft-submit",
+                  "erp-prestataires/api/claims-draft-cancel",
+                  "erp-prestataires/api/claims-list",
+                  "erp-prestataires/api/claims-get",
+                  "erp-prestataires/api/claim-documents-attach"
+                ]
+              },
+              {
+                "group": "Facturation",
+                "pages": [
+                  "erp-prestataires/api/payable-invoices-list",
+                  "erp-prestataires/api/payable-invoices-get",
+                  "erp-prestataires/api/payable-invoices-items",
+                  "erp-prestataires/api/payments-get",
+                  "erp-prestataires/api/payments-allocations",
+                  "erp-prestataires/api/billing-sync"
+                ]
+              },
+              {
+                "group": "Webhooks",
+                "pages": [
+                  "erp-prestataires/api/webhook-subscriptions-create",
+                  "erp-prestataires/api/webhook-subscriptions-update",
+                  "erp-prestataires/api/webhook-subscriptions-delete"
+                ]
+              }
             ]
           }
         ]
@@ -195,94 +272,172 @@
           {
             "group": "Référence API",
             "pages": [
-              "erp-assurances/api/auth-verify",
-              "erp-assurances/api/members-list",
-              "erp-assurances/api/members-create",
-              "erp-assurances/api/members-get",
-              "erp-assurances/api/members-update",
-              "erp-assurances/api/member-portrait-upload",
-              "erp-assurances/api/member-portrait-status",
-              "erp-assurances/api/subscriptions-list",
-              "erp-assurances/api/subscriptions-create",
-              "erp-assurances/api/subscriptions-get",
-              "erp-assurances/api/subscriptions-update-status",
-              "erp-assurances/api/subscriptions-renew",
-              "erp-assurances/api/beneficiaries-list",
-              "erp-assurances/api/beneficiaries-create",
-              "erp-assurances/api/beneficiaries-update-status",
-              "erp-assurances/api/beneficiary-portrait-upload",
-              "erp-assurances/api/beneficiary-portrait-status",
-              "erp-assurances/api/eligibility-check",
-              "erp-assurances/api/eligibility-check-batch",
-              "erp-assurances/api/claims-stats",
-              "erp-assurances/api/claims-list",
-              "erp-assurances/api/claims-get",
-              "erp-assurances/api/claims-clinical-context",
-              "erp-assurances/api/claims-update-status",
-              "erp-assurances/api/claims-update-status-put",
-              "erp-assurances/api/claim-documents-list",
-              "erp-assurances/api/prior-authorizations-list",
-              "erp-assurances/api/prior-authorizations-get",
-              "erp-assurances/api/prior-authorizations-decision",
-              "erp-assurances/api/fraud-assessment-create",
-              "erp-assurances/api/fraud-assessment-get",
-              "erp-assurances/api/fraud-assessment-by-uuid",
-              "erp-assurances/api/fraud-assessment-feedback",
-              "erp-assurances/api/plans-list",
-              "erp-assurances/api/plans-create",
-              "erp-assurances/api/plans-get",
-              "erp-assurances/api/plans-update",
-              "erp-assurances/api/plans-delete",
-              "erp-assurances/api/coverage-types-list",
-              "erp-assurances/api/coverage-types-get",
-              "erp-assurances/api/reimbursement-calculate",
-              "erp-assurances/api/medications-list",
-              "erp-assurances/api/medications-search",
-              "erp-assurances/api/medications-export",
-              "erp-assurances/api/medications-get",
-              "erp-assurances/api/reference-medical-acts-categories",
-              "erp-assurances/api/reference-medical-acts-by-category",
-              "erp-assurances/api/reference-medical-acts-search",
-              "erp-assurances/api/reference-medical-acts-export",
-              "erp-assurances/api/reference-medical-acts-chapters",
-              "erp-assurances/api/reference-medical-acts-by-chapter",
-              "erp-assurances/api/reference-medical-acts-get",
-              "erp-assurances/api/reference-pathologies-chapters",
-              "erp-assurances/api/reference-pathologies-by-chapter",
-              "erp-assurances/api/reference-pathologies-search",
-              "erp-assurances/api/reference-pathologies-export",
-              "erp-assurances/api/reference-pathologies-get",
-              "erp-assurances/api/providers-list",
-              "erp-assurances/api/provider-network-relationships",
-              "erp-assurances/api/providers-get",
-              "erp-assurances/api/provider-specialties",
-              "erp-assurances/api/provider-network-check",
-              "erp-assurances/api/provider-network-requests",
-              "erp-assurances/api/provider-network-request-approve",
-              "erp-assurances/api/provider-network-request-reject",
-              "erp-assurances/api/billing-payable-invoices-list",
-              "erp-assurances/api/billing-payable-invoice-get",
-              "erp-assurances/api/billing-payable-invoice-items",
-              "erp-assurances/api/billing-payments-list",
-              "erp-assurances/api/billing-payment-create",
-              "erp-assurances/api/billing-payment-get",
-              "erp-assurances/api/billing-payment-confirm",
-              "erp-assurances/api/billing-payment-allocations",
-              "erp-assurances/api/billing-sync",
-              "erp-assurances/api/webhooks-list",
-              "erp-assurances/api/webhooks-create",
-              "erp-assurances/api/webhooks-update",
-              "erp-assurances/api/webhooks-delete",
-              "erp-assurances/api/analytics-portfolio-summary",
-              "erp-assurances/api/analytics-claims-summary",
-              "erp-assurances/api/analytics-loss-ratio",
-              "erp-assurances/api/analytics-provider-performance",
-              "erp-assurances/api/analytics-coverage-utilization",
-              "erp-assurances/api/notifications-list",
-              "erp-assurances/api/notifications-get",
-              "erp-assurances/api/notifications-mark-read",
-              "erp-assurances/api/notifications-preferences-get",
-              "erp-assurances/api/notifications-preferences-update"
+              "erp-assurances/reference-api"
+            ],
+            "groups": [
+              {
+                "group": "Authentification",
+                "pages": [
+                  "erp-assurances/api/auth-verify"
+                ]
+              },
+              {
+                "group": "Membres",
+                "pages": [
+                  "erp-assurances/api/members-list",
+                  "erp-assurances/api/members-create",
+                  "erp-assurances/api/members-get",
+                  "erp-assurances/api/members-update",
+                  "erp-assurances/api/member-portrait-upload",
+                  "erp-assurances/api/member-portrait-status"
+                ]
+              },
+              {
+                "group": "Souscriptions",
+                "pages": [
+                  "erp-assurances/api/subscriptions-list",
+                  "erp-assurances/api/subscriptions-create",
+                  "erp-assurances/api/subscriptions-get",
+                  "erp-assurances/api/subscriptions-update-status",
+                  "erp-assurances/api/subscriptions-renew"
+                ]
+              },
+              {
+                "group": "Bénéficiaires",
+                "pages": [
+                  "erp-assurances/api/beneficiaries-list",
+                  "erp-assurances/api/beneficiaries-create",
+                  "erp-assurances/api/beneficiaries-update-status",
+                  "erp-assurances/api/beneficiary-portrait-upload",
+                  "erp-assurances/api/beneficiary-portrait-status"
+                ]
+              },
+              {
+                "group": "Éligibilité",
+                "pages": [
+                  "erp-assurances/api/eligibility-check",
+                  "erp-assurances/api/eligibility-check-batch"
+                ]
+              },
+              {
+                "group": "Claims",
+                "pages": [
+                  "erp-assurances/api/claims-stats",
+                  "erp-assurances/api/claims-list",
+                  "erp-assurances/api/claims-get",
+                  "erp-assurances/api/claims-clinical-context",
+                  "erp-assurances/api/claims-update-status",
+                  "erp-assurances/api/claims-update-status-put",
+                  "erp-assurances/api/claim-documents-list"
+                ]
+              },
+              {
+                "group": "Pré-autorisations",
+                "pages": [
+                  "erp-assurances/api/prior-authorizations-list",
+                  "erp-assurances/api/prior-authorizations-get",
+                  "erp-assurances/api/prior-authorizations-decision"
+                ]
+              },
+              {
+                "group": "Détection de fraude",
+                "pages": [
+                  "erp-assurances/api/fraud-assessment-create",
+                  "erp-assurances/api/fraud-assessment-get",
+                  "erp-assurances/api/fraud-assessment-by-uuid",
+                  "erp-assurances/api/fraud-assessment-feedback"
+                ]
+              },
+              {
+                "group": "Plans & couvertures",
+                "pages": [
+                  "erp-assurances/api/plans-list",
+                  "erp-assurances/api/plans-create",
+                  "erp-assurances/api/plans-get",
+                  "erp-assurances/api/plans-update",
+                  "erp-assurances/api/plans-delete",
+                  "erp-assurances/api/coverage-types-list",
+                  "erp-assurances/api/coverage-types-get",
+                  "erp-assurances/api/reimbursement-calculate"
+                ]
+              },
+              {
+                "group": "Référentiels cliniques",
+                "pages": [
+                  "erp-assurances/api/medications-list",
+                  "erp-assurances/api/medications-search",
+                  "erp-assurances/api/medications-export",
+                  "erp-assurances/api/medications-get",
+                  "erp-assurances/api/reference-medical-acts-categories",
+                  "erp-assurances/api/reference-medical-acts-by-category",
+                  "erp-assurances/api/reference-medical-acts-search",
+                  "erp-assurances/api/reference-medical-acts-export",
+                  "erp-assurances/api/reference-medical-acts-chapters",
+                  "erp-assurances/api/reference-medical-acts-by-chapter",
+                  "erp-assurances/api/reference-medical-acts-get",
+                  "erp-assurances/api/reference-pathologies-chapters",
+                  "erp-assurances/api/reference-pathologies-by-chapter",
+                  "erp-assurances/api/reference-pathologies-search",
+                  "erp-assurances/api/reference-pathologies-export",
+                  "erp-assurances/api/reference-pathologies-get"
+                ]
+              },
+              {
+                "group": "Réseau prestataires",
+                "pages": [
+                  "erp-assurances/api/providers-list",
+                  "erp-assurances/api/provider-network-relationships",
+                  "erp-assurances/api/providers-get",
+                  "erp-assurances/api/provider-specialties",
+                  "erp-assurances/api/provider-network-check",
+                  "erp-assurances/api/provider-network-requests",
+                  "erp-assurances/api/provider-network-request-approve",
+                  "erp-assurances/api/provider-network-request-reject"
+                ]
+              },
+              {
+                "group": "Facturation",
+                "pages": [
+                  "erp-assurances/api/billing-payable-invoices-list",
+                  "erp-assurances/api/billing-payable-invoice-get",
+                  "erp-assurances/api/billing-payable-invoice-items",
+                  "erp-assurances/api/billing-payments-list",
+                  "erp-assurances/api/billing-payment-create",
+                  "erp-assurances/api/billing-payment-get",
+                  "erp-assurances/api/billing-payment-confirm",
+                  "erp-assurances/api/billing-payment-allocations",
+                  "erp-assurances/api/billing-sync"
+                ]
+              },
+              {
+                "group": "Webhooks",
+                "pages": [
+                  "erp-assurances/api/webhooks-list",
+                  "erp-assurances/api/webhooks-create",
+                  "erp-assurances/api/webhooks-update",
+                  "erp-assurances/api/webhooks-delete"
+                ]
+              },
+              {
+                "group": "Analytics",
+                "pages": [
+                  "erp-assurances/api/analytics-portfolio-summary",
+                  "erp-assurances/api/analytics-claims-summary",
+                  "erp-assurances/api/analytics-loss-ratio",
+                  "erp-assurances/api/analytics-provider-performance",
+                  "erp-assurances/api/analytics-coverage-utilization"
+                ]
+              },
+              {
+                "group": "Notifications",
+                "pages": [
+                  "erp-assurances/api/notifications-list",
+                  "erp-assurances/api/notifications-get",
+                  "erp-assurances/api/notifications-mark-read",
+                  "erp-assurances/api/notifications-preferences-get",
+                  "erp-assurances/api/notifications-preferences-update"
+                ]
+              }
             ]
           }
         ]
@@ -299,8 +454,16 @@
   },
   "api": {
     "playground": {
-      "display": "simple"
+      "display": "interactive",
+      "proxy": false
     },
+    "mdx": {
+      "auth": {
+        "method": "key",
+        "name": "X-Api-Key"
+      }
+    },
+    "url": "full",
     "examples": {
       "languages": [
         "curl",
