@@ -87,9 +87,7 @@
           {
             "group": "Référence API",
             "pages": [
-              "erp-prestataires/reference-api"
-            ],
-            "groups": [
+              "erp-prestataires/reference-api",
               {
                 "group": "Authentification",
                 "pages": [
@@ -272,9 +270,7 @@
           {
             "group": "Référence API",
             "pages": [
-              "erp-assurances/reference-api"
-            ],
-            "groups": [
+              "erp-assurances/reference-api",
               {
                 "group": "Authentification",
                 "pages": [
