@@ -1,0 +1,56 @@
+---
+title: "Télécharger un document de claim"
+description: "Récupérer le contenu binaire d'un document attaché à un claim."
+openapi: "/openapi/insurer-api.openapi.yml GET /api/v1/claims/{claimId}/documents/{mediaUid}/download"
+---
+
+Télécharge le contenu binaire d'un document (facture, prescription, rapport médical, résultat de laboratoire…) attaché à un claim.
+
+L'assureur ne peut télécharger que les documents des claims qui appartiennent à son tenant. La vérification se fait en deux temps :
+
+1. Le BFF vérifie que le `mediaUid` correspond bien à un document du claim et que le claim appartient à l'assureur (`insurer_tenant_uid`).
+2. Le BFF stream ensuite le binaire depuis le service média.
+
+La réponse est un **flux binaire**, pas du JSON. Les headers `Content-Type`, `Content-Length` et `Content-Disposition` sont préservés.
+
+## Scope requis
+
+`insurer.claims.view`
+
+## Paramètres de chemin
+
+| Paramètre | Type | Requis | Description |
+| --- | --- | --- | --- |
+| `claimId` | string (UUID) | oui | UUID du claim. |
+| `mediaUid` | string | oui | UID du média, tel que retourné par [lister les documents d'un claim](/erp-assurances/api/claims-documents). |
+
+## Exemple de requête
+
+```bash
+curl --request GET \
+  --url "https://insurer-api-sandbox.elenami.com/api/v1/claims/a1b2c3d4-e5f6-7890-abcd-ef1234567890/documents/med-abc123-def456/download" \
+  --header "X-Api-Key: $AZURANCE_INSURER_API_KEY" \
+  --header "X-Request-Id: req-001" \
+  --output facture.pdf
+```
+
+## Réponse
+
+```
+HTTP/1.1 200 OK
+Content-Type: application/pdf
+Content-Length: 248320
+Content-Disposition: attachment; filename="facture_consultation.pdf"
+
+(flux binaire du fichier)
+```
+
+Le `Content-Type` reflète le type MIME réel du fichier stocké (`application/pdf`, `image/jpeg`, `image/png`, etc.).
+
+## Erreurs
+
+| Code | Description |
+| --- | --- |
+| 401 | Clé API manquante ou invalide. |
+| 403 | Scope `insurer.claims.view` manquant. |
+| 404 | Claim ou document introuvable pour ce tenant. |

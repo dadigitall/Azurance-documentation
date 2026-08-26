@@ -344,7 +344,8 @@
                   "erp-assurances/api/claims-clinical-context",
                   "erp-assurances/api/claims-update-status",
                   "erp-assurances/api/claims-update-status-put",
-                  "erp-assurances/api/claim-documents-list"
+                  "erp-assurances/api/claim-documents-list",
+                  "erp-assurances/api/claims-documents-download"
                 ],
                 "expanded": true
               },

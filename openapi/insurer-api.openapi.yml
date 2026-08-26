@@ -1801,7 +1801,8 @@ components:
             $ref: '#/components/schemas/ClinicalPrescriptionContext'
         warnings:
           type: array
-          description: Éléments cliniques non récupérés; ces avertissements ne bloquent pas la réponse.
+          description: Éléments cliniques non récupérés; ces avertissements ne bloquent
+            pas la réponse.
           items:
             type: object
             additionalProperties: true
@@ -1892,15 +1893,33 @@ components:
           items:
             type: object
             properties:
-              uid: { type: string, format: uuid }
-              code: { type: string, nullable: true }
-              label: { type: string, nullable: true }
-              dosage: { type: string, nullable: true }
-              frequency: { type: string, nullable: true }
-              duration: { type: string, nullable: true }
-              quantity: { type: number, nullable: true }
-              instructions: { type: string, nullable: true }
-              indication: { type: string, nullable: true }
+              uid:
+                type: string
+                format: uuid
+              code:
+                type: string
+                nullable: true
+              label:
+                type: string
+                nullable: true
+              dosage:
+                type: string
+                nullable: true
+              frequency:
+                type: string
+                nullable: true
+              duration:
+                type: string
+                nullable: true
+              quantity:
+                type: number
+                nullable: true
+              instructions:
+                type: string
+                nullable: true
+              indication:
+                type: string
+                nullable: true
     PriorAuthorization:
       type: object
       description: Demande de prévalidation prestataire à revoir par la compagnie
@@ -4445,10 +4464,11 @@ paths:
     get:
       operationId: getClaimClinicalContext
       summary: Récupérer le contexte clinique d'un claim
-      description: >
-        Retourne les consultations, diagnostics et prescriptions rattachés aux prescriptions
-        référencées par les lignes du claim. Les éléments indisponibles sont signalés dans
-        `warnings` afin de ne pas bloquer la revue du claim.
+      description: 'Retourne les consultations, diagnostics et prescriptions rattachés
+        aux prescriptions référencées par les lignes du claim. Les éléments indisponibles
+        sont signalés dans `warnings` afin de ne pas bloquer la revue du claim.
+
+        '
       parameters:
       - $ref: '#/components/parameters/RequestId'
       - $ref: '#/components/parameters/ClaimId'
@@ -4467,7 +4487,8 @@ paths:
                   encounter_type: consultation
                   encounter_date: '2026-08-15'
                   discharge_date: null
-                  icd10_codes: [J06.9]
+                  icd10_codes:
+                  - J06.9
                   chief_complaint: Fièvre et toux persistante
                   clinical_summary: Infection respiratoire haute sans signe de gravité.
                   department: médecine générale
@@ -7976,3 +7997,59 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ValidationError'
+  /api/v1/claims/{claimId}/documents/{mediaUid}/download:
+    get:
+      operationId: downloadClaimDocument
+      summary: Télécharger le binaire d'un document de claim
+      description: |
+        Télécharge le contenu binaire d'un document attaché à un claim.
+        L'assureur ne peut télécharger que les documents des claims qui
+        appartiennent à son tenant (vérification `insurer_tenant_uid`).
+        La réponse est un flux binaire, pas du JSON.
+      parameters:
+      - $ref: '#/components/parameters/RequestId'
+      - in: path
+        name: claimId
+        required: true
+        description: UUID du claim.
+        schema:
+          type: string
+          format: uuid
+      - in: path
+        name: mediaUid
+        required: true
+        description: UID du média tel que retourné par `GET /api/v1/claims/{claimId}/documents`.
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Fichier binaire.
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+              examples:
+                pdf:
+                  summary: Facture PDF
+                  value: |
+                    (flux binaire — Content-Type: application/pdf,
+                     Content-Disposition: attachment; filename="facture.pdf")
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+            image/jpeg:
+              schema:
+                type: string
+                format: binary
+            image/png:
+              schema:
+                type: string
+                format: binary
+        '401':
+          description: Clé API absente ou invalide
+        '403':
+          description: Scope `insurer.claims.view` manquant
+        '404':
+          description: Claim ou document introuvable pour ce tenant.

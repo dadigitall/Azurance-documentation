@@ -6,6 +6,15 @@ icon: "list"
 
 Suivez les changements de contrat public, les nouvelles pages et les corrections importantes.
 
+## 2026-08-26 - Téléchargement des documents de claim
+
+### ERP Assurances
+
+- Ajout de `GET /api/v1/claims/{claimId}/documents/{mediaUid}/download` pour télécharger le contenu binaire d'un document attaché à un claim (facture, prescription, rapport médical, résultat de laboratoire).
+- La réponse est un flux binaire avec les headers `Content-Type`, `Content-Length` et `Content-Disposition` préservés.
+- L'assureur ne peut télécharger que les documents des claims appartenant à son tenant.
+- Scope requis : `insurer.claims.view`.
+
 ## 2026-08-24 - Diagnostic structuré et contexte clinique de revue
 
 ### ERP Prestataires
