@@ -1,10 +1,12 @@
 ---
 title: "Mettre à jour le dossier médical"
-description: "Met à jour le dossier médical d'un assuré."
+description: "Met à jour le dossier médical d'un assuré (données saisies uniquement)."
 openapi: "/openapi/provider-api.openapi.yml PUT /api/v1/insured/{insuredUid}/medical-record"
 ---
 
 Cet endpoint met à jour le dossier médical d'un assuré. La mise à jour est un merge partiel : seuls les champs fournis dans le body sont modifiés, les autres sont conservés.
+
+> **Breaking change (2026-08-27)** : `current_medications` et `surgical_history` ne sont plus saisissables manuellement. Ils sont désormais des vues calculées par le BFF à partir des prescriptions actives, des claims soumis et des actes médicaux chirurgicaux. Voir [GET Dossier médical](./medical-record-get) pour le détail des champs calculés.
 
 ## Scope requis
 
@@ -25,12 +27,9 @@ Cet endpoint met à jour le dossier médical d'un assuré. La mise à jour est u
 | `weight_kg` | number | Poids en kilogrammes. |
 | `allergies` | array | Allergies connues (voir ci-dessous). |
 | `chronic_conditions` | array | Pathologies chroniques (voir ci-dessous). |
-| `surgical_history` | array | Antécédents chirurgicaux (voir ci-dessous). |
 | `immunizations` | array | Vaccinations (voir ci-dessous). |
 | `family_history` | string | Antécédents familiaux (max 2000). |
 | `lifestyle_notes` | string | Notes sur le mode de vie (max 1000). |
-| `current_medications` | string | Traitements en cours, en texte libre (max 2000). |
-| `updated_by_provider_uid` | string | Identifiant UUID du prestataire auteur de la modification. |
 
 ### Allergies
 
@@ -48,15 +47,6 @@ Cet endpoint met à jour le dossier médical d'un assuré. La mise à jour est u
 | `icd10_code` | string | non | Code CIM-10 (max 20). |
 | `diagnosed_at` | string | non | Date de diagnostic (max 50). |
 | `current_treatment` | string | non | Traitement actuel (max 300). |
-
-### Antécédents chirurgicaux
-
-| Champ | Type | Requis | Description |
-| --- | --- | --- | --- |
-| `procedure_name` | string | oui | Nom de la procédure (max 300). |
-| `performed_at` | string | non | Date de l'intervention (max 50). |
-| `hospital_name` | string | non | Établissement (max 200). |
-| `notes` | string | non | Notes complémentaires (max 500). |
 
 ### Vaccinations
 
@@ -97,14 +87,6 @@ Les réponses de cet endpoint sont chiffrées via JWE. Récupérez la clé publi
       "current_treatment": "Metformine 500mg"
     }
   ],
-  "surgical_history": [
-    {
-      "procedure_name": "Appendicectomie",
-      "performed_at": "2015-08-10",
-      "hospital_name": "Centre Hospitalier",
-      "notes": "Cœlioscopie, sans complication"
-    }
-  ],
   "immunizations": [
     {
       "vaccine_name": "COVID-19 Pfizer",
@@ -113,13 +95,13 @@ Les réponses de cet endpoint sont chiffrées via JWE. Récupérez la clé publi
     }
   ],
   "family_history": "Père diabète type 2, mère hypertension",
-  "lifestyle_notes": "Non-fumeur, alcool modéré, activité physique 3x/semaine",
-  "current_medications": "Metformine 500mg, Lisinopril 10mg",
-  "updated_by_provider_uid": "3d2e1a00-0000-4000-8000-000000000077"
+  "lifestyle_notes": "Non-fumeur, alcool modéré, activité physique 3x/semaine"
 }
 ```
 
 ## Exemple de réponse
+
+La réponse contient les données saisies (mise à jour) ainsi que les vues calculées `current_medications` et `surgical_history` (voir [GET Dossier médical](./medical-record-get) pour le détail).
 
 ```json
 {
@@ -131,17 +113,11 @@ Les réponses de cet endpoint sont chiffrées via JWE. Récupérez la clé publi
     "weight_kg": 73,
     "family_history": "Père diabète type 2, mère hypertension",
     "lifestyle_notes": "Non-fumeur, alcool modéré, activité physique 3x/semaine",
-    "current_medications": "Metformine 500mg, Lisinopril 10mg",
     "allergies": [
       {
         "substance": "Pénicilline",
         "reaction": "Anaphylaxie",
         "severity": "severe"
-      },
-      {
-        "substance": "Arachides",
-        "reaction": "Urticaire",
-        "severity": "moderate"
       }
     ],
     "chronic_conditions": [
@@ -152,14 +128,18 @@ Les réponses de cet endpoint sont chiffrées via JWE. Récupérez la clé publi
         "current_treatment": "Metformine 500mg"
       }
     ],
-    "surgical_history": [
+    "current_medications": [
       {
-        "procedure_name": "Appendicectomie",
-        "performed_at": "2015-08-10",
-        "hospital_name": "Centre Hospitalier",
-        "notes": "Cœlioscopie, sans complication"
+        "medication_name": "Metformine",
+        "medication_code": "METFORMINE500",
+        "dosage": "500mg",
+        "frequency": "2x/jour",
+        "prescription_uid": "rx-abc-123",
+        "consumed": true,
+        "last_claim_status": "APPROVED"
       }
     ],
+    "surgical_history": [],
     "immunizations": [
       {
         "vaccine_name": "COVID-19 Pfizer",
@@ -167,7 +147,7 @@ Les réponses de cet endpoint sont chiffrées via JWE. Récupérez la clé publi
         "next_dose_at": "2024-09-15"
       }
     ],
-    "updated_at": "2026-08-15T11:45:00.000000Z"
+    "updated_at": "2026-08-27T11:45:00.000000Z"
   }
 }
 ```

@@ -3224,21 +3224,6 @@ paths:
                         type: string
                       current_treatment:
                         type: string
-                surgical_history:
-                  type: array
-                  items:
-                    type: object
-                    required:
-                    - procedure_name
-                    properties:
-                      procedure_name:
-                        type: string
-                      performed_at:
-                        type: string
-                      hospital_name:
-                        type: string
-                      notes:
-                        type: string
                 immunizations:
                   type: array
                   items:
@@ -3256,8 +3241,6 @@ paths:
                   type: string
                 lifestyle_notes:
                   type: string
-                current_medications:
-                  type: string
                 updated_by_provider_uid:
                   type: string
             example:
@@ -3272,7 +3255,6 @@ paths:
               - condition_name: Diabète type 2
                 icd10_code: E11.9
                 current_treatment: Metformine 500mg
-              current_medications: Metformine 500mg, Lisinopril 10mg
               updated_by_provider_uid: 3d2e1a00-0000-4000-8000-000000000077
       responses:
         '200':

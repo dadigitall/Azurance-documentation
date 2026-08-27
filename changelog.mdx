@@ -6,6 +6,17 @@ icon: "list"
 
 Suivez les changements de contrat public, les nouvelles pages et les corrections importantes.
 
+## 2026-08-27 - Dossier médical : traitements et antécédents chirurgicaux calculés
+
+### ERP Prestataires
+
+- **Breaking change** : `current_medications` et `surgical_history` ne sont plus saisissables manuellement via `PUT /insured/{uid}/medical-record`.
+- `current_medications` est désormais une vue calculée à partir des prescriptions actives de l'assuré, croisée avec les claims soumis pour indiquer si chaque médicament a été consommé (`consumed: true/false`).
+- `surgical_history` est désormais une vue calculée à partir des actes médicaux de catégorie `surgery` déclarés lors des consultations.
+- Cache Redis (TTL 15-60 min selon le fragment) avec invalidation proactive sur mutation.
+- Nouvel endpoint interne : `GET /insured/{uid}/prescriptions/active` (prescriptions actives d'un assuré).
+- Filtre `covered_person_uid` ajouté sur `GET /api/v1/claims` (claims-service).
+
 ## 2026-08-27 - Mise à jour des encounters
 
 ### ERP Prestataires

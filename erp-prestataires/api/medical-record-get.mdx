@@ -1,10 +1,16 @@
 ---
 title: "Dossier médical"
-description: "Récupère le dossier médical d'un assuré."
+description: "Récupère le dossier médical complet d'un assuré, avec traitements et antécédents chirurgicaux calculés."
 openapi: "/openapi/provider-api.openapi.yml GET /api/v1/insured/{insuredUid}/medical-record"
 ---
 
-Cet endpoint retourne le dossier médical complet d'un assuré : groupe sanguin, taille, poids, allergies, pathologies chroniques, antécédents chirurgicaux, vaccinations, antécédents familiaux, mode de vie et traitements en cours.
+Cet endpoint retourne le dossier médical complet d'un assuré. Il combine :
+
+- **Données saisies** par les prestataires : groupe sanguin, taille, poids, allergies, pathologies chroniques, vaccinations, antécédents familiaux, mode de vie.
+- **Traitements en cours** (`current_medications`) : calculés automatiquement à partir des prescriptions actives de l'assuré, croisés avec les claims soumis pour indiquer si chaque médicament a été effectivement consommé (`consumed: true/false`).
+- **Antécédents chirurgicaux** (`surgical_history`) : calculés automatiquement à partir des actes médicaux de catégorie `surgery` déclarés lors des consultations.
+
+Les sections calculées ne sont pas saisissables manuellement — elles se mettent à jour à chaque nouvelle prescription, acte médical ou claim soumis.
 
 ## Scope requis
 
@@ -22,6 +28,18 @@ Selon le contexte, un consentement fort de l'assuré peut être requis avant la 
 
 Les réponses de cet endpoint sont chiffrées via JWE. Récupérez la clé publique RSA via `GET /api/v1/auth/encryption-key` pour déchiffrer la réponse.
 
+## Cache
+
+Les fragments du dossier médical sont mis en cache côté BFF (Redis) avec des TTL différenciés :
+
+| Fragment | TTL |
+| --- | --- |
+| Données saisies (allergies, pathologies, etc.) | 30 min |
+| `current_medications` | 15 min |
+| `surgical_history` | 1 h |
+
+Le cache est invalidé proactivement lors d'une modification (PUT medical-record, nouvelle prescription, acte chirurgical, soumission de claim).
+
 ## Exemple de réponse
 
 ```json
@@ -34,7 +52,6 @@ Les réponses de cet endpoint sont chiffrées via JWE. Récupérez la clé publi
     "weight_kg": 72,
     "family_history": "Father with type 2 diabetes, mother with hypertension",
     "lifestyle_notes": "Non-smoker, moderate alcohol consumption, exercises 3x/week",
-    "current_medications": "Metformin 500mg daily, Lisinopril 10mg daily",
     "allergies": [
       {
         "substance": "Penicillin",
@@ -53,20 +70,52 @@ Les réponses de cet endpoint sont chiffrées via JWE. Récupérez la clé publi
         "icd10_code": "E11.9",
         "diagnosed_at": "2020-03-15",
         "current_treatment": "Metformin, diet control"
+      }
+    ],
+    "current_medications": [
+      {
+        "medication_name": "Metformine",
+        "medication_code": "METFORMINE500",
+        "dosage": "500mg",
+        "frequency": "2x/jour",
+        "duration": "30 jours",
+        "prescribed_at": "2026-08-15T10:00:00.000Z",
+        "prescriber_name": "Dr. Koffi",
+        "valid_until": "2026-09-14",
+        "prescription_uid": "rx-abc-123",
+        "consumed": true,
+        "last_dispensed_at": "2026-08-16",
+        "last_dispensed_quantity": 60,
+        "last_claim_uuid": "clm-456",
+        "last_claim_status": "APPROVED"
       },
       {
-        "condition_name": "Essential Hypertension",
-        "icd10_code": "I10",
-        "diagnosed_at": "2019-07-22",
-        "current_treatment": "Lisinopril, low sodium diet"
+        "medication_name": "Amlodipine",
+        "medication_code": "AMLODIPINE5",
+        "dosage": "5mg",
+        "frequency": "1x/jour",
+        "duration": "30 jours",
+        "prescribed_at": "2026-08-15T10:00:00.000Z",
+        "prescriber_name": "Dr. Koffi",
+        "valid_until": "2026-09-14",
+        "prescription_uid": "rx-abc-123",
+        "consumed": false,
+        "last_dispensed_at": null,
+        "last_dispensed_quantity": null,
+        "last_claim_uuid": null,
+        "last_claim_status": null
       }
     ],
     "surgical_history": [
       {
-        "procedure_name": "Appendectomy",
-        "performed_at": "2015-08-10",
-        "hospital_name": "Central Hospital",
-        "notes": "Laparoscopic, uncomplicated"
+        "act_code": "HHFA016",
+        "act_label": "Appendicectomie",
+        "performed_at": "2015-08-10T00:00:00.000Z",
+        "performed_by": "Dr. Mensah",
+        "encounter_date": "2015-08-10",
+        "encounter_type": "surgery",
+        "provider_uid": "prov-xyz",
+        "encounter_uid": "enc-789"
       }
     ],
     "immunizations": [
@@ -74,14 +123,41 @@ Les réponses de cet endpoint sont chiffrées via JWE. Récupérez la clé publi
         "vaccine_name": "COVID-19 Pfizer",
         "administered_at": "2023-09-15",
         "next_dose_at": "2024-09-15"
-      },
-      {
-        "vaccine_name": "Influenza",
-        "administered_at": "2023-10-20",
-        "next_dose_at": "2024-10-20"
       }
     ],
-    "updated_at": "2024-01-15T10:30:00.000000Z"
+    "updated_at": "2026-08-20T10:30:00.000000Z"
   }
 }
 ```
+
+## Champs `current_medications` (vue calculée)
+
+| Champ | Type | Description |
+| --- | --- | --- |
+| `medication_name` | string \| null | Nom du médicament (depuis la ligne de prescription). |
+| `medication_code` | string \| null | Code du médicament (référentiel local ou ATC). |
+| `dosage` | string \| null | Dosage (ex: `500mg`). |
+| `frequency` | string \| null | Fréquence (ex: `2x/jour`). |
+| `duration` | string \| null | Durée du traitement. |
+| `prescribed_at` | string \| null | Date d'émission de la prescription. |
+| `prescriber_name` | string \| null | Nom du prescripteur. |
+| `valid_until` | string \| null | Date de validité de la prescription. |
+| `prescription_uid` | string | UID de la prescription. |
+| `consumed` | boolean | `true` si un claim non-rejeté contient ce médicament. |
+| `last_dispensed_at` | string \| null | Date du dernier claim contenant ce médicament. |
+| `last_dispensed_quantity` | number \| null | Quantité dispensée lors du dernier claim. |
+| `last_claim_uuid` | string \| null | UUID du dernier claim. |
+| `last_claim_status` | string \| null | Statut du dernier claim. |
+
+## Champs `surgical_history` (vue calculée)
+
+| Champ | Type | Description |
+| --- | --- | --- |
+| `act_code` | string \| null | Code de l'acte (CCAM ou ICHI). |
+| `act_label` | string \| null | Libellé de l'acte. |
+| `performed_at` | string \| null | Date d'exécution de l'acte. |
+| `performed_by` | string \| null | Praticien ayant réalisé l'acte. |
+| `encounter_date` | string \| null | Date de la consultation parente. |
+| `encounter_type` | string \| null | Type de consultation. |
+| `provider_uid` | string \| null | UID du prestataire. |
+| `encounter_uid` | string \| null | UID de la consultation. |
