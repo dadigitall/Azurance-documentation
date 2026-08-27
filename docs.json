@@ -162,7 +162,8 @@
                   "erp-prestataires/api/encounters-diagnoses-list",
                   "erp-prestataires/api/encounters-medical-acts",
                   "erp-prestataires/api/encounters-medical-acts-add",
-                  "erp-prestataires/api/encounters-documents"
+                  "erp-prestataires/api/encounters-documents",
+                  "erp-prestataires/api/encounters-{encounterId}-update"
                 ],
                 "expanded": true
               },

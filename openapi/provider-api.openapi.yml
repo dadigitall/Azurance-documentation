@@ -2,16 +2,17 @@ openapi: 3.0.3
 info:
   title: AZURANCE ERP Provider API
   version: 0.1.0
-  description: API externe sandbox pour ERP prestataires. Toutes les requêtes doivent inclure un header `X-Api-Key` valide.
+  description: API externe sandbox pour ERP prestataires. Toutes les requêtes doivent
+    inclure un header `X-Api-Key` valide.
   license:
     name: Proprietary
 servers:
-  - url: https://provider-api-sandbox.elenami.com
-    description: Sandbox publique
-  - url: https://provider-api.elenami.com
-    description: Production
+- url: https://provider-api-sandbox.elenami.com
+  description: Sandbox publique
+- url: https://provider-api.elenami.com
+  description: Production
 security:
-  - ApiKeyAuth: []
+- ApiKeyAuth: []
 components:
   securitySchemes:
     ApiKeyAuth:
@@ -29,7 +30,13 @@ components:
   schemas:
     SubmitClaimRequest:
       type: object
-      required: [subscription_id, policyholder_id, coverage_type_code, service_date, amount_claimed, items]
+      required:
+      - subscription_id
+      - policyholder_id
+      - coverage_type_code
+      - service_date
+      - amount_claimed
+      - items
       properties:
         subscription_id:
           type: string
@@ -47,7 +54,9 @@ components:
           description: Pré-autorisation consommée.
         covered_person_type:
           type: string
-          enum: [policyholder, beneficiary]
+          enum:
+          - policyholder
+          - beneficiary
           description: Type de personne couverte.
         covered_person_uid:
           type: string
@@ -113,17 +122,32 @@ components:
           format: uuid
         status:
           type: string
-          enum: [PENDING_REVIEW, INFO_NEEDED, APPROVED, REJECTED, EXPIRED, CANCELLED, CONSUMED]
-          description: PENDING_REVIEW = en attente de revue; INFO_NEEDED = pièces attendues; APPROVED = accord préalable; REJECTED = refus; EXPIRED = accord expiré; CANCELLED = annulé; CONSUMED = utilisé par un claim approuvé.
+          enum:
+          - PENDING_REVIEW
+          - INFO_NEEDED
+          - APPROVED
+          - REJECTED
+          - EXPIRED
+          - CANCELLED
+          - CONSUMED
+          description: PENDING_REVIEW = en attente de revue; INFO_NEEDED = pièces
+            attendues; APPROVED = accord préalable; REJECTED = refus; EXPIRED = accord
+            expiré; CANCELLED = annulé; CONSUMED = utilisé par un claim approuvé.
         priority:
           type: string
-          enum: [URGENT, STANDARD, DEFERRED]
-          description: URGENT = revue prioritaire; STANDARD = traitement normal; DEFERRED = traitement non urgent.
+          enum:
+          - URGENT
+          - STANDARD
+          - DEFERRED
+          description: URGENT = revue prioritaire; STANDARD = traitement normal; DEFERRED
+            = traitement non urgent.
         subscription_uid:
           type: string
         covered_person_type:
           type: string
-          enum: [policyholder, beneficiary]
+          enum:
+          - policyholder
+          - beneficiary
         covered_person_uid:
           type: string
         coverage_type_code:
@@ -180,10 +204,14 @@ components:
         diagnosis_type:
           type: string
           nullable: true
-          enum: [definitive, provisional, differential]
+          enum:
+          - definitive
+          - provisional
+          - differential
     ProviderNetworkRelationship:
       type: object
-      description: Relation conventionnelle entre le prestataire authentifié par X-Api-Key et une compagnie d'assurance.
+      description: Relation conventionnelle entre le prestataire authentifié par X-Api-Key
+        et une compagnie d'assurance.
       properties:
         relationship_uid:
           type: string
@@ -191,16 +219,25 @@ components:
           description: Identifiant public de la relation réseau.
         relationship_type:
           type: string
-          enum: [care_network]
-          description: Type de relation. care_network signifie convention ou affiliation à un réseau de soins.
+          enum:
+          - care_network
+          description: Type de relation. care_network signifie convention ou affiliation
+            à un réseau de soins.
         relationship_status:
           type: string
-          enum: [ACTIVE, ENDED]
-          description: Statut de la relation. ACTIVE autorise l'usage selon les règles de la convention; ENDED signifie relation clôturée.
+          enum:
+          - ACTIVE
+          - ENDED
+          description: Statut de la relation. ACTIVE autorise l'usage selon les règles
+            de la convention; ENDED signifie relation clôturée.
         network_status:
           type: string
-          enum: [PREFERRED, IN_NETWORK, OUT_OF_NETWORK]
-          description: Niveau réseau. PREFERRED indique un réseau privilégié; IN_NETWORK indique un prestataire conventionné; OUT_OF_NETWORK indique hors réseau.
+          enum:
+          - PREFERRED
+          - IN_NETWORK
+          - OUT_OF_NETWORK
+          description: Niveau réseau. PREFERRED indique un réseau privilégié; IN_NETWORK
+            indique un prestataire conventionné; OUT_OF_NETWORK indique hors réseau.
         network_name:
           type: string
           nullable: true
@@ -208,7 +245,8 @@ components:
         network_tier:
           type: string
           nullable: true
-          description: Niveau brut configuré par le réseau, par exemple preferred, standard, pharmacy ou lab.
+          description: Niveau brut configuré par le réseau, par exemple preferred,
+            standard, pharmacy ou lab.
         contract_reference:
           type: string
           nullable: true
@@ -225,10 +263,12 @@ components:
           description: Date de fin de relation si connue.
         claim_submission_enabled:
           type: boolean
-          description: Indique si la relation permet de soumettre des claims dans son état courant.
+          description: Indique si la relation permet de soumettre des claims dans
+            son état courant.
         requires_prior_authorization:
           type: boolean
-          description: Indique si une autorisation préalable est requise par défaut pour ce réseau.
+          description: Indique si une autorisation préalable est requise par défaut
+            pour ce réseau.
         covered_service_families:
           type: array
           description: Familles de prestations couvertes par cette relation si configurées.
@@ -253,12 +293,24 @@ components:
           description: Pays du référentiel produit, par exemple BJ.
         market_status:
           type: string
-          enum: [LOCAL_AUTHORIZED, CANDIDATE, UNVERIFIED, WITHDRAWN, REJECTED]
-          description: LOCAL_AUTHORIZED = autorisé localement; CANDIDATE = candidat externe; UNVERIFIED = import non validé; WITHDRAWN = retiré; REJECTED = rejeté.
+          enum:
+          - LOCAL_AUTHORIZED
+          - CANDIDATE
+          - UNVERIFIED
+          - WITHDRAWN
+          - REJECTED
+          description: LOCAL_AUTHORIZED = autorisé localement; CANDIDATE = candidat
+            externe; UNVERIFIED = import non validé; WITHDRAWN = retiré; REJECTED
+            = rejeté.
         source:
           type: string
-          enum: [ABMED_BENIN, BDPM_FR, MEDICAMENTS_API_FR, CSV]
-          description: ABMED_BENIN = source locale Bénin; BDPM_FR/MEDICAMENTS_API_FR = sources candidates France; CSV = import contrôlé.
+          enum:
+          - ABMED_BENIN
+          - BDPM_FR
+          - MEDICAMENTS_API_FR
+          - CSV
+          description: ABMED_BENIN = source locale Bénin; BDPM_FR/MEDICAMENTS_API_FR
+            = sources candidates France; CSV = import contrôlé.
         designation:
           type: string
           description: Désignation officielle ou importée du produit.
@@ -334,7 +386,7 @@ paths:
       summary: Récupérer la clé publique de chiffrement
       security: []
       parameters:
-        - $ref: '#/components/parameters/RequestId'
+      - $ref: '#/components/parameters/RequestId'
       responses:
         '200':
           description: Clé publique de chiffrement
@@ -355,7 +407,7 @@ paths:
       summary: Vérifier la clé API et les scopes visibles
       security: []
       parameters:
-        - $ref: '#/components/parameters/RequestId'
+      - $ref: '#/components/parameters/RequestId'
       responses:
         '200':
           description: Informations sur la clé API et les scopes
@@ -388,39 +440,70 @@ paths:
     post:
       operationId: requestPriorAuthorization
       summary: Demander une préautorisation de prestation
-      description: Nécessite le scope prior_authorizations.create. Crée une demande formelle de prévalidation avant exécution, par exemple proforma de kinésithérapie ou matériel médical.
+      description: Nécessite le scope prior_authorizations.create. Crée une demande
+        formelle de prévalidation avant exécution, par exemple proforma de kinésithérapie
+        ou matériel médical.
       x-codeSamples:
-        - lang: curl
-          source: |
-            curl --request POST \
-              --url "https://provider-api-sandbox.elenami.com/api/v1/prior-authorizations" \
-              --header "Content-Type: application/json" \
-              --header "X-Api-Key: $AZURANCE_PROVIDER_API_KEY" \
-              --data '{"subscription_uid":"sub_001","covered_person_type":"beneficiary","covered_person_uid":"ben_001","coverage_type_code":"PHYSIOTHERAPY","estimated_amount":150000,"currency":"XOF","priority":"STANDARD","consent_ref":"00000000-0000-4000-8000-000000000001","items":[{"description":"10 séances de rééducation","quantity":10,"unit_price":15000}],"documents":[{"document_type":"PROFORMA","media_uid":"media_001"}]}'
+      - lang: curl
+        source: "curl --request POST \\\n  --url \"https://provider-api-sandbox.elenami.com/api/v1/prior-authorizations\"\
+          \ \\\n  --header \"Content-Type: application/json\" \\\n  --header \"X-Api-Key:\
+          \ $AZURANCE_PROVIDER_API_KEY\" \\\n  --data '{\"subscription_uid\":\"sub_001\"\
+          ,\"covered_person_type\":\"beneficiary\",\"covered_person_uid\":\"ben_001\"\
+          ,\"coverage_type_code\":\"PHYSIOTHERAPY\",\"estimated_amount\":150000,\"\
+          currency\":\"XOF\",\"priority\":\"STANDARD\",\"consent_ref\":\"00000000-0000-4000-8000-000000000001\"\
+          ,\"items\":[{\"description\":\"10 séances de rééducation\",\"quantity\"\
+          :10,\"unit_price\":15000}],\"documents\":[{\"document_type\":\"PROFORMA\"\
+          ,\"media_uid\":\"media_001\"}]}'\n"
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
-              required: [subscription_uid, covered_person_type, covered_person_uid, coverage_type_code, estimated_amount, consent_ref, items]
+              required:
+              - subscription_uid
+              - covered_person_type
+              - covered_person_uid
+              - coverage_type_code
+              - estimated_amount
+              - consent_ref
+              - items
               properties:
-                subscription_uid: { type: string }
+                subscription_uid:
+                  type: string
                 covered_person_type:
                   type: string
-                  enum: [policyholder, beneficiary]
-                covered_person_uid: { type: string }
-                coverage_type_code: { type: string }
-                service_date_from: { type: string, format: date }
-                service_date_to: { type: string, format: date }
-                estimated_amount: { type: number }
-                currency: { type: string, example: XOF }
+                  enum:
+                  - policyholder
+                  - beneficiary
+                covered_person_uid:
+                  type: string
+                coverage_type_code:
+                  type: string
+                service_date_from:
+                  type: string
+                  format: date
+                service_date_to:
+                  type: string
+                  format: date
+                estimated_amount:
+                  type: number
+                currency:
+                  type: string
+                  example: XOF
                 priority:
                   type: string
-                  enum: [URGENT, STANDARD, DEFERRED]
-                reason: { type: string }
-                provider_reference: { type: string }
-                consent_ref: { type: string, format: uuid }
+                  enum:
+                  - URGENT
+                  - STANDARD
+                  - DEFERRED
+                reason:
+                  type: string
+                provider_reference:
+                  type: string
+                consent_ref:
+                  type: string
+                  format: uuid
                 items:
                   type: array
                   items:
@@ -448,18 +531,23 @@ paths:
       summary: Lister les préautorisations du prestataire
       description: Nécessite le scope prior_authorizations.view.
       x-codeSamples:
-        - lang: curl
-          source: |
-            curl --request GET \
-              --url "https://provider-api-sandbox.elenami.com/api/v1/prior-authorizations?status=PENDING_REVIEW" \
-              --header "X-Api-Key: $AZURANCE_PROVIDER_API_KEY"
+      - lang: curl
+        source: "curl --request GET \\\n  --url \"https://provider-api-sandbox.elenami.com/api/v1/prior-authorizations?status=PENDING_REVIEW\"\
+          \ \\\n  --header \"X-Api-Key: $AZURANCE_PROVIDER_API_KEY\"\n"
       parameters:
-        - $ref: '#/components/parameters/RequestId'
-        - in: query
-          name: status
-          schema:
-            type: string
-            enum: [PENDING_REVIEW, INFO_NEEDED, APPROVED, REJECTED, EXPIRED, CANCELLED, CONSUMED]
+      - $ref: '#/components/parameters/RequestId'
+      - in: query
+        name: status
+        schema:
+          type: string
+          enum:
+          - PENDING_REVIEW
+          - INFO_NEEDED
+          - APPROVED
+          - REJECTED
+          - EXPIRED
+          - CANCELLED
+          - CONSUMED
       responses:
         '200':
           description: Liste paginée
@@ -469,10 +557,12 @@ paths:
       summary: Consulter une préautorisation
       description: Nécessite le scope prior_authorizations.view.
       parameters:
-        - in: path
-          name: uid
-          required: true
-          schema: { type: string, format: uuid }
+      - in: path
+        name: uid
+        required: true
+        schema:
+          type: string
+          format: uuid
       responses:
         '200':
           description: Détail de la préautorisation
@@ -482,10 +572,12 @@ paths:
       summary: Ajouter une pièce à une préautorisation
       description: Nécessite le scope prior_authorizations.documents.
       parameters:
-        - in: path
-          name: uid
-          required: true
-          schema: { type: string, format: uuid }
+      - in: path
+        name: uid
+        required: true
+        schema:
+          type: string
+          format: uuid
       responses:
         '200':
           description: Pièce ajoutée
@@ -495,10 +587,12 @@ paths:
       summary: Annuler une préautorisation
       description: Nécessite le scope prior_authorizations.cancel.
       parameters:
-        - in: path
-          name: uid
-          required: true
-          schema: { type: string, format: uuid }
+      - in: path
+        name: uid
+        required: true
+        schema:
+          type: string
+          format: uuid
       responses:
         '200':
           description: Préautorisation annulée
@@ -506,11 +600,13 @@ paths:
     get:
       operationId: getNetworkStatus
       summary: Lire le statut réseau global du prestataire authentifié
-      description: >
-        Retourne le statut réseau général du prestataire lié à X-Api-Key. Cet endpoint ne vérifie pas
-        l'éligibilité d'un assuré ni d'une prestation précise; pour cela utiliser /api/v1/eligibility/check.
+      description: 'Retourne le statut réseau général du prestataire lié à X-Api-Key.
+        Cet endpoint ne vérifie pas l''éligibilité d''un assuré ni d''une prestation
+        précise; pour cela utiliser /api/v1/eligibility/check.
+
+        '
       parameters:
-        - $ref: '#/components/parameters/RequestId'
+      - $ref: '#/components/parameters/RequestId'
       responses:
         '200':
           description: Statut réseau global du prestataire
@@ -524,7 +620,7 @@ paths:
       summary: Lire le profil réseau du prestataire authentifié
       description: Retourne le profil du prestataire rattaché à X-Api-Key.
       parameters:
-        - $ref: '#/components/parameters/RequestId'
+      - $ref: '#/components/parameters/RequestId'
       responses:
         '200':
           description: Profil prestataire
@@ -532,18 +628,24 @@ paths:
     get:
       operationId: listInsurerRelationships
       summary: Lister les relations assureur du prestataire authentifié
-      description: >
-        Liste les compagnies et réseaux avec lesquels le prestataire lié à X-Api-Key est conventionné.
-        Aucun identifiant assuré n'est envoyé; la vérification par assuré reste portée par eligibility/check.
+      description: 'Liste les compagnies et réseaux avec lesquels le prestataire lié
+        à X-Api-Key est conventionné. Aucun identifiant assuré n''est envoyé; la vérification
+        par assuré reste portée par eligibility/check.
+
+        '
       parameters:
-        - $ref: '#/components/parameters/RequestId'
-        - in: query
-          name: status
-          required: false
-          schema:
-            type: string
-            enum: [all, active, ended]
-          description: Filtre optionnel. all retourne toutes les relations; active retourne les relations actives; ended retourne les relations clôturées.
+      - $ref: '#/components/parameters/RequestId'
+      - in: query
+        name: status
+        required: false
+        schema:
+          type: string
+          enum:
+          - all
+          - active
+          - ended
+        description: Filtre optionnel. all retourne toutes les relations; active retourne
+          les relations actives; ended retourne les relations clôturées.
       responses:
         '200':
           description: Relations assureur du prestataire
@@ -564,15 +666,19 @@ paths:
     get:
       operationId: listInsurerRelationshipsAlias
       summary: Alias métier pour lister les relations assureur du prestataire
-      description: Equivalent de /api/v1/network/relationships avec un nom plus explicite pour les ERP.
+      description: Equivalent de /api/v1/network/relationships avec un nom plus explicite
+        pour les ERP.
       parameters:
-        - $ref: '#/components/parameters/RequestId'
-        - in: query
-          name: status
-          required: false
-          schema:
-            type: string
-            enum: [all, active, ended]
+      - $ref: '#/components/parameters/RequestId'
+      - in: query
+        name: status
+        required: false
+        schema:
+          type: string
+          enum:
+          - all
+          - active
+          - ended
       responses:
         '200':
           description: Relations assureur du prestataire
@@ -591,11 +697,13 @@ paths:
     get:
       operationId: listAvailableInsurers
       summary: Lister les assureurs disponibles pour une demande d'adhésion réseau
-      description: >
-        Retourne les organisations assureur actives connues du registre réseau. Le prestataire
-        peut utiliser `uid` comme `insurer_org_uid` dans `POST /api/v1/network/request`.
+      description: 'Retourne les organisations assureur actives connues du registre
+        réseau. Le prestataire peut utiliser `uid` comme `insurer_org_uid` dans `POST
+        /api/v1/network/request`.
+
+        '
       parameters:
-        - $ref: '#/components/parameters/RequestId'
+      - $ref: '#/components/parameters/RequestId'
       responses:
         '200':
           description: Assureurs disponibles pour demande d'adhésion
@@ -621,10 +729,10 @@ paths:
                           type: string
               example:
                 data:
-                  - uid: 5d000000-0000-4000-8000-000000000010
-                    legal_name: NSIA Assurances
-                    trade_name: NSIA
-                    country_code: CI
+                - uid: 5d000000-0000-4000-8000-000000000010
+                  legal_name: NSIA Assurances
+                  trade_name: NSIA
+                  country_code: CI
         '401':
           description: API key absente ou invalide
         '403':
@@ -633,18 +741,21 @@ paths:
     post:
       operationId: createAffiliationRequest
       summary: Initier une demande d'adhésion au réseau d'un assureur
-      description: >
-        Crée une demande d'adhésion `care_network` en statut pending entre l'assureur demandé
-        (`insurer_org_uid`) et l'organisation du prestataire authentifié par X-Api-Key.
+      description: 'Crée une demande d''adhésion `care_network` en statut pending
+        entre l''assureur demandé (`insurer_org_uid`) et l''organisation du prestataire
+        authentifié par X-Api-Key.
+
+        '
       parameters:
-        - $ref: '#/components/parameters/RequestId'
+      - $ref: '#/components/parameters/RequestId'
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
-              required: [insurer_org_uid]
+              required:
+              - insurer_org_uid
               properties:
                 insurer_org_uid:
                   type: string
@@ -658,7 +769,9 @@ paths:
               insurer_org_uid: 5d000000-0000-4000-8000-000000000010
               metadata:
                 requested_network_tier: standard
-                service_families: [OUTPATIENT, PHARMACY]
+                service_families:
+                - OUTPATIENT
+                - PHARMACY
                 message: Demande d'adhésion au réseau soins ambulatoires.
       responses:
         '201':
@@ -671,18 +784,27 @@ paths:
                   data:
                     type: object
                     properties:
-                      uid: { type: string, format: uuid }
-                      source_uid: { type: string, format: uuid }
-                      target_uid: { type: string, format: uuid }
+                      uid:
+                        type: string
+                        format: uuid
+                      source_uid:
+                        type: string
+                        format: uuid
+                      target_uid:
+                        type: string
+                        format: uuid
                       type:
                         type: string
-                        enum: [care_network]
+                        enum:
+                        - care_network
                       status:
                         type: string
-                        enum: [pending]
+                        enum:
+                        - pending
                       initiated_by:
                         type: string
-                        enum: [provider]
+                        enum:
+                        - provider
                       rejected_reason:
                         type: string
                         nullable: true
@@ -713,7 +835,9 @@ paths:
                   ends_at: null
                   metadata:
                     requested_network_tier: standard
-                    service_families: [OUTPATIENT, PHARMACY]
+                    service_families:
+                    - OUTPATIENT
+                    - PHARMACY
                     message: Demande d'adhésion au réseau soins ambulatoires.
                   created_at: '2026-08-06T15:30:00Z'
                   updated_at: '2026-08-06T15:30:00Z'
@@ -729,38 +853,59 @@ paths:
     get:
       operationId: listMedications
       summary: Lister le référentiel médicaments Azurance
-      description: Retourne les produits médicaments du référentiel pivot pour initialiser ou synchroniser un ERP prestataire. Ne retourne pas de stock, lot ou prix réel pharmacie.
+      description: Retourne les produits médicaments du référentiel pivot pour initialiser
+        ou synchroniser un ERP prestataire. Ne retourne pas de stock, lot ou prix
+        réel pharmacie.
       x-codeSamples:
-        - lang: curl
-          source: |
-            curl --request GET \
-              --url "https://provider-api-sandbox.elenami.com/api/v1/reference/medications?country_code=BJ&page=1&per_page=100" \
-              --header "X-Api-Key: $AZURANCE_PROVIDER_API_KEY"
+      - lang: curl
+        source: "curl --request GET \\\n  --url \"https://provider-api-sandbox.elenami.com/api/v1/reference/medications?country_code=BJ&page=1&per_page=100\"\
+          \ \\\n  --header \"X-Api-Key: $AZURANCE_PROVIDER_API_KEY\"\n"
       parameters:
-        - $ref: '#/components/parameters/RequestId'
-        - in: query
-          name: country_code
-          schema: { type: string, default: BJ }
-        - in: query
-          name: market_status
-          schema:
-            type: string
-            enum: [LOCAL_AUTHORIZED, CANDIDATE, UNVERIFIED, WITHDRAWN, REJECTED]
-          description: LOCAL_AUTHORIZED par défaut. CANDIDATE inclut les sources externes candidates.
-        - in: query
-          name: source
-          schema:
-            type: string
-            enum: [ABMED_BENIN, BDPM_FR, MEDICAMENTS_API_FR, CSV]
-        - in: query
-          name: include_candidates
-          schema: { type: boolean, default: false }
-        - in: query
-          name: page
-          schema: { type: integer, minimum: 1, default: 1 }
-        - in: query
-          name: per_page
-          schema: { type: integer, minimum: 1, maximum: 500, default: 100 }
+      - $ref: '#/components/parameters/RequestId'
+      - in: query
+        name: country_code
+        schema:
+          type: string
+          default: BJ
+      - in: query
+        name: market_status
+        schema:
+          type: string
+          enum:
+          - LOCAL_AUTHORIZED
+          - CANDIDATE
+          - UNVERIFIED
+          - WITHDRAWN
+          - REJECTED
+        description: LOCAL_AUTHORIZED par défaut. CANDIDATE inclut les sources externes
+          candidates.
+      - in: query
+        name: source
+        schema:
+          type: string
+          enum:
+          - ABMED_BENIN
+          - BDPM_FR
+          - MEDICAMENTS_API_FR
+          - CSV
+      - in: query
+        name: include_candidates
+        schema:
+          type: boolean
+          default: false
+      - in: query
+        name: page
+        schema:
+          type: integer
+          minimum: 1
+          default: 1
+      - in: query
+        name: per_page
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 500
+          default: 100
       responses:
         '200':
           description: Liste paginée de produits médicaments
@@ -781,28 +926,37 @@ paths:
     get:
       operationId: searchMedications
       summary: Rechercher un médicament du référentiel
-      description: Recherche par désignation, DCI, AMM ou titulaire. Les produits autorisés localement sont prioritaires.
+      description: Recherche par désignation, DCI, AMM ou titulaire. Les produits
+        autorisés localement sont prioritaires.
       x-codeSamples:
-        - lang: curl
-          source: |
-            curl --request GET \
-              --url "https://provider-api-sandbox.elenami.com/api/v1/reference/medications/search?q=amoxicilline&country_code=BJ" \
-              --header "X-Api-Key: $AZURANCE_PROVIDER_API_KEY"
+      - lang: curl
+        source: "curl --request GET \\\n  --url \"https://provider-api-sandbox.elenami.com/api/v1/reference/medications/search?q=amoxicilline&country_code=BJ\"\
+          \ \\\n  --header \"X-Api-Key: $AZURANCE_PROVIDER_API_KEY\"\n"
       parameters:
-        - $ref: '#/components/parameters/RequestId'
-        - in: query
-          name: q
-          required: true
-          schema: { type: string, minLength: 2 }
-        - in: query
-          name: country_code
-          schema: { type: string, default: BJ }
-        - in: query
-          name: include_candidates
-          schema: { type: boolean, default: false }
-        - in: query
-          name: limit
-          schema: { type: integer, minimum: 1, maximum: 50, default: 10 }
+      - $ref: '#/components/parameters/RequestId'
+      - in: query
+        name: q
+        required: true
+        schema:
+          type: string
+          minLength: 2
+      - in: query
+        name: country_code
+        schema:
+          type: string
+          default: BJ
+      - in: query
+        name: include_candidates
+        schema:
+          type: boolean
+          default: false
+      - in: query
+        name: limit
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 50
+          default: 10
       responses:
         '200':
           description: Résultats de recherche
@@ -821,35 +975,50 @@ paths:
     get:
       operationId: exportMedications
       summary: Exporter une page du référentiel médicaments
-      description: Export contrôlé JSON ou CSV, limité par pagination. Aucun dump illimité n'est exposé.
+      description: Export contrôlé JSON ou CSV, limité par pagination. Aucun dump
+        illimité n'est exposé.
       x-codeSamples:
-        - lang: curl
-          source: |
-            curl --request GET \
-              --url "https://provider-api-sandbox.elenami.com/api/v1/reference/medications/export?country_code=BJ&format=csv&page=1&per_page=500" \
-              --header "X-Api-Key: $AZURANCE_PROVIDER_API_KEY"
+      - lang: curl
+        source: "curl --request GET \\\n  --url \"https://provider-api-sandbox.elenami.com/api/v1/reference/medications/export?country_code=BJ&format=csv&page=1&per_page=500\"\
+          \ \\\n  --header \"X-Api-Key: $AZURANCE_PROVIDER_API_KEY\"\n"
       parameters:
-        - $ref: '#/components/parameters/RequestId'
-        - in: query
-          name: format
-          schema:
-            type: string
-            enum: [json, csv]
-            default: json
-        - in: query
-          name: country_code
-          schema: { type: string, default: BJ }
-        - in: query
-          name: market_status
-          schema:
-            type: string
-            enum: [LOCAL_AUTHORIZED, CANDIDATE, UNVERIFIED, WITHDRAWN, REJECTED]
-        - in: query
-          name: page
-          schema: { type: integer, minimum: 1, default: 1 }
-        - in: query
-          name: per_page
-          schema: { type: integer, minimum: 1, maximum: 500, default: 500 }
+      - $ref: '#/components/parameters/RequestId'
+      - in: query
+        name: format
+        schema:
+          type: string
+          enum:
+          - json
+          - csv
+          default: json
+      - in: query
+        name: country_code
+        schema:
+          type: string
+          default: BJ
+      - in: query
+        name: market_status
+        schema:
+          type: string
+          enum:
+          - LOCAL_AUTHORIZED
+          - CANDIDATE
+          - UNVERIFIED
+          - WITHDRAWN
+          - REJECTED
+      - in: query
+        name: page
+        schema:
+          type: integer
+          minimum: 1
+          default: 1
+      - in: query
+        name: per_page
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 500
+          default: 500
       responses:
         '200':
           description: Export JSON ou CSV
@@ -857,24 +1026,24 @@ paths:
     post:
       operationId: resolveMedication
       summary: Résoudre un produit ERP vers le référentiel Azurance
-      description: Retourne des candidats de correspondance sans créer de mapping persistant côté Azurance.
+      description: Retourne des candidats de correspondance sans créer de mapping
+        persistant côté Azurance.
       x-codeSamples:
-        - lang: curl
-          source: |
-            curl --request POST \
-              --url "https://provider-api-sandbox.elenami.com/api/v1/reference/medications/resolve" \
-              --header "Content-Type: application/json" \
-              --header "X-Api-Key: $AZURANCE_PROVIDER_API_KEY" \
-              --data '{"erp_product_code":"PHARMA-ERP-AMOX-500","erp_product_name":"AMOX 500 GEL B/12","country_code":"BJ"}'
+      - lang: curl
+        source: "curl --request POST \\\n  --url \"https://provider-api-sandbox.elenami.com/api/v1/reference/medications/resolve\"\
+          \ \\\n  --header \"Content-Type: application/json\" \\\n  --header \"X-Api-Key:\
+          \ $AZURANCE_PROVIDER_API_KEY\" \\\n  --data '{\"erp_product_code\":\"PHARMA-ERP-AMOX-500\"\
+          ,\"erp_product_name\":\"AMOX 500 GEL B/12\",\"country_code\":\"BJ\"}'\n"
       parameters:
-        - $ref: '#/components/parameters/RequestId'
+      - $ref: '#/components/parameters/RequestId'
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
-              required: [erp_product_name]
+              required:
+              - erp_product_name
               properties:
                 erp_product_code:
                   type: string
@@ -910,19 +1079,20 @@ paths:
     get:
       operationId: getMedication
       summary: Consulter une fiche médicament du référentiel
-      description: Retourne un produit médicament, ses présentations et son mapping clinique si disponible.
+      description: Retourne un produit médicament, ses présentations et son mapping
+        clinique si disponible.
       x-codeSamples:
-        - lang: curl
-          source: |
-            curl --request GET \
-              --url "https://provider-api-sandbox.elenami.com/api/v1/reference/medications/60000000-0000-4000-8000-000000000001" \
-              --header "X-Api-Key: $AZURANCE_PROVIDER_API_KEY"
+      - lang: curl
+        source: "curl --request GET \\\n  --url \"https://provider-api-sandbox.elenami.com/api/v1/reference/medications/60000000-0000-4000-8000-000000000001\"\
+          \ \\\n  --header \"X-Api-Key: $AZURANCE_PROVIDER_API_KEY\"\n"
       parameters:
-        - $ref: '#/components/parameters/RequestId'
-        - in: path
-          name: uid
-          required: true
-          schema: { type: string, format: uuid }
+      - $ref: '#/components/parameters/RequestId'
+      - in: path
+        name: uid
+        required: true
+        schema:
+          type: string
+          format: uuid
       responses:
         '200':
           description: Fiche médicament
@@ -941,7 +1111,7 @@ paths:
       summary: Lister les catégories d'actes médicaux
       description: Nécessite le scope reference.medical_acts.view.
       parameters:
-        - $ref: '#/components/parameters/RequestId'
+      - $ref: '#/components/parameters/RequestId'
       responses:
         '200':
           description: Liste des catégories d'actes médicaux
@@ -962,15 +1132,17 @@ paths:
       summary: Lister les actes médicaux d'une catégorie
       description: Nécessite le scope reference.medical_acts.view.
       parameters:
-        - $ref: '#/components/parameters/RequestId'
-        - in: path
-          name: category
-          required: true
-          schema:
-            type: string
-        - in: query
-          name: per_page
-          schema: { type: integer, minimum: 1 }
+      - $ref: '#/components/parameters/RequestId'
+      - in: path
+        name: category
+        required: true
+        schema:
+          type: string
+      - in: query
+        name: per_page
+        schema:
+          type: integer
+          minimum: 1
       responses:
         '200':
           description: Liste des actes médicaux de la catégorie
@@ -984,20 +1156,35 @@ paths:
       summary: Rechercher des actes médicaux
       description: Nécessite le scope reference.medical_acts.view.
       parameters:
-        - $ref: '#/components/parameters/RequestId'
-        - in: query
-          name: q
-          required: true
-          schema:
-            type: string
-        - in: query
-          name: limit
-          schema: { type: integer, minimum: 1, maximum: 100 }
-        - in: query
-          name: category
-          schema:
-            type: string
-            enum: [consultation, surgery, imaging, biology, anesthesia, physiotherapy, nursing, vaccination, medication_administration, mental_health, prevention, other]
+      - $ref: '#/components/parameters/RequestId'
+      - in: query
+        name: q
+        required: true
+        schema:
+          type: string
+      - in: query
+        name: limit
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+      - in: query
+        name: category
+        schema:
+          type: string
+          enum:
+          - consultation
+          - surgery
+          - imaging
+          - biology
+          - anesthesia
+          - physiotherapy
+          - nursing
+          - vaccination
+          - medication_administration
+          - mental_health
+          - prevention
+          - other
       responses:
         '200':
           description: Résultats de recherche d'actes médicaux
@@ -1009,33 +1196,48 @@ paths:
     get:
       operationId: exportMedicalActs
       summary: Exporter le référentiel des actes médicaux
-      description: Nécessite le scope reference.medical_acts.view. Export en JSON ou CSV.
+      description: Nécessite le scope reference.medical_acts.view. Export en JSON
+        ou CSV.
       parameters:
-        - $ref: '#/components/parameters/RequestId'
-        - in: query
-          name: category
-          required: false
-          schema:
-            type: string
-            enum: [consultation, surgery, imaging, biology, anesthesia, physiotherapy, nursing, vaccination, medication_administration, mental_health, prevention, other]
-          description: Filtrer par catégorie.
-        - in: query
-          name: format
-          required: false
-          schema:
-            type: string
-            enum: [json, csv]
-            default: json
-          description: Format d'export (`json` ou `csv`).
-        - in: query
-          name: per_page
-          required: false
-          schema:
-            type: integer
-            minimum: 1
-            maximum: 20000
-            default: 20000
-          description: Nombre maximum d'actes à exporter.
+      - $ref: '#/components/parameters/RequestId'
+      - in: query
+        name: category
+        required: false
+        schema:
+          type: string
+          enum:
+          - consultation
+          - surgery
+          - imaging
+          - biology
+          - anesthesia
+          - physiotherapy
+          - nursing
+          - vaccination
+          - medication_administration
+          - mental_health
+          - prevention
+          - other
+        description: Filtrer par catégorie.
+      - in: query
+        name: format
+        required: false
+        schema:
+          type: string
+          enum:
+          - json
+          - csv
+          default: json
+        description: Format d'export (`json` ou `csv`).
+      - in: query
+        name: per_page
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 20000
+          default: 20000
+        description: Nombre maximum d'actes à exporter.
       responses:
         '200':
           description: Export du référentiel (JSON ou CSV selon le paramètre format)
@@ -1066,17 +1268,14 @@ paths:
     get:
       operationId: listMedicalActChapters
       summary: Lister les chapitres des actes médicaux
-      description: >-
-        Retourne la liste des chapitres de la classification des actes médicaux
-        (ICHI et CCAM). Nécessite le scope `reference.medical_acts.view`.
+      description: Retourne la liste des chapitres de la classification des actes
+        médicaux (ICHI et CCAM). Nécessite le scope `reference.medical_acts.view`.
       x-codeSamples:
-        - lang: curl
-          source: |
-            curl --request GET \
-              --url "https://provider-api-sandbox.elenami.com/api/v1/reference/medical-acts/chapters" \
-              --header "X-Api-Key: $AZURANCE_PROVIDER_API_KEY"
+      - lang: curl
+        source: "curl --request GET \\\n  --url \"https://provider-api-sandbox.elenami.com/api/v1/reference/medical-acts/chapters\"\
+          \ \\\n  --header \"X-Api-Key: $AZURANCE_PROVIDER_API_KEY\"\n"
       parameters:
-        - $ref: '#/components/parameters/RequestId'
+      - $ref: '#/components/parameters/RequestId'
       responses:
         '200':
           description: Liste des chapitres
@@ -1098,15 +1297,15 @@ paths:
                           type: integer
               example:
                 data:
-                  - chapter_no: '01'
-                    title: Chirurgie digestive
-                    act_count: 1245
-                  - chapter_no: '02'
-                    title: Chirurgie orthopédique
-                    act_count: 980
-                  - chapter_no: '03'
-                    title: Imagerie médicale
-                    act_count: 642
+                - chapter_no: '01'
+                  title: Chirurgie digestive
+                  act_count: 1245
+                - chapter_no: '02'
+                  title: Chirurgie orthopédique
+                  act_count: 980
+                - chapter_no: '03'
+                  title: Imagerie médicale
+                  act_count: 642
         '401':
           description: API key absente ou invalide
         '403':
@@ -1115,26 +1314,26 @@ paths:
     get:
       operationId: listMedicalActsByChapter
       summary: Lister les actes médicaux d'un chapitre
-      description: >-
-        Retourne les actes médicaux d'un chapitre donné (numéro ICHI ou CCAM).
-        Nécessite le scope `reference.medical_acts.view`.
+      description: Retourne les actes médicaux d'un chapitre donné (numéro ICHI ou
+        CCAM). Nécessite le scope `reference.medical_acts.view`.
       x-codeSamples:
-        - lang: curl
-          source: |
-            curl --request GET \
-              --url "https://provider-api-sandbox.elenami.com/api/v1/reference/medical-acts/chapter/01?per_page=50" \
-              --header "X-Api-Key: $AZURANCE_PROVIDER_API_KEY"
+      - lang: curl
+        source: "curl --request GET \\\n  --url \"https://provider-api-sandbox.elenami.com/api/v1/reference/medical-acts/chapter/01?per_page=50\"\
+          \ \\\n  --header \"X-Api-Key: $AZURANCE_PROVIDER_API_KEY\"\n"
       parameters:
-        - $ref: '#/components/parameters/RequestId'
-        - in: path
-          name: chapterNo
-          required: true
-          schema:
-            type: string
-          description: Numéro du chapitre (ex. `01`, `02`).
-        - in: query
-          name: per_page
-          schema: { type: integer, minimum: 1, default: 50 }
+      - $ref: '#/components/parameters/RequestId'
+      - in: path
+        name: chapterNo
+        required: true
+        schema:
+          type: string
+        description: Numéro du chapitre (ex. `01`, `02`).
+      - in: query
+        name: per_page
+        schema:
+          type: integer
+          minimum: 1
+          default: 50
       responses:
         '200':
           description: Liste des actes médicaux du chapitre
@@ -1161,12 +1360,12 @@ paths:
       summary: Consulter un acte médical
       description: Nécessite le scope reference.medical_acts.view.
       parameters:
-        - $ref: '#/components/parameters/RequestId'
-        - in: path
-          name: identifier
-          required: true
-          schema:
-            type: string
+      - $ref: '#/components/parameters/RequestId'
+      - in: path
+        name: identifier
+        required: true
+        schema:
+          type: string
       responses:
         '200':
           description: Détail de l'acte médical
@@ -1180,7 +1379,7 @@ paths:
       summary: Lister les chapitres de la classification des pathologies
       description: Nécessite le scope reference.pathologies.view.
       parameters:
-        - $ref: '#/components/parameters/RequestId'
+      - $ref: '#/components/parameters/RequestId'
       responses:
         '200':
           description: Liste des chapitres de la classification des pathologies
@@ -1201,12 +1400,12 @@ paths:
       summary: Lister les pathologies d'un chapitre
       description: Nécessite le scope reference.pathologies.view.
       parameters:
-        - $ref: '#/components/parameters/RequestId'
-        - in: path
-          name: chapterCode
-          required: true
-          schema:
-            type: string
+      - $ref: '#/components/parameters/RequestId'
+      - in: path
+        name: chapterCode
+        required: true
+        schema:
+          type: string
       responses:
         '200':
           description: Liste des pathologies du chapitre
@@ -1220,19 +1419,22 @@ paths:
       summary: Rechercher des pathologies
       description: Nécessite le scope reference.pathologies.view.
       parameters:
-        - $ref: '#/components/parameters/RequestId'
-        - in: query
-          name: q
-          required: true
-          schema:
-            type: string
-        - in: query
-          name: limit
-          schema: { type: integer, minimum: 1, maximum: 100 }
-        - in: query
-          name: chapter
-          schema:
-            type: string
+      - $ref: '#/components/parameters/RequestId'
+      - in: query
+        name: q
+        required: true
+        schema:
+          type: string
+      - in: query
+        name: limit
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+      - in: query
+        name: chapter
+        schema:
+          type: string
       responses:
         '200':
           description: Résultats de recherche de pathologies
@@ -1244,33 +1446,36 @@ paths:
     get:
       operationId: exportPathologies
       summary: Exporter le référentiel des pathologies
-      description: Nécessite le scope reference.pathologies.view. Export en JSON ou CSV.
+      description: Nécessite le scope reference.pathologies.view. Export en JSON ou
+        CSV.
       parameters:
-        - $ref: '#/components/parameters/RequestId'
-        - in: query
-          name: chapter
-          required: false
-          schema:
-            type: string
-            maxLength: 2
-          description: Filtrer par chapitre CIM-10 (ex. `I`, `J`).
-        - in: query
-          name: format
-          required: false
-          schema:
-            type: string
-            enum: [json, csv]
-            default: json
-          description: Format d'export (`json` ou `csv`).
-        - in: query
-          name: per_page
-          required: false
-          schema:
-            type: integer
-            minimum: 1
-            maximum: 5000
-            default: 5000
-          description: Nombre maximum de pathologies à exporter.
+      - $ref: '#/components/parameters/RequestId'
+      - in: query
+        name: chapter
+        required: false
+        schema:
+          type: string
+          maxLength: 2
+        description: Filtrer par chapitre CIM-10 (ex. `I`, `J`).
+      - in: query
+        name: format
+        required: false
+        schema:
+          type: string
+          enum:
+          - json
+          - csv
+          default: json
+        description: Format d'export (`json` ou `csv`).
+      - in: query
+        name: per_page
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 5000
+          default: 5000
+        description: Nombre maximum de pathologies à exporter.
       responses:
         '200':
           description: Export du référentiel (JSON ou CSV selon le paramètre format)
@@ -1303,12 +1508,12 @@ paths:
       summary: Consulter une pathologie
       description: Nécessite le scope reference.pathologies.view.
       parameters:
-        - $ref: '#/components/parameters/RequestId'
-        - in: path
-          name: identifier
-          required: true
-          schema:
-            type: string
+      - $ref: '#/components/parameters/RequestId'
+      - in: path
+        name: identifier
+        required: true
+        schema:
+          type: string
       responses:
         '200':
           description: Détail de la pathologie
@@ -1321,21 +1526,25 @@ paths:
       operationId: checkEligibility
       summary: Précheck d'éligibilité ERP sans création de claim
       parameters:
-        - $ref: '#/components/parameters/RequestId'
+      - $ref: '#/components/parameters/RequestId'
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
-              required: [coverage_type_code, amount]
+              required:
+              - coverage_type_code
+              - amount
               properties:
                 subscription_uid:
                   type: string
                   format: uuid
                 covered_person_type:
                   type: string
-                  enum: [policyholder, beneficiary]
+                  enum:
+                  - policyholder
+                  - beneficiary
                 covered_person_uid:
                   type: string
                 consent_ref:
@@ -1366,18 +1575,28 @@ paths:
       operationId: resolveCoveredPerson
       summary: Résoudre une personne couverte sans exposer de données médicales
       parameters:
-        - $ref: '#/components/parameters/RequestId'
+      - $ref: '#/components/parameters/RequestId'
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
-              required: [identifier_type, identifier]
+              required:
+              - identifier_type
+              - identifier
               properties:
                 identifier_type:
                   type: string
-                  enum: [npi, phone_number, policy_number, subscription_number, member_number, beneficiary_number, policyholder_uid, beneficiary_uid]
+                  enum:
+                  - npi
+                  - phone_number
+                  - policy_number
+                  - subscription_number
+                  - member_number
+                  - beneficiary_number
+                  - policyholder_uid
+                  - beneficiary_uid
                 identifier:
                   type: string
                 subscription_uid:
@@ -1399,14 +1618,16 @@ paths:
       operationId: supportSearchCoveredPersons
       summary: Recherche de support pour identifier une personne couverte
       parameters:
-        - $ref: '#/components/parameters/RequestId'
+      - $ref: '#/components/parameters/RequestId'
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
-              required: [first_name, last_name]
+              required:
+              - first_name
+              - last_name
               properties:
                 first_name:
                   type: string
@@ -1444,18 +1665,25 @@ paths:
       operationId: initiateConsentRequest
       summary: Initier un consentement fort assuré pour un ERP prestataire
       parameters:
-        - $ref: '#/components/parameters/RequestId'
+      - $ref: '#/components/parameters/RequestId'
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
-              required: [covered_person_type, covered_person_uid, subscription_uid, purpose, scopes]
+              required:
+              - covered_person_type
+              - covered_person_uid
+              - subscription_uid
+              - purpose
+              - scopes
               properties:
                 covered_person_type:
                   type: string
-                  enum: [policyholder, beneficiary]
+                  enum:
+                  - policyholder
+                  - beneficiary
                 covered_person_uid:
                   type: string
                 subscription_uid:
@@ -1469,10 +1697,17 @@ paths:
                     type: string
                 channel:
                   type: string
-                  enum: [sms, email, whatsapp, totp, face_match]
+                  enum:
+                  - sms
+                  - email
+                  - whatsapp
+                  - totp
+                  - face_match
                 assurance_level_required:
                   type: integer
-                  enum: [2, 3]
+                  enum:
+                  - 2
+                  - 3
       responses:
         '201':
           description: Challenge de consentement créé
@@ -1481,13 +1716,13 @@ paths:
       operationId: verifyConsentRequest
       summary: Vérifier un consentement OTP/TOTP ou Face Match
       parameters:
-        - $ref: '#/components/parameters/RequestId'
-        - in: path
-          name: uid
-          required: true
-          schema:
-            type: string
-            format: uuid
+      - $ref: '#/components/parameters/RequestId'
+      - in: path
+        name: uid
+        required: true
+        schema:
+          type: string
+          format: uuid
       requestBody:
         required: true
         content:
@@ -1497,7 +1732,12 @@ paths:
               properties:
                 method:
                   type: string
-                  enum: [sms, email, whatsapp, totp, face_match]
+                  enum:
+                  - sms
+                  - email
+                  - whatsapp
+                  - totp
+                  - face_match
                 code:
                   type: string
                 face_match_session_id:
@@ -1513,12 +1753,12 @@ paths:
       operationId: getConsentRequest
       summary: Consulter une demande de consentement
       parameters:
-        - $ref: '#/components/parameters/RequestId'
-        - in: path
-          name: uid
-          required: true
-          schema:
-            type: string
+      - $ref: '#/components/parameters/RequestId'
+      - in: path
+        name: uid
+        required: true
+        schema:
+          type: string
       responses:
         '200':
           description: Détail de la demande de consentement
@@ -1534,36 +1774,44 @@ paths:
       summary: Lister les ordonnances autorisées après consentement fort
       description: Nécessite le scope clinical.prescriptions.view.
       parameters:
-        - $ref: '#/components/parameters/RequestId'
-        - in: path
-          name: coveredPersonType
-          required: true
-          schema:
-            type: string
-            enum: [policyholder, beneficiary]
-        - in: path
-          name: coveredPersonUid
-          required: true
-          schema:
-            type: string
-        - in: query
-          name: subscription_uid
-          required: true
-          schema:
-            type: string
-            format: uuid
-        - in: query
-          name: consent_ref
-          required: true
-          schema:
-            type: string
-            format: uuid
-        - in: query
-          name: page
-          schema: { type: integer, minimum: 1, default: 1 }
-        - in: query
-          name: per_page
-          schema: { type: integer, minimum: 1, default: 20 }
+      - $ref: '#/components/parameters/RequestId'
+      - in: path
+        name: coveredPersonType
+        required: true
+        schema:
+          type: string
+          enum:
+          - policyholder
+          - beneficiary
+      - in: path
+        name: coveredPersonUid
+        required: true
+        schema:
+          type: string
+      - in: query
+        name: subscription_uid
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - in: query
+        name: consent_ref
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - in: query
+        name: page
+        schema:
+          type: integer
+          minimum: 1
+          default: 1
+      - in: query
+        name: per_page
+        schema:
+          type: integer
+          minimum: 1
+          default: 20
       responses:
         '200':
           description: Ordonnances filtrées selon le consentement et le prestataire
@@ -1577,30 +1825,32 @@ paths:
       summary: Récupérer le portrait biométrique d'une personne couverte
       description: Nécessite le scope covered_persons.resolve.
       parameters:
-        - $ref: '#/components/parameters/RequestId'
-        - in: path
-          name: coveredPersonUid
-          required: true
-          schema:
-            type: string
-        - in: query
-          name: insurer_tenant_uid
-          required: true
-          schema:
-            type: string
-          description: Identifiant du tenant assureur.
-        - in: query
-          name: covered_person_type
-          required: true
-          schema:
-            type: string
-            enum: [policyholder, beneficiary]
-        - in: query
-          name: subscription_uid
-          required: false
-          schema:
-            type: string
-          description: Requis si covered_person_type=beneficiary.
+      - $ref: '#/components/parameters/RequestId'
+      - in: path
+        name: coveredPersonUid
+        required: true
+        schema:
+          type: string
+      - in: query
+        name: insurer_tenant_uid
+        required: true
+        schema:
+          type: string
+        description: Identifiant du tenant assureur.
+      - in: query
+        name: covered_person_type
+        required: true
+        schema:
+          type: string
+          enum:
+          - policyholder
+          - beneficiary
+      - in: query
+        name: subscription_uid
+        required: false
+        schema:
+          type: string
+        description: Requis si covered_person_type=beneficiary.
       responses:
         '200':
           description: Portrait biométrique de la personne couverte
@@ -1617,14 +1867,17 @@ paths:
       operationId: uploadMedia
       summary: Upload de document clinique ou justificatif claim
       parameters:
-        - $ref: '#/components/parameters/RequestId'
+      - $ref: '#/components/parameters/RequestId'
       requestBody:
         required: true
         content:
           multipart/form-data:
             schema:
               type: object
-              required: [file, category, purpose]
+              required:
+              - file
+              - category
+              - purpose
               properties:
                 file:
                   type: string
@@ -1645,7 +1898,7 @@ paths:
       operationId: listClaims
       summary: Lister les claims du prestataire lié à la clé API
       parameters:
-        - $ref: '#/components/parameters/RequestId'
+      - $ref: '#/components/parameters/RequestId'
       responses:
         '200':
           description: Liste paginée
@@ -1654,12 +1907,12 @@ paths:
       operationId: getClaimStatus
       summary: Consulter le statut d'un claim
       parameters:
-        - $ref: '#/components/parameters/RequestId'
-        - in: path
-          name: claimId
-          required: true
-          schema:
-            type: string
+      - $ref: '#/components/parameters/RequestId'
+      - in: path
+        name: claimId
+        required: true
+        schema:
+          type: string
       responses:
         '200':
           description: Statut du claim
@@ -1679,19 +1932,20 @@ paths:
       operationId: attachClaimDocument
       summary: Attacher un document justificatif à un claim
       parameters:
-        - $ref: '#/components/parameters/RequestId'
-        - in: path
-          name: claimId
-          required: true
-          schema:
-            type: string
+      - $ref: '#/components/parameters/RequestId'
+      - in: path
+        name: claimId
+        required: true
+        schema:
+          type: string
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
-              required: [document_type]
+              required:
+              - document_type
               properties:
                 document_type:
                   type: string
@@ -1714,21 +1968,21 @@ paths:
     post:
       operationId: createClaimDraft
       summary: Créer un brouillon de claim
-      description: >-
-        Crée un claim en statut `draft` sans effectuer le check final d'éligibilité
+      description: Crée un claim en statut `draft` sans effectuer le check final d'éligibilité
         ni réserver les plafonds. Le brouillon peut ensuite être complété avec des
         documents justificatifs puis soumis via `POST /api/v1/claims/{claimId}/submit`.
       x-codeSamples:
-        - lang: curl
-          source: |
-            curl --request POST \
-              --url "https://provider-api-sandbox.elenami.com/api/v1/claims/draft" \
-              --header "X-Api-Key: $AZURANCE_PROVIDER_API_KEY" \
-              --header "Content-Type: application/json" \
-              --header "Idempotency-Key: $(uuidgen)" \
-              --data '{"subscription_id":"sub_sandbox_001","policyholder_id":"mbr_sandbox_001","coverage_type_code":"OUTPATIENT_PHARMACY","service_date":"2026-01-15","amount_claimed":50000,"currency":"XOF","items":[{"description":"Consultation générale","quantity":1,"unit_price":50000}]}'
+      - lang: curl
+        source: "curl --request POST \\\n  --url \"https://provider-api-sandbox.elenami.com/api/v1/claims/draft\"\
+          \ \\\n  --header \"X-Api-Key: $AZURANCE_PROVIDER_API_KEY\" \\\n  --header\
+          \ \"Content-Type: application/json\" \\\n  --header \"Idempotency-Key: $(uuidgen)\"\
+          \ \\\n  --data '{\"subscription_id\":\"sub_sandbox_001\",\"policyholder_id\"\
+          :\"mbr_sandbox_001\",\"coverage_type_code\":\"OUTPATIENT_PHARMACY\",\"service_date\"\
+          :\"2026-01-15\",\"amount_claimed\":50000,\"currency\":\"XOF\",\"items\"\
+          :[{\"description\":\"Consultation générale\",\"quantity\":1,\"unit_price\"\
+          :50000}]}'\n"
       parameters:
-        - $ref: '#/components/parameters/RequestId'
+      - $ref: '#/components/parameters/RequestId'
       requestBody:
         required: true
         content:
@@ -1745,9 +1999,9 @@ paths:
               covered_person_type: policyholder
               covered_person_uid: mbr_sandbox_001
               items:
-                - description: Consultation générale
-                  quantity: 1
-                  unit_price: 50000
+              - description: Consultation générale
+                quantity: 1
+                unit_price: 50000
       responses:
         '201':
           description: Brouillon de claim créé
@@ -1796,9 +2050,9 @@ paths:
                   amount_claimed: 50000
                   currency: XOF
                   items:
-                    - description: Consultation générale
-                      quantity: 1
-                      unit_price: 50000
+                  - description: Consultation générale
+                    quantity: 1
+                    unit_price: 50000
         '401':
           description: API key absente ou invalide
         '403':
@@ -1809,22 +2063,19 @@ paths:
     get:
       operationId: getClaimDraft
       summary: Consulter un brouillon de claim
-      description: >-
-        Retourne le brouillon d'un claim avec toutes ses données. Le claim doit être
-        en statut `draft`.
+      description: Retourne le brouillon d'un claim avec toutes ses données. Le claim
+        doit être en statut `draft`.
       x-codeSamples:
-        - lang: curl
-          source: |
-            curl --request GET \
-              --url "https://provider-api-sandbox.elenami.com/api/v1/claims/claim_sandbox_draft_001/draft" \
-              --header "X-Api-Key: $AZURANCE_PROVIDER_API_KEY"
+      - lang: curl
+        source: "curl --request GET \\\n  --url \"https://provider-api-sandbox.elenami.com/api/v1/claims/claim_sandbox_draft_001/draft\"\
+          \ \\\n  --header \"X-Api-Key: $AZURANCE_PROVIDER_API_KEY\"\n"
       parameters:
-        - $ref: '#/components/parameters/RequestId'
-        - in: path
-          name: claimId
-          required: true
-          schema:
-            type: string
+      - $ref: '#/components/parameters/RequestId'
+      - in: path
+        name: claimId
+        required: true
+        schema:
+          type: string
       responses:
         '200':
           description: Brouillon du claim
@@ -1847,9 +2098,9 @@ paths:
                   amount_claimed: 50000
                   currency: XOF
                   items:
-                    - description: Consultation générale
-                      quantity: 1
-                      unit_price: 50000
+                  - description: Consultation générale
+                    quantity: 1
+                    unit_price: 50000
                   documents: []
         '401':
           description: API key absente ou invalide
@@ -1860,22 +2111,19 @@ paths:
     delete:
       operationId: cancelClaimDraft
       summary: Annuler un brouillon de claim
-      description: >-
-        Supprime un brouillon de claim. Le claim doit être en statut `draft`.
+      description: Supprime un brouillon de claim. Le claim doit être en statut `draft`.
         Cette action est irréversible.
       x-codeSamples:
-        - lang: curl
-          source: |
-            curl --request DELETE \
-              --url "https://provider-api-sandbox.elenami.com/api/v1/claims/claim_sandbox_draft_001/draft" \
-              --header "X-Api-Key: $AZURANCE_PROVIDER_API_KEY"
+      - lang: curl
+        source: "curl --request DELETE \\\n  --url \"https://provider-api-sandbox.elenami.com/api/v1/claims/claim_sandbox_draft_001/draft\"\
+          \ \\\n  --header \"X-Api-Key: $AZURANCE_PROVIDER_API_KEY\"\n"
       parameters:
-        - $ref: '#/components/parameters/RequestId'
-        - in: path
-          name: claimId
-          required: true
-          schema:
-            type: string
+      - $ref: '#/components/parameters/RequestId'
+      - in: path
+        name: claimId
+        required: true
+        schema:
+          type: string
       responses:
         '200':
           description: Brouillon annulé
@@ -1898,33 +2146,31 @@ paths:
     post:
       operationId: submitClaimDraft
       summary: Soumettre un brouillon de claim
-      description: >-
-        Soumet un brouillon de claim : effectue le check final d'éligibilité,
-        calcule les plafonds, réserve les montants et fait passer le claim en
-        statut `submitted`. Le `consent_ref` est requis pour valider le consentement
-        fort associé.
+      description: 'Soumet un brouillon de claim : effectue le check final d''éligibilité,
+        calcule les plafonds, réserve les montants et fait passer le claim en statut
+        `submitted`. Le `consent_ref` est requis pour valider le consentement fort
+        associé.'
       x-codeSamples:
-        - lang: curl
-          source: |
-            curl --request POST \
-              --url "https://provider-api-sandbox.elenami.com/api/v1/claims/claim_sandbox_draft_001/submit" \
-              --header "X-Api-Key: $AZURANCE_PROVIDER_API_KEY" \
-              --header "Content-Type: application/json" \
-              --data '{"consent_ref":"a1b2c3d4-0000-4000-8000-000000000001"}'
+      - lang: curl
+        source: "curl --request POST \\\n  --url \"https://provider-api-sandbox.elenami.com/api/v1/claims/claim_sandbox_draft_001/submit\"\
+          \ \\\n  --header \"X-Api-Key: $AZURANCE_PROVIDER_API_KEY\" \\\n  --header\
+          \ \"Content-Type: application/json\" \\\n  --data '{\"consent_ref\":\"a1b2c3d4-0000-4000-8000-000000000001\"\
+          }'\n"
       parameters:
-        - $ref: '#/components/parameters/RequestId'
-        - in: path
-          name: claimId
-          required: true
-          schema:
-            type: string
+      - $ref: '#/components/parameters/RequestId'
+      - in: path
+        name: claimId
+        required: true
+        schema:
+          type: string
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
-              required: [consent_ref]
+              required:
+              - consent_ref
               properties:
                 consent_ref:
                   type: string
@@ -1980,21 +2226,30 @@ paths:
       operationId: recordServiceExecution
       summary: Enregistrer une prestation réellement effectuée par l'ERP
       parameters:
-        - $ref: '#/components/parameters/RequestId'
+      - $ref: '#/components/parameters/RequestId'
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
-              required: [subscription_uid, covered_person_type, covered_person_uid, coverage_type_code, service_date, consent_ref, items]
+              required:
+              - subscription_uid
+              - covered_person_type
+              - covered_person_uid
+              - coverage_type_code
+              - service_date
+              - consent_ref
+              - items
               properties:
                 subscription_uid:
                   type: string
                   format: uuid
                 covered_person_type:
                   type: string
-                  enum: [policyholder, beneficiary]
+                  enum:
+                  - policyholder
+                  - beneficiary
                 covered_person_uid:
                   type: string
                 coverage_type_code:
@@ -2020,7 +2275,7 @@ paths:
       operationId: listServiceExecutions
       summary: Lister les prestations réellement effectuées par le prestataire
       parameters:
-        - $ref: '#/components/parameters/RequestId'
+      - $ref: '#/components/parameters/RequestId'
       responses:
         '200':
           description: Liste paginée
@@ -2029,7 +2284,7 @@ paths:
       operationId: listPayableInvoices
       summary: Lister les bordereaux payables visibles par l'ERP prestataire
       parameters:
-        - $ref: '#/components/parameters/RequestId'
+      - $ref: '#/components/parameters/RequestId'
       responses:
         '200':
           description: Liste paginée
@@ -2038,12 +2293,12 @@ paths:
       operationId: getPayableInvoice
       summary: Consulter une facture payable
       parameters:
-        - $ref: '#/components/parameters/RequestId'
-        - in: path
-          name: uuid
-          required: true
-          schema:
-            type: string
+      - $ref: '#/components/parameters/RequestId'
+      - in: path
+        name: uuid
+        required: true
+        schema:
+          type: string
       responses:
         '200':
           description: Détail de la facture payable
@@ -2058,19 +2313,19 @@ paths:
       operationId: listPayableInvoiceItems
       summary: Lister les lignes d'une facture payable
       parameters:
-        - $ref: '#/components/parameters/RequestId'
-        - in: path
-          name: uuid
-          required: true
-          schema:
-            type: string
-        - in: query
-          name: filters
-          required: false
-          schema:
-            type: object
-            additionalProperties: true
-          description: Paramètres de filtrage arbitraires (Record<string, unknown>).
+      - $ref: '#/components/parameters/RequestId'
+      - in: path
+        name: uuid
+        required: true
+        schema:
+          type: string
+      - in: query
+        name: filters
+        required: false
+        schema:
+          type: object
+          additionalProperties: true
+        description: Paramètres de filtrage arbitraires (Record<string, unknown>).
       responses:
         '200':
           description: Liste des lignes de la facture payable
@@ -2085,12 +2340,12 @@ paths:
       operationId: getPayment
       summary: Consulter un paiement
       parameters:
-        - $ref: '#/components/parameters/RequestId'
-        - in: path
-          name: uuid
-          required: true
-          schema:
-            type: string
+      - $ref: '#/components/parameters/RequestId'
+      - in: path
+        name: uuid
+        required: true
+        schema:
+          type: string
       responses:
         '200':
           description: Paiement
@@ -2105,19 +2360,19 @@ paths:
       operationId: listPaymentAllocations
       summary: Lister les allocations d'un paiement
       parameters:
-        - $ref: '#/components/parameters/RequestId'
-        - in: path
-          name: uuid
-          required: true
-          schema:
-            type: string
-        - in: query
-          name: filters
-          required: false
-          schema:
-            type: object
-            additionalProperties: true
-          description: Paramètres de filtrage arbitraires (Record<string, unknown>).
+      - $ref: '#/components/parameters/RequestId'
+      - in: path
+        name: uuid
+        required: true
+        schema:
+          type: string
+      - in: query
+        name: filters
+        required: false
+        schema:
+          type: object
+          additionalProperties: true
+        description: Paramètres de filtrage arbitraires (Record<string, unknown>).
       responses:
         '200':
           description: Liste des allocations du paiement
@@ -2132,16 +2387,16 @@ paths:
       operationId: getBillingSync
       summary: Flux incrémental ERP des événements billing
       parameters:
-        - $ref: '#/components/parameters/RequestId'
-        - in: query
-          name: cursor
-          schema:
-            type: string
-        - in: query
-          name: updated_after
-          schema:
-            type: string
-            format: date-time
+      - $ref: '#/components/parameters/RequestId'
+      - in: query
+        name: cursor
+        schema:
+          type: string
+      - in: query
+        name: updated_after
+        schema:
+          type: string
+          format: date-time
       responses:
         '200':
           description: Page de synchronisation
@@ -2150,7 +2405,7 @@ paths:
       operationId: createWebhookSubscription
       summary: Créer une souscription webhook ERP
       parameters:
-        - $ref: '#/components/parameters/RequestId'
+      - $ref: '#/components/parameters/RequestId'
       responses:
         '201':
           description: Souscription créée
@@ -2159,12 +2414,12 @@ paths:
       operationId: updateWebhookSubscription
       summary: Modifier un abonnement webhook
       parameters:
-        - $ref: '#/components/parameters/RequestId'
-        - in: path
-          name: uuid
-          required: true
-          schema:
-            type: string
+      - $ref: '#/components/parameters/RequestId'
+      - in: path
+        name: uuid
+        required: true
+        schema:
+          type: string
       requestBody:
         required: true
         content:
@@ -2186,12 +2441,12 @@ paths:
       operationId: deleteWebhookSubscription
       summary: Supprimer un abonnement webhook
       parameters:
-        - $ref: '#/components/parameters/RequestId'
-        - in: path
-          name: uuid
-          required: true
-          schema:
-            type: string
+      - $ref: '#/components/parameters/RequestId'
+      - in: path
+        name: uuid
+        required: true
+        schema:
+          type: string
       responses:
         '204':
           description: Abonnement webhook supprimé
@@ -2207,14 +2462,15 @@ paths:
       summary: Récupérer la carte membre d'un assuré à partir du numéro de carte
       description: Nécessite le scope eligibility.check.
       parameters:
-        - $ref: '#/components/parameters/RequestId'
+      - $ref: '#/components/parameters/RequestId'
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
-              required: [identifier]
+              required:
+              - identifier
               properties:
                 identifier:
                   type: string
@@ -2231,14 +2487,17 @@ paths:
       summary: Déclarer une nouvelle consultation ou hospitalisation
       description: Nécessite le scope clinical.encounters.manage.
       parameters:
-        - $ref: '#/components/parameters/RequestId'
+      - $ref: '#/components/parameters/RequestId'
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
-              required: [insured_uid, encounter_type, encounter_date]
+              required:
+              - insured_uid
+              - encounter_type
+              - encounter_date
               properties:
                 insured_uid:
                   type: string
@@ -2246,8 +2505,18 @@ paths:
                   description: Identifiant UUID de l'assuré.
                 encounter_type:
                   type: string
-                  enum: [consultation, hospitalization, emergency, surgery, procedure, imaging, laboratory]
-                  description: Type de consultation. `consultation` = consultation ambulatoire ; `hospitalization` = admission ; `emergency` = urgences ; `surgery` = acte chirurgical ; `procedure` = geste thérapeutique ; `imaging` = imagerie ; `laboratory` = biologie.
+                  enum:
+                  - consultation
+                  - hospitalization
+                  - emergency
+                  - surgery
+                  - procedure
+                  - imaging
+                  - laboratory
+                  description: Type de consultation. `consultation` = consultation
+                    ambulatoire ; `hospitalization` = admission ; `emergency` = urgences
+                    ; `surgery` = acte chirurgical ; `procedure` = geste thérapeutique
+                    ; `imaging` = imagerie ; `laboratory` = biologie.
                 encounter_date:
                   type: string
                   format: date
@@ -2271,13 +2540,16 @@ paths:
                 attending_physician:
                   type: string
               anyOf:
-                - required: [icd10_codes]
-                - required: [chief_complaint]
+              - required:
+                - icd10_codes
+              - required:
+                - chief_complaint
             example:
               insured_uid: 9a1b2c3d-4e5f-4061-8f2a-1b2c3d4e5f60
               encounter_type: consultation
               encounter_date: '2026-08-15'
-              icd10_codes: ['R10.9']
+              icd10_codes:
+              - R10.9
               chief_complaint: Douleur abdominale
               department: urgences
               attending_physician: Dr. KOUASSI
@@ -2293,17 +2565,24 @@ paths:
       summary: Lister l'historique des consultations d'un assuré
       description: Nécessite le scope clinical.encounters.view.
       parameters:
-        - $ref: '#/components/parameters/RequestId'
-        - in: query
-          name: insured_uid
-          required: true
-          schema: { type: string }
-        - in: query
-          name: page
-          schema: { type: integer, minimum: 1, default: 1 }
-        - in: query
-          name: per_page
-          schema: { type: integer, minimum: 1, default: 20 }
+      - $ref: '#/components/parameters/RequestId'
+      - in: query
+        name: insured_uid
+        required: true
+        schema:
+          type: string
+      - in: query
+        name: page
+        schema:
+          type: integer
+          minimum: 1
+          default: 1
+      - in: query
+        name: per_page
+        schema:
+          type: integer
+          minimum: 1
+          default: 20
       responses:
         '200':
           description: Liste paginée des consultations
@@ -2317,11 +2596,12 @@ paths:
       summary: Récupérer le détail d'une consultation
       description: Nécessite le scope clinical.encounters.view.
       parameters:
-        - $ref: '#/components/parameters/RequestId'
-        - in: path
-          name: encounterId
-          required: true
-          schema: { type: string }
+      - $ref: '#/components/parameters/RequestId'
+      - in: path
+        name: encounterId
+        required: true
+        schema:
+          type: string
       responses:
         '200':
           description: Détail de la consultation
@@ -2331,24 +2611,70 @@ paths:
           description: Scope clinical.encounters.view insuffisant
         '404':
           description: Consultation introuvable
-  /api/v1/encounters/{encounterId}/diagnoses:
-    post:
-      operationId: addEncounterDiagnosis
-      summary: Ajouter un diagnostic structuré à une consultation
-      description: Nécessite le scope clinical.encounters.manage. Le code doit exister dans le référentiel CIM-10 Azurance.
+    patch:
+      operationId: updateApiV1Encounters
+      summary: Mettre à jour encounters
       parameters:
-        - $ref: '#/components/parameters/RequestId'
-        - in: path
-          name: encounterId
-          required: true
-          schema: { type: string, format: uuid }
+      - $ref: '#/components/parameters/RequestId'
+      - in: path
+        name: encounterId
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Succès
+        '401':
+          description: Clé API absente ou invalide
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
-              required: [icd10_code]
+              properties:
+                discharge_date:
+                  type: string
+                  format: date
+                clinical_summary:
+                  type: string
+                  maxLength: 5000
+                icd10_codes:
+                  type: array
+                  items:
+                    type: string
+                status:
+                  type: string
+                  enum:
+                  - open
+                  - closed
+                  - cancelled
+              required:
+              - icd10_codes
+            example:
+              icd10_codes: []
+  /api/v1/encounters/{encounterId}/diagnoses:
+    post:
+      operationId: addEncounterDiagnosis
+      summary: Ajouter un diagnostic structuré à une consultation
+      description: Nécessite le scope clinical.encounters.manage. Le code doit exister
+        dans le référentiel CIM-10 Azurance.
+      parameters:
+      - $ref: '#/components/parameters/RequestId'
+      - in: path
+        name: encounterId
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - icd10_code
               properties:
                 icd10_code:
                   type: string
@@ -2357,10 +2683,14 @@ paths:
                 is_primary:
                   type: boolean
                   default: false
-                  description: Marque ce diagnostic comme principal. Un seul diagnostic est principal par consultation.
+                  description: Marque ce diagnostic comme principal. Un seul diagnostic
+                    est principal par consultation.
                 diagnosis_type:
                   type: string
-                  enum: [definitive, provisional, differential]
+                  enum:
+                  - definitive
+                  - provisional
+                  - differential
               example:
                 icd10_code: J06.9
                 is_primary: true
@@ -2388,11 +2718,13 @@ paths:
       summary: Lister les diagnostics structurés d'une consultation
       description: Nécessite le scope clinical.encounters.view.
       parameters:
-        - $ref: '#/components/parameters/RequestId'
-        - in: path
-          name: encounterId
-          required: true
-          schema: { type: string, format: uuid }
+      - $ref: '#/components/parameters/RequestId'
+      - in: path
+        name: encounterId
+        required: true
+        schema:
+          type: string
+          format: uuid
       responses:
         '200':
           description: Diagnostics CIM-10 liés à la consultation
@@ -2415,11 +2747,12 @@ paths:
       summary: Lister les actes médicaux d'une consultation
       description: Nécessite le scope clinical.encounters.view.
       parameters:
-        - $ref: '#/components/parameters/RequestId'
-        - in: path
-          name: encounterId
-          required: true
-          schema: { type: string }
+      - $ref: '#/components/parameters/RequestId'
+      - in: path
+        name: encounterId
+        required: true
+        schema:
+          type: string
       responses:
         '200':
           description: Liste des actes médicaux
@@ -2434,18 +2767,21 @@ paths:
       summary: Ajouter un acte médical à une consultation
       description: Nécessite le scope clinical.encounters.manage.
       parameters:
-        - $ref: '#/components/parameters/RequestId'
-        - in: path
-          name: encounterId
-          required: true
-          schema: { type: string }
+      - $ref: '#/components/parameters/RequestId'
+      - in: path
+        name: encounterId
+        required: true
+        schema:
+          type: string
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
-              required: [act_code, act_label]
+              required:
+              - act_code
+              - act_label
               properties:
                 act_code:
                   type: string
@@ -2455,7 +2791,15 @@ paths:
                   maxLength: 300
                 act_category:
                   type: string
-                  enum: [surgery, imaging, biology, consultation, physiotherapy, nursing, anesthesia, other]
+                  enum:
+                  - surgery
+                  - imaging
+                  - biology
+                  - consultation
+                  - physiotherapy
+                  - nursing
+                  - anesthesia
+                  - other
                 quantity:
                   type: number
                   minimum: 0
@@ -2495,29 +2839,41 @@ paths:
       summary: Joindre un document clinique à une consultation
       description: Nécessite le scope clinical.documents.attach.
       parameters:
-        - $ref: '#/components/parameters/RequestId'
-        - in: path
-          name: encounterId
-          required: true
-          schema: { type: string }
+      - $ref: '#/components/parameters/RequestId'
+      - in: path
+        name: encounterId
+        required: true
+        schema:
+          type: string
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
-              required: [media_uid, uploaded_by_provider_uid]
+              required:
+              - media_uid
+              - uploaded_by_provider_uid
               properties:
                 media_uid:
                   type: string
                 document_type:
                   type: string
-                  enum: [scan_prescription, lab_result, imaging_report, discharge_summary, other]
+                  enum:
+                  - scan_prescription
+                  - lab_result
+                  - imaging_report
+                  - discharge_summary
+                  - other
                 title:
                   type: string
                 status:
                   type: string
-                  enum: [draft, final, amended, cancelled]
+                  enum:
+                  - draft
+                  - final
+                  - amended
+                  - cancelled
                 produced_at:
                   type: string
                   format: date-time
@@ -2525,7 +2881,14 @@ paths:
                   type: string
                 related_type:
                   type: string
-                  enum: [prescription, medical_act, claim, lab_order, imaging_order, rehabilitation_request, other]
+                  enum:
+                  - prescription
+                  - medical_act
+                  - claim
+                  - lab_order
+                  - imaging_order
+                  - rehabilitation_request
+                  - other
                 related_uid:
                   type: string
                 source_system:
@@ -2540,7 +2903,13 @@ paths:
                   type: string
                 uploader_role:
                   type: string
-                  enum: [doctor, nurse, radiologist, lab_technician, pharmacist, admin]
+                  enum:
+                  - doctor
+                  - nurse
+                  - radiologist
+                  - lab_technician
+                  - pharmacist
+                  - admin
                 uploader_user_uid:
                   type: string
             example:
@@ -2569,11 +2938,12 @@ paths:
       summary: Lister les ordonnances d'une consultation
       description: Nécessite le scope clinical.prescriptions.view.
       parameters:
-        - $ref: '#/components/parameters/RequestId'
-        - in: path
-          name: encounterId
-          required: true
-          schema: { type: string }
+      - $ref: '#/components/parameters/RequestId'
+      - in: path
+        name: encounterId
+        required: true
+        schema:
+          type: string
       responses:
         '200':
           description: Liste des ordonnances
@@ -2588,23 +2958,39 @@ paths:
       summary: Émettre une ordonnance dans le cadre d'une consultation
       description: Nécessite le scope clinical.prescriptions.manage.
       parameters:
-        - $ref: '#/components/parameters/RequestId'
-        - in: path
-          name: encounterId
-          required: true
-          schema: { type: string }
+      - $ref: '#/components/parameters/RequestId'
+      - in: path
+        name: encounterId
+        required: true
+        schema:
+          type: string
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
-              required: [lines]
+              required:
+              - lines
               properties:
                 prescription_type:
                   type: string
-                  enum: [standard, bizozone, magistrale, controlled_substance, lab_test, imaging, physiotherapy, nursing_care, specialist_referral]
-                  description: Type d'ordonnance. `standard` = médicaments standards ; `bizozone` = zone bizone ; `magistrale` = préparation magistrale ; `controlled_substance` = stupéfiants ; `lab_test` = examens labo ; `imaging` = imagerie ; `physiotherapy` = kinésithérapie ; `nursing_care` = soins infirmiers ; `specialist_referral` = orientation spécialiste.
+                  enum:
+                  - standard
+                  - bizozone
+                  - magistrale
+                  - controlled_substance
+                  - lab_test
+                  - imaging
+                  - physiotherapy
+                  - nursing_care
+                  - specialist_referral
+                  description: Type d'ordonnance. `standard` = médicaments standards
+                    ; `bizozone` = zone bizone ; `magistrale` = préparation magistrale
+                    ; `controlled_substance` = stupéfiants ; `lab_test` = examens
+                    labo ; `imaging` = imagerie ; `physiotherapy` = kinésithérapie
+                    ; `nursing_care` = soins infirmiers ; `specialist_referral` =
+                    orientation spécialiste.
                 issued_at:
                   type: string
                   format: date-time
@@ -2622,7 +3008,13 @@ paths:
                     properties:
                       line_type:
                         type: string
-                        enum: [medication, lab_test, imaging, procedure, session, referral]
+                        enum:
+                        - medication
+                        - lab_test
+                        - imaging
+                        - procedure
+                        - session
+                        - referral
                       code:
                         type: string
                       label:
@@ -2647,10 +3039,16 @@ paths:
                         type: string
                       laterality:
                         type: string
-                        enum: [left, right, bilateral]
+                        enum:
+                        - left
+                        - right
+                        - bilateral
                       priority:
                         type: string
-                        enum: [routine, urgent, stat]
+                        enum:
+                        - routine
+                        - urgent
+                        - stat
                       indication:
                         type: string
                       session_count:
@@ -2668,14 +3066,14 @@ paths:
               prescriber_name: Dr. KOUASSI
               prescriber_registration_number: CI-CO-2018-0042
               lines:
-                - line_type: medication
-                  medication_name: Amoxicilline 500mg
-                  form: comprimé
-                  dosage: 500mg
-                  frequency: 3 fois par jour
-                  duration: 7 jours
-                  quantity: 21
-                  instructions: Après les repas
+              - line_type: medication
+                medication_name: Amoxicilline 500mg
+                form: comprimé
+                dosage: 500mg
+                frequency: 3 fois par jour
+                duration: 7 jours
+                quantity: 21
+                instructions: Après les repas
               clinical_notes: Infection respiratoire basse
       responses:
         '201':
@@ -2692,11 +3090,12 @@ paths:
       summary: Consulter le détail d'une ordonnance
       description: Nécessite le scope clinical.prescriptions.view.
       parameters:
-        - $ref: '#/components/parameters/RequestId'
-        - in: path
-          name: prescriptionId
-          required: true
-          schema: { type: string }
+      - $ref: '#/components/parameters/RequestId'
+      - in: path
+        name: prescriptionId
+        required: true
+        schema:
+          type: string
       responses:
         '200':
           description: Détail de l'ordonnance
@@ -2712,17 +3111,24 @@ paths:
       summary: Lister l'historique des ordonnances d'un assuré
       description: Nécessite le scope clinical.prescriptions.view.
       parameters:
-        - $ref: '#/components/parameters/RequestId'
-        - in: path
-          name: insuredUid
-          required: true
-          schema: { type: string }
-        - in: query
-          name: page
-          schema: { type: integer, minimum: 1, default: 1 }
-        - in: query
-          name: per_page
-          schema: { type: integer, minimum: 1, default: 20 }
+      - $ref: '#/components/parameters/RequestId'
+      - in: path
+        name: insuredUid
+        required: true
+        schema:
+          type: string
+      - in: query
+        name: page
+        schema:
+          type: integer
+          minimum: 1
+          default: 1
+      - in: query
+        name: per_page
+        schema:
+          type: integer
+          minimum: 1
+          default: 20
       responses:
         '200':
           description: Liste paginée des ordonnances
@@ -2736,11 +3142,12 @@ paths:
       summary: Consulter le dossier médical complet d'un assuré
       description: Nécessite le scope clinical.records.view.
       parameters:
-        - $ref: '#/components/parameters/RequestId'
-        - in: path
-          name: insuredUid
-          required: true
-          schema: { type: string }
+      - $ref: '#/components/parameters/RequestId'
+      - in: path
+        name: insuredUid
+        required: true
+        schema:
+          type: string
       responses:
         '200':
           description: Dossier médical complet
@@ -2755,11 +3162,12 @@ paths:
       summary: Mettre à jour le dossier médical d'un assuré (merge partiel)
       description: Nécessite le scope clinical.records.manage.
       parameters:
-        - $ref: '#/components/parameters/RequestId'
-        - in: path
-          name: insuredUid
-          required: true
-          schema: { type: string }
+      - $ref: '#/components/parameters/RequestId'
+      - in: path
+        name: insuredUid
+        required: true
+        schema:
+          type: string
       requestBody:
         required: true
         content:
@@ -2769,7 +3177,16 @@ paths:
               properties:
                 blood_type:
                   type: string
-                  enum: [A+, A-, B+, B-, AB+, AB-, O+, O-, unknown]
+                  enum:
+                  - A+
+                  - A-
+                  - B+
+                  - B-
+                  - AB+
+                  - AB-
+                  - O+
+                  - O-
+                  - unknown
                 height_cm:
                   type: number
                 weight_kg:
@@ -2778,7 +3195,8 @@ paths:
                   type: array
                   items:
                     type: object
-                    required: [substance]
+                    required:
+                    - substance
                     properties:
                       substance:
                         type: string
@@ -2786,12 +3204,17 @@ paths:
                         type: string
                       severity:
                         type: string
-                        enum: [mild, moderate, severe, unknown]
+                        enum:
+                        - mild
+                        - moderate
+                        - severe
+                        - unknown
                 chronic_conditions:
                   type: array
                   items:
                     type: object
-                    required: [condition_name]
+                    required:
+                    - condition_name
                     properties:
                       condition_name:
                         type: string
@@ -2805,7 +3228,8 @@ paths:
                   type: array
                   items:
                     type: object
-                    required: [procedure_name]
+                    required:
+                    - procedure_name
                     properties:
                       procedure_name:
                         type: string
@@ -2819,7 +3243,8 @@ paths:
                   type: array
                   items:
                     type: object
-                    required: [vaccine_name]
+                    required:
+                    - vaccine_name
                     properties:
                       vaccine_name:
                         type: string
@@ -2840,13 +3265,13 @@ paths:
               height_cm: 175
               weight_kg: 72
               allergies:
-                - substance: Pénicilline
-                  reaction: Anaphylaxie
-                  severity: severe
+              - substance: Pénicilline
+                reaction: Anaphylaxie
+                severity: severe
               chronic_conditions:
-                - condition_name: Diabète type 2
-                  icd10_code: E11.9
-                  current_treatment: Metformine 500mg
+              - condition_name: Diabète type 2
+                icd10_code: E11.9
+                current_treatment: Metformine 500mg
               current_medications: Metformine 500mg, Lisinopril 10mg
               updated_by_provider_uid: 3d2e1a00-0000-4000-8000-000000000077
       responses:
@@ -2862,16 +3287,19 @@ paths:
     get:
       operationId: getMedicalRecordSummary
       summary: Récupérer la synthèse du dossier médical d'un assuré
-      description: Nécessite le scope clinical.records.view. Retourne les allergies, pathologies, groupe sanguin et traitements en cours.
+      description: Nécessite le scope clinical.records.view. Retourne les allergies,
+        pathologies, groupe sanguin et traitements en cours.
       parameters:
-        - $ref: '#/components/parameters/RequestId'
-        - in: path
-          name: insuredUid
-          required: true
-          schema: { type: string }
+      - $ref: '#/components/parameters/RequestId'
+      - in: path
+        name: insuredUid
+        required: true
+        schema:
+          type: string
       responses:
         '200':
-          description: Synthèse du dossier médical (allergies, pathologies, groupe sanguin, traitements)
+          description: Synthèse du dossier médical (allergies, pathologies, groupe
+            sanguin, traitements)
         '401':
           description: API key absente ou invalide
         '403':
@@ -2882,19 +3310,27 @@ paths:
     get:
       operationId: getMedicalRecordTimeline
       summary: Chronologie médicale complète d'un assuré
-      description: Nécessite le scope clinical.records.view. Retourne une timeline paginée combinant consultations, ordonnances et actes médicaux.
+      description: Nécessite le scope clinical.records.view. Retourne une timeline
+        paginée combinant consultations, ordonnances et actes médicaux.
       parameters:
-        - $ref: '#/components/parameters/RequestId'
-        - in: path
-          name: insuredUid
-          required: true
-          schema: { type: string }
-        - in: query
-          name: page
-          schema: { type: integer, minimum: 1, default: 1 }
-        - in: query
-          name: per_page
-          schema: { type: integer, minimum: 1, default: 20 }
+      - $ref: '#/components/parameters/RequestId'
+      - in: path
+        name: insuredUid
+        required: true
+        schema:
+          type: string
+      - in: query
+        name: page
+        schema:
+          type: integer
+          minimum: 1
+          default: 1
+      - in: query
+        name: per_page
+        schema:
+          type: integer
+          minimum: 1
+          default: 20
       responses:
         '200':
           description: Timeline paginée (consultations, ordonnances, actes)

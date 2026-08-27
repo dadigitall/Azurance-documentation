@@ -1,0 +1,76 @@
+---
+title: "Mettre à jour une consultation"
+description: "Mettre à jour un encounter (date de sortie, résumé clinique, diagnostics, statut)."
+openapi: "/openapi/provider-api.openapi.yml PATCH /api/v1/encounters/{encounterId}"
+---
+
+Met à jour partiellement un encounter. Seuls les champs fournis dans le body sont modifiés — les autres sont conservés.
+
+Cas d'usage typique : renseigner la `discharge_date` après une hospitalisation, compléter le `clinical_summary` une fois les résultats reçus, ou clôturer l'encounter (`status: closed`).
+
+## Scope requis
+
+`clinical.encounters.manage`
+
+## Paramètres de chemin
+
+| Paramètre | Type | Requis | Description |
+| --- | --- | --- | --- |
+| `encounterId` | string (UUID) | oui | UID de l'encounter, retourné par `POST /api/v1/encounters`. |
+
+## Champs du body
+
+Tous les champs sont optionnels (merge partiel).
+
+| Champ | Type | Description |
+| --- | --- | --- |
+| `discharge_date` | string (date) | Date de sortie de l'assuré. Doit être >= `encounter_date`. Principalement pour les hospitalisations. |
+| `clinical_summary` | string (max 5000) | Résumé clinique (antécédents, examen, conclusion). |
+| `icd10_codes` | string[] | Codes CIM-10. Remplace la liste existante. |
+| `status` | string | Statut de l'encounter. Valeurs acceptées : `open`, `closed`, `cancelled`. |
+
+## Exemple de requête
+
+```bash
+curl --request PATCH \
+  --url "https://provider-api-sandbox.elenami.com/api/v1/encounters/a1b2c3d4-e5f6-7890-abcd-ef1234567890" \
+  --header "X-Api-Key: $AZURANCE_PROVIDER_API_KEY" \
+  --header "X-Request-Id: req-001" \
+  --header "Content-Type: application/json" \
+  --data '{
+    "discharge_date": "2026-08-25",
+    "clinical_summary": "Patient admis pour douleurs thoraciques. Examen normal. Sortie autorisée après observation.",
+    "status": "closed"
+  }'
+```
+
+## Réponse
+
+```json
+{
+  "data": {
+    "uid": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "insured_uid": "ins-abc123",
+    "provider_uid": "prov-xyz789",
+    "encounter_type": "hospitalization",
+    "encounter_date": "2026-08-22",
+    "discharge_date": "2026-08-25",
+    "icd10_codes": ["R07.4"],
+    "chief_complaint": "Douleurs thoraciques",
+    "clinical_summary": "Patient admis pour douleurs thoraciques. Examen normal. Sortie autorisée après observation.",
+    "department": "cardiologie",
+    "attending_physician": "Dr. Koffi",
+    "status": "closed",
+    "created_at": "2026-08-22T08:00:00.000Z"
+  }
+}
+```
+
+## Erreurs
+
+| Code | Description |
+| --- | --- |
+| 401 | Clé API manquante ou invalide. |
+| 403 | Scope `clinical.encounters.manage` manquant. |
+| 404 | Encounter introuvable pour ce tenant. |
+| 422 | `discharge_date` antérieure à `encounter_date`, ou `status` hors énumération. |

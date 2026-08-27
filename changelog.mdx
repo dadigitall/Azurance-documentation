@@ -6,6 +6,14 @@ icon: "list"
 
 Suivez les changements de contrat public, les nouvelles pages et les corrections importantes.
 
+## 2026-08-27 - Mise à jour des encounters
+
+### ERP Prestataires
+
+- Ajout de `PATCH /api/v1/encounters/{encounterId}` pour mettre à jour un encounter (discharge_date, clinical_summary, icd10_codes, statut).
+- Merge partiel : seuls les champs fournis sont modifiés.
+- Scope requis : `clinical.encounters.manage`.
+
 ## 2026-08-26 - Téléchargement des documents de claim
 
 ### ERP Assurances
