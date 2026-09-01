@@ -1,0 +1,63 @@
+---
+title: "Rechercher une analyse de biologie"
+description: "Rechercher une analyse dans le référentiel LOINC FR (ANS) par code, libellé ou composant."
+openapi: "/openapi/provider-api.openapi.yml GET /api/v1/reference/lab-tests/search"
+---
+
+Recherche textuelle dans le référentiel LOINC FR publié par l'Agence du Numérique en Santé (ANS).
+La recherche porte sur le code LOINC, le libellé français, le composant français et anglais, et les synonymes.
+
+## Scope requis
+
+`reference.lab_tests.view`
+
+## Paramètres de requête
+
+| Paramètre | Type | Requis | Description |
+| --- | --- | --- | --- |
+| `q` | string | Non | Terme de recherche (code LOINC, libellé, composant) |
+| `limit` | integer | Non | Nombre de résultats (1-100, défaut 20) |
+| `chapter` | string | Non | Filtrer par chapitre (ex: `Biochimie`, `Hématologie`) |
+| `include_inactive` | boolean | Non | Inclure les analyses inactives (défaut: `false`) |
+
+## Exemple de requête
+
+```bash
+curl --request GET \
+  --url "https://provider-api-sandbox.elenami.com/api/v1/reference/lab-tests/search?q=glucose&limit=5" \
+  --header "X-Api-Key: $AZURANCE_PROVIDER_API_KEY"
+```
+
+## Réponse
+
+```json
+{
+  "data": [
+    {
+      "uid": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+      "loinc_code": "2339-0",
+      "label_fr": "Glucose [Masse/Volume] Sang ; Numérique",
+      "component_fr": "Glucose",
+      "component_en": "Glucose",
+      "property": "Masse/Volume",
+      "timing": "Ponctuel",
+      "system": "Sang",
+      "scale": "Numérique",
+      "chapter": "Biochimie",
+      "order_observation": "Both",
+      "status": "Actif",
+      "is_active": true,
+      "version_jdv": "V2.24",
+      "validated_at": "2022-09-15"
+    }
+  ],
+  "count": 1
+}
+```
+
+## Erreurs
+
+| Code | Description |
+| --- | --- |
+| 401 | Clé API manquante ou invalide. |
+| 403 | Scope `reference.lab_tests.view` manquant. |

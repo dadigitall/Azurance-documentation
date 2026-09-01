@@ -1,0 +1,39 @@
+---
+title: "Lister les chapitres de biologie"
+description: "Lister tous les chapitres du référentiel LOINC FR avec le nombre d'analyses par chapitre."
+openapi: "/openapi/provider-api.openapi.yml GET /api/v1/reference/lab-tests/chapters"
+---
+
+Retourne la liste des chapitres du référentiel LOINC FR (ex: Biochimie, Hématologie, Microbiologie...)
+avec le nombre d'analyses actives dans chaque chapitre.
+
+## Scope requis
+
+`reference.lab_tests.view`
+
+## Exemple de requête
+
+```bash
+curl --request GET \
+  --url "https://provider-api-sandbox.elenami.com/api/v1/reference/lab-tests/chapters" \
+  --header "X-Api-Key: $AZURANCE_PROVIDER_API_KEY"
+```
+
+## Réponse
+
+```json
+{
+  "data": [
+    { "chapter": "Biochimie", "count": 3420 },
+    { "chapter": "Hématologie", "count": 1850 },
+    { "chapter": "Microbiologie", "count": 2100 }
+  ]
+}
+```
+
+## Erreurs
+
+| Code | Description |
+| --- | --- |
+| 401 | Clé API manquante ou invalide. |
+| 403 | Scope `reference.lab_tests.view` manquant. |

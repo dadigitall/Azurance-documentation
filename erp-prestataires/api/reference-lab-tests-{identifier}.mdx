@@ -1,0 +1,60 @@
+---
+title: "Détail d'une analyse LOINC"
+description: "Récupérer le détail d'une analyse par son code LOINC."
+openapi: "/openapi/provider-api.openapi.yml GET /api/v1/reference/lab-tests/{identifier}"
+---
+
+Retourne le détail complet d'une analyse du référentiel LOINC FR à partir de son code LOINC.
+
+## Scope requis
+
+`reference.lab_tests.view`
+
+## Paramètres
+
+| Paramètre | Type | Requis | Description |
+| --- | --- | --- | --- |
+| `identifier` | path | Oui | Code LOINC (ex: `2339-0`) |
+
+## Exemple de requête
+
+```bash
+curl --request GET \
+  --url "https://provider-api-sandbox.elenami.com/api/v1/reference/lab-tests/2339-0" \
+  --header "X-Api-Key: $AZURANCE_PROVIDER_API_KEY"
+```
+
+## Réponse
+
+```json
+{
+  "data": {
+    "uid": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "loinc_code": "2339-0",
+    "label_fr": "Glucose [Masse/Volume] Sang ; Numérique",
+    "component_fr": "Glucose",
+    "component_en": "Glucose",
+    "synonyms": null,
+    "property": "Masse/Volume",
+    "timing": "Ponctuel",
+    "system": "Sang",
+    "scale": "Numérique",
+    "method": null,
+    "chapter": "Biochimie",
+    "order_observation": "Both",
+    "status": "Actif",
+    "is_active": true,
+    "version_jdv": "V2.24",
+    "validated_at": "2022-09-15",
+    "synced_at": "2026-09-01T11:31:28+00:00"
+  }
+}
+```
+
+## Erreurs
+
+| Code | Description |
+| --- | --- |
+| 401 | Clé API manquante ou invalide. |
+| 403 | Scope `reference.lab_tests.view` manquant. |
+| 404 | Code LOINC introuvable. |

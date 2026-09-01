@@ -1,0 +1,57 @@
+---
+title: "Mapping NABM → LOINC"
+description: "Récupérer les codes LOINC correspondant à un code NABM (nomenclature de facturation française)."
+openapi: "/openapi/provider-api.openapi.yml GET /api/v1/reference/lab-tests/nabm/{nabmCode}"
+---
+
+Retourne les codes LOINC qui correspondent à un code NABM (Nomenclature des Actes de Biologie Médicale),
+utilisée pour la facturation des analyses en France.
+
+## Scope requis
+
+`reference.lab_tests.view`
+
+## Paramètres
+
+| Paramètre | Type | Requis | Description |
+| --- | --- | --- | --- |
+| `nabmCode` | path | Oui | Code NABM (ex: `1035`) |
+
+## Exemple de requête
+
+```bash
+curl --request GET \
+  --url "https://provider-api-sandbox.elenami.com/api/v1/reference/lab-tests/nabm/1035" \
+  --header "X-Api-Key: $AZURANCE_PROVIDER_API_KEY"
+```
+
+## Réponse
+
+```json
+{
+  "data": [
+    {
+      "nabm_code": "1035",
+      "nabm_label": "RECHERCHE OU QUANTIFICATION DU TRANSCRIT BCR-ABL",
+      "loinc_code": "46434-7",
+      "loinc_label": "t(9;22)(q34.1;q11)(ABL1,BCR) transcrit d...",
+      "lab_test": {
+        "uid": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+        "loinc_code": "46434-7",
+        "label_fr": "t(9;22)(q34.1;q11)(ABL1,BCR) transcrit...",
+        "chapter": "Biologie moléculaire mutations",
+        "status": "Actif",
+        "is_active": true
+      }
+    }
+  ]
+}
+```
+
+## Erreurs
+
+| Code | Description |
+| --- | --- |
+| 401 | Clé API manquante ou invalide. |
+| 403 | Scope `reference.lab_tests.view` manquant. |
+| 404 | Code NABM introuvable. |

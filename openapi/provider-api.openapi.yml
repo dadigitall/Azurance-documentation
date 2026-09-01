@@ -3320,3 +3320,96 @@ paths:
           description: API key absente ou invalide
         '403':
           description: Scope clinical.records.view insuffisant
+  /api/v1/reference/lab-tests/search:
+    get:
+      operationId: listApiV1ReferenceLab-testsSearch
+      summary: Lister search
+      parameters:
+      - $ref: '#/components/parameters/RequestId'
+      responses:
+        '200':
+          description: Succès
+        '401':
+          description: Clé API absente ou invalide
+        '403':
+          description: Scope `reference.lab_tests.view` manquant
+  /api/v1/reference/lab-tests/export:
+    get:
+      operationId: listApiV1ReferenceLab-testsExport
+      summary: Lister export
+      parameters:
+      - $ref: '#/components/parameters/RequestId'
+      responses:
+        '200':
+          description: Succès
+        '401':
+          description: Clé API absente ou invalide
+        '403':
+          description: Scope `reference.lab_tests.view` manquant
+  /api/v1/reference/lab-tests/chapters:
+    get:
+      operationId: listApiV1ReferenceLab-testsChapters
+      summary: Lister chapters
+      parameters:
+      - $ref: '#/components/parameters/RequestId'
+      responses:
+        '200':
+          description: Succès
+        '401':
+          description: Clé API absente ou invalide
+        '403':
+          description: Scope `reference.lab_tests.view` manquant
+  /api/v1/reference/lab-tests/chapter/{chapter}:
+    get:
+      operationId: getApiV1ReferenceLab-testsChapter
+      summary: Consulter chapter
+      parameters:
+      - $ref: '#/components/parameters/RequestId'
+      - in: path
+        name: chapter
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Succès
+        '401':
+          description: Clé API absente ou invalide
+        '403':
+          description: Scope `reference.lab_tests.view` manquant
+  /api/v1/reference/lab-tests/nabm/{nabmCode}:
+    get:
+      operationId: getApiV1ReferenceLab-testsNabm
+      summary: Consulter nabm
+      parameters:
+      - $ref: '#/components/parameters/RequestId'
+      - in: path
+        name: nabmCode
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Succès
+        '401':
+          description: Clé API absente ou invalide
+        '403':
+          description: Scope `reference.lab_tests.view` manquant
+  /api/v1/reference/lab-tests/{identifier}:
+    get:
+      operationId: getApiV1ReferenceLab-tests
+      summary: Consulter lab-tests
+      parameters:
+      - $ref: '#/components/parameters/RequestId'
+      - in: path
+        name: identifier
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Succès
+        '401':
+          description: Clé API absente ou invalide
+        '403':
+          description: Scope `reference.lab_tests.view` manquant

@@ -1,0 +1,70 @@
+---
+title: "Exporter le référentiel LOINC"
+description: "Exporter le référentiel complet des analyses LOINC FR en JSON ou CSV."
+openapi: "/openapi/provider-api.openapi.yml GET /api/v1/reference/lab-tests/export"
+---
+
+Exporte le référentiel LOINC FR complet ou filtré par chapitre, au format JSON (paginé) ou CSV (téléchargement).
+
+## Scope requis
+
+`reference.lab_tests.view`
+
+## Paramètres de requête
+
+| Paramètre | Type | Requis | Description |
+| --- | --- | --- | --- |
+| `format` | string | Non | `json` (défaut) ou `csv` |
+| `chapter` | string | Non | Filtrer par chapitre |
+| `per_page` | integer | Non | Résultats par page en JSON (défaut: 100, max: 50000) |
+| `include_inactive` | boolean | Non | Inclure les analyses inactives (défaut: `false`) |
+
+## Exemple de requête (JSON)
+
+```bash
+curl --request GET \
+  --url "https://provider-api-sandbox.elenami.com/api/v1/reference/lab-tests/export?format=json&per_page=100" \
+  --header "X-Api-Key: $AZURANCE_PROVIDER_API_KEY"
+```
+
+## Exemple de requête (CSV)
+
+```bash
+curl --request GET \
+  --url "https://provider-api-sandbox.elenami.com/api/v1/reference/lab-tests/export?format=csv&chapter=Biochimie" \
+  --header "X-Api-Key: $AZURANCE_PROVIDER_API_KEY" \
+  --output "lab-tests-biochimie.csv"
+```
+
+## Réponse JSON
+
+```json
+{
+  "data": [
+    {
+      "loinc_code": "2339-0",
+      "label_fr": "Glucose [Masse/Volume] Sang ; Numérique",
+      "component_fr": "Glucose",
+      "chapter": "Biochimie",
+      "status": "Actif"
+    }
+  ],
+  "meta": {
+    "current_page": 1,
+    "last_page": 639,
+    "per_page": 100,
+    "total": 63860
+  }
+}
+```
+
+## Réponse CSV
+
+Le fichier CSV contient les colonnes: `loinc_code`, `label_fr`, `component_fr`, `component_en`, `property`, `timing`, `system`, `scale`, `method`, `chapter`, `status`.
+
+## Erreurs
+
+| Code | Description |
+| --- | --- |
+| 401 | Clé API manquante ou invalide. |
+| 403 | Scope `reference.lab_tests.view` manquant. |

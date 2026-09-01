@@ -1,0 +1,57 @@
+---
+title: "Analyses d'un chapitre"
+description: "Lister les analyses LOINC d'un chapitre donné, avec pagination."
+openapi: "/openapi/provider-api.openapi.yml GET /api/v1/reference/lab-tests/chapter/{chapter}"
+---
+
+Retourne toutes les analyses actives d'un chapitre du référentiel LOINC FR, paginées.
+
+## Scope requis
+
+`reference.lab_tests.view`
+
+## Paramètres
+
+| Paramètre | Type | Requis | Description |
+| --- | --- | --- | --- |
+| `chapter` | path | Oui | Nom du chapitre (ex: `Biochimie`) |
+| `per_page` | integer | Non | Résultats par page (défaut: 50) |
+
+## Exemple de requête
+
+```bash
+curl --request GET \
+  --url "https://provider-api-sandbox.elenami.com/api/v1/reference/lab-tests/chapter/Biochimie?per_page=20" \
+  --header "X-Api-Key: $AZURANCE_PROVIDER_API_KEY"
+```
+
+## Réponse
+
+```json
+{
+  "data": [
+    {
+      "uid": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+      "loinc_code": "2339-0",
+      "label_fr": "Glucose [Masse/Volume] Sang ; Numérique",
+      "component_fr": "Glucose",
+      "chapter": "Biochimie",
+      "status": "Actif",
+      "is_active": true
+    }
+  ],
+  "meta": {
+    "current_page": 1,
+    "last_page": 171,
+    "per_page": 20,
+    "total": 3420
+  }
+}
+```
+
+## Erreurs
+
+| Code | Description |
+| --- | --- |
+| 401 | Clé API manquante ou invalide. |
+| 403 | Scope `reference.lab_tests.view` manquant. |

@@ -203,6 +203,12 @@
                   "erp-prestataires/api/reference-medical-acts-chapters",
                   "erp-prestataires/api/reference-medical-acts-by-chapter",
                   "erp-prestataires/api/reference-medical-acts-get",
+                  "erp-prestataires/api/reference-lab-tests-search",
+                  "erp-prestataires/api/reference-lab-tests-export",
+                  "erp-prestataires/api/reference-lab-tests-chapters",
+                  "erp-prestataires/api/reference-lab-tests-chapter-{chapter}",
+                  "erp-prestataires/api/reference-lab-tests-nabm-{nabmCode}",
+                  "erp-prestataires/api/reference-lab-tests-{identifier}",
                   "erp-prestataires/api/reference-pathologies-chapters",
                   "erp-prestataires/api/reference-pathologies-by-chapter",
                   "erp-prestataires/api/reference-pathologies-search",
@@ -252,7 +258,13 @@
                   "erp-prestataires/api/webhook-subscriptions-delete"
                 ],
                 "expanded": true
-              }
+              },
+              "erp-prestataires/api/reference-lab-tests-searchs",
+              "erp-prestataires/api/reference-lab-tests-exports",
+              "erp-prestataires/api/reference-lab-tests-chapters",
+              "erp-prestataires/api/reference-lab-tests-chapter-{chapter}",
+              "erp-prestataires/api/reference-lab-tests-nabm-{nabmCode}",
+              "erp-prestataires/api/reference-lab-tests-{identifier}"
             ]
           }
         ]

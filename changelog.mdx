@@ -6,6 +6,15 @@ icon: "list"
 
 Suivez les changements de contrat public, les nouvelles pages et les corrections importantes.
 
+## 2026-09-01 - Référentiel LOINC biologie médicale (ANS)
+
+- Nouveau référentiel : analyses de biologie médicale LOINC FR (JDV V2.24, source ANS / esante.gouv.fr)
+- 63 860 codes LOINC avec libellés français + 19 088 mappings NABM ↔ LOINC
+- Nouveaux endpoints `/api/v1/reference/lab-tests/*` : search, chapters, chapter/{chapter}, {identifier}, export, nabm/{nabmCode}
+- Nouveau scope : `reference.lab_tests.view`
+- Sync automatique bimensuel (1er et 16 du mois à 4h)
+- Pages de référence : `reference-lab-tests-search`, `reference-lab-tests-chapters`, `reference-lab-tests-chapter-{chapter}`, `reference-lab-tests-{identifier}`, `reference-lab-tests-export`, `reference-lab-tests-nabm-{nabmCode}`
+
 ## 2026-08-27 - Dossier médical : traitements et antécédents chirurgicaux calculés
 
 ### ERP Prestataires
