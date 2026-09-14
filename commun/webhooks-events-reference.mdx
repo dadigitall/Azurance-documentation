@@ -59,7 +59,7 @@ Les protections SSRF (IPs privées, localhost, credentials dans l'URL) restent a
 
 | Événement | Émis quand | Champs clés du payload |
 | --- | --- | --- |
-| `payable_invoice.issued` | Bordereau créé | `payable_invoice_uuid`, `invoice_number`, `provider_uuid`, `total_amount` |
+| `payable_invoice.issued` | Bordereau créé | `payable_invoice_uuid`, `invoice_number`, `provider_uid`, `total_amount` |
 | `payable_invoice.paid` | Bordereau intégralement payé | `payable_invoice_uuid`, `paid_amount`, `remaining_amount` |
 | `payable_invoice.partially_paid` | Bordereau partiellement payé | `payable_invoice_uuid`, `paid_amount`, `remaining_amount` |
 | `payment.created` | Paiement créé | `payment_uuid`, `payment_number`, `amount` |
@@ -71,7 +71,7 @@ Les protections SSRF (IPs privées, localhost, credentials dans l'URL) restent a
 
 | Événement | Émis quand | Champs clés du payload |
 | --- | --- | --- |
-| `claim.submitted` | Claim soumis par un prestataire | `claim_uuid`, `claim_number`, `provider_uuid`, `amount_claimed` |
+| `claim.submitted` | Claim soumis par un prestataire | `claim_uuid`, `claim_number`, `provider_uid`, `amount_claimed` |
 | `claim.status_changed` | Changement de statut d'un claim | `claim_uuid`, `previous_status`, `new_status` |
 | `claim.info_needed` | Informations complémentaires demandées | `claim_uuid`, `reason` |
 | `claim.approved` | Claim approuvé | `claim_uuid`, `amount_approved`, `reviewed_by` |
@@ -82,7 +82,7 @@ Les protections SSRF (IPs privées, localhost, credentials dans l'URL) restent a
 
 | Événement | Émis quand | Champs clés du payload |
 | --- | --- | --- |
-| `prior_authorization.requested` | Demande d'autorisation créée | `pa_uid`, `provider_uuid`, `estimated_amount` |
+| `prior_authorization.requested` | Demande d'autorisation créée | `pa_uid`, `provider_uid`, `estimated_amount` |
 | `prior_authorization.decided` | Décision rendue | `pa_uid`, `decision`, `authorized_amount` |
 
 ## Retry et backoff

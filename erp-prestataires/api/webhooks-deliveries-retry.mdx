@@ -19,7 +19,7 @@ Cet endpoint relance manuellement la livraison d'un événement webhook précéd
 ## Comportement
 
 - La livraison doit être au statut `FAILED` pour pouvoir être relancée.
-- La livraison est immédiatement re-dispatchée vers l'URL d'abonnement.
+- La livraison est immédiatement renvoyée vers l'URL d'abonnement.
 - Le même `event_id` est utilisé — l'intégrateur doit dédupliquer.
 - Si la livraison réussit, le statut passe à `DELIVERED`. Sinon, le retry normal s'applique.
 

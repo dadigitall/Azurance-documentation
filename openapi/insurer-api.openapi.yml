@@ -1269,8 +1269,6 @@ components:
         uuid:
           type: string
           format: uuid
-        tenant_id:
-          type: string
         name:
           type: string
         target_url:

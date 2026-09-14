@@ -6,7 +6,7 @@ openapi: "/openapi/provider-api.openapi.yml POST /api/v1/webhooks"
 
 Cet endpoint crée un abonnement webhook permettant au prestataire de recevoir les événements en push plutôt que par polling. Azurance signe chaque livraison avec un secret partagé via HMAC-SHA256.
 
-Le prestataire est dérivé de la clé API — ne jamais fournir `tenant_id`, `provider_uuid` ou `provider_uid` dans le corps de la requête.
+Le prestataire est dérivé de la clé API — ne jamais fournir `tenant_id`, `provider_uid` ou `insurer_uid` dans le corps de la requête.
 
 ## Scope requis
 
