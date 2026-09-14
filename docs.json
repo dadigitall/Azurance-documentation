@@ -262,13 +262,7 @@
                   "erp-prestataires/api/webhooks-deliveries-retry"
                 ],
                 "expanded": true
-              },
-              "erp-prestataires/api/reference-lab-tests-searchs",
-              "erp-prestataires/api/reference-lab-tests-exports",
-              "erp-prestataires/api/reference-lab-tests-chapters",
-              "erp-prestataires/api/reference-lab-tests-chapter-{chapter}",
-              "erp-prestataires/api/reference-lab-tests-nabm-{nabmCode}",
-              "erp-prestataires/api/reference-lab-tests-{identifier}"
+              }
             ]
           }
         ]
