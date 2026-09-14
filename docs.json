@@ -70,6 +70,7 @@
               "commun/conventions-api",
               "commun/authentification",
               "commun/securite-scopes-webhooks",
+              "commun/webhooks-events-reference",
               "commun/erreurs"
             ]
           },
@@ -253,9 +254,12 @@
               {
                 "group": "Webhooks",
                 "pages": [
-                  "erp-prestataires/api/webhook-subscriptions-create",
-                  "erp-prestataires/api/webhook-subscriptions-update",
-                  "erp-prestataires/api/webhook-subscriptions-delete"
+                  "erp-prestataires/api/webhooks-list",
+                  "erp-prestataires/api/webhooks-create",
+                  "erp-prestataires/api/webhooks-update",
+                  "erp-prestataires/api/webhooks-delete",
+                  "erp-prestataires/api/webhooks-deliveries-list",
+                  "erp-prestataires/api/webhooks-deliveries-retry"
                 ],
                 "expanded": true
               },
@@ -282,6 +286,7 @@
               "commun/conventions-api",
               "commun/authentification",
               "commun/securite-scopes-webhooks",
+              "commun/webhooks-events-reference",
               "commun/erreurs"
             ]
           },
@@ -453,7 +458,9 @@
                   "erp-assurances/api/webhooks-list",
                   "erp-assurances/api/webhooks-create",
                   "erp-assurances/api/webhooks-update",
-                  "erp-assurances/api/webhooks-delete"
+                  "erp-assurances/api/webhooks-delete",
+                  "erp-assurances/api/webhooks-deliveries-list",
+                  "erp-assurances/api/webhooks-deliveries-retry"
                 ],
                 "expanded": true
               },

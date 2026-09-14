@@ -6,6 +6,20 @@ icon: "list"
 
 Suivez les changements de contrat public, les nouvelles pages et les corrections importantes.
 
+## 2026-09-15 - Système de webhooks complet (prestataires + assureurs)
+
+- Nouveaux endpoints webhook prestataire : `GET/POST/PATCH/DELETE /api/v1/webhooks`, `GET /api/v1/webhooks/{uuid}/deliveries`, `POST /api/v1/webhooks/deliveries/{uuid}/retry`.
+- Nouveaux endpoints livraison assureur : `GET /api/v1/webhooks/{uuid}/deliveries`, `POST /api/v1/webhooks/deliveries/{uuid}/retry`.
+- Nouveaux scopes prestataire : `provider.webhooks.view`, `provider.webhooks.manage`.
+- Nouvelle page de référence : `commun/webhooks-events-reference` (catalogue complet des événements).
+- Nouveaux schémas OpenAPI : `WebhookDelivery`, `CreateWebhookRequest`, `UpdateWebhookRequest`.
+- Événements claims ajoutés : `claim.submitted`, `claim.status_changed`, `claim.info_needed`, `claim.approved`, `claim.rejected`, `claim.paid`.
+- Événements autorisation préalable ajoutés : `prior_authorization.requested`, `prior_authorization.decided`.
+- Renommage des pages prestataire : `webhook-subscriptions-*` → `webhooks-*`.
+- Correction du scope prestataire webhook : `billing.webhooks.manage` → `provider.webhooks.*`.
+- Retry : correction du bug qui retentait les erreurs 4xx (désormais définitives, sauf 429).
+- Auto-désactivation d'un abonnement après 10 livraisons échouées en 60 minutes.
+
 ## 2026-09-14 - Création de bordereau de paiement
 
 - Nouvel endpoint `POST /api/v1/billing/payable-invoices` (scope `insurer.billing.manage`) : regroupe un ou plusieurs claims approuvés en un bordereau payable.

@@ -1,0 +1,55 @@
+---
+title: "Mettre à jour un webhook"
+description: "Met à jour un abonnement webhook existant."
+openapi: "/openapi/provider-api.openapi.yml PATCH /api/v1/webhooks/{uuid}"
+---
+
+Cet endpoint met à jour un abonnement webhook existant. Tous les champs sont optionnels — seuls les champs fournis sont modifiés.
+
+## Scope requis
+
+`provider.webhooks.manage`
+
+## Paramètres
+
+| Paramètre | Type | Requis | Description |
+| --- | --- | --- | --- |
+| `uuid` (path) | string | oui | UUID de l'abonnement à mettre à jour. |
+
+## Champs du body
+
+| Champ | Type | Requis | Description |
+| --- | --- | --- | --- |
+| `name` | string | non | Nouveau nom (max 160). |
+| `target_url` | string | non | Nouvelle URL HTTPS (mêmes contraintes qu'à la création). |
+| `secret` | string | non | Nouveau secret (16 à 160 caractères). |
+| `event_types` | array | non | Nouvelle liste d'événements. |
+| `is_active` | boolean | non | Activer ou désactiver l'abonnement. |
+| `metadata` | object | non | Nouvelles métadonnées. |
+
+## Exemple de requête
+
+```bash
+curl -X PATCH https://provider-api-sandbox.elenami.com/api/v1/webhooks/wh_sandbox_001 \
+  -H "X-Api-Key: $AZURANCE_API_KEY" \
+  -H "Content-Type: application/json" \
+  -H "X-Request-Id: req-update-001" \
+  -d '{ "is_active": false }'
+```
+
+## Exemple de réponse
+
+```json
+{
+  "data": {
+    "uuid": "wh_sandbox_001",
+    "name": "ERP Paiements",
+    "target_url": "https://erp.example.com/webhooks/azurance",
+    "event_types": ["payment.succeeded", "claim.paid", "claim.status_changed"],
+    "is_active": false,
+    "metadata": null,
+    "created_at": "2026-09-14T10:00:00.000000Z",
+    "updated_at": "2026-09-14T11:00:00.000000Z"
+  }
+}
+```

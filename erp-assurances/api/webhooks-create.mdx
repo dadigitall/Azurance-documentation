@@ -15,7 +15,7 @@ Cet endpoint enregistre une nouvelle URL de callback pour recevoir les événeme
 | Champ | Type | Requis | Description |
 | --- | --- | --- | --- |
 | `name` | string | oui | Nom du webhook. |
-| `target_url` | string | oui | URL de callback valide. HTTPS est recommandé en production. |
+| `target_url` | string | oui | URL de callback valide. HTTPS obligatoire en production, HTTP accepté en sandbox. |
 | `secret` | string | oui | Secret utilisé pour signer les payloads, minimum 16 caractères. |
 | `event_types` | array | oui | Types d'événements à recevoir. |
 | `is_active` | boolean | non | Activer immédiatement. Défaut côté service selon configuration. |

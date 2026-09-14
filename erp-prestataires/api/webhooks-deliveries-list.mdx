@@ -1,0 +1,69 @@
+---
+title: "Lister les livraisons webhook"
+description: "Récupère l'historique des tentatives de livraison d'un abonnement webhook."
+openapi: "/openapi/provider-api.openapi.yml GET /api/v1/webhooks/{uuid}/deliveries"
+---
+
+Cet endpoint retourne l'historique paginé des tentatives de livraison des événements webhook pour un abonnement donné. Utilisez-le pour auditer les livraisons, diagnostiquer les échecs et identifier les livraisons à relancer.
+
+## Scope requis
+
+`provider.webhooks.view`
+
+## Paramètres
+
+| Paramètre | Type | Requis | Description |
+| --- | --- | --- | --- |
+| `uuid` (path) | string | oui | UUID de l'abonnement webhook. |
+| `per_page` (query) | integer | non | Nombre de livraisons par page (1-100, défaut 20). |
+
+## Réponse
+
+| Champ | Type | Description |
+| --- | --- | --- |
+| `data` | array | Liste des livraisons. |
+| `data[].uuid` | string | Identifiant unique de la livraison. |
+| `data[].event_id` | string | Identifiant unique de l'événement. Utiliser pour dédupliquer. |
+| `data[].event_type` | string | Type d'événement livré. |
+| `data[].status` | string | Statut (`PENDING`, `DELIVERED`, `FAILED`). |
+| `data[].attempts` | integer | Nombre de tentatives. |
+| `data[].response_status` | integer | Code HTTP de la dernière réponse. |
+| `data[].next_retry_at` | string | Date de la prochaine tentative. |
+| `data[].delivered_at` | string | Date de livraison réussie. |
+| `data[].last_error` | string | Message d'erreur de la dernière tentative. |
+| `meta` | object | Métadonnées de pagination. |
+
+## Statuts de livraison
+
+| Statut | Description |
+| --- | --- |
+| `PENDING` | Livraison en attente ou programmée pour retry. |
+| `DELIVERED` | Livraison réussie (réponse 2xx). |
+| `FAILED` | Livraison définitivement échouée. |
+
+## Exemple de réponse
+
+```json
+{
+  "data": [
+    {
+      "uuid": "del_sandbox_001",
+      "event_id": "evt_01J9XK5M2N3P4Q5R6S7T8U9V0W",
+      "event_type": "payment.succeeded",
+      "status": "DELIVERED",
+      "attempts": 1,
+      "response_status": 204,
+      "next_retry_at": null,
+      "delivered_at": "2026-09-14T13:50:34.000000Z",
+      "last_error": null,
+      "created_at": "2026-09-14T13:50:33.000000Z",
+      "updated_at": "2026-09-14T13:50:34.000000Z"
+    }
+  ],
+  "meta": {
+    "current_page": 1,
+    "per_page": 20,
+    "total": 1
+  }
+}
+```

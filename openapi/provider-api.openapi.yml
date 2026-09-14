@@ -113,6 +113,171 @@ components:
       properties:
         message:
           type: string
+    AuthError:
+      type: object
+      properties:
+        message:
+          type: string
+        error:
+          type: string
+    ValidationError:
+      type: object
+      properties:
+        message:
+          type: string
+        errors:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: string
+    PaginationMeta:
+      type: object
+      properties:
+        current_page:
+          type: integer
+        per_page:
+          type: integer
+        total:
+          type: integer
+        last_page:
+          type: integer
+        from:
+          type: integer
+          nullable: true
+        to:
+          type: integer
+          nullable: true
+    Webhook:
+      type: object
+      description: '`secret` n''est jamais renvoyé par l''API, y compris juste après
+        création — le conserver côté intégrateur dès la création.'
+      properties:
+        uuid:
+          type: string
+          format: uuid
+        name:
+          type: string
+        target_url:
+          type: string
+          format: uri
+        event_types:
+          type: array
+          items:
+            type: string
+        is_active:
+          type: boolean
+        metadata:
+          type: object
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+    WebhookDelivery:
+      type: object
+      description: Tentative de livraison d'un événement webhook à une URL d'abonnement.
+      properties:
+        uuid:
+          type: string
+          format: uuid
+        event_id:
+          type: string
+          description: Identifiant unique de l'événement. Utiliser pour dédupliquer
+            côté intégrateur.
+        event_type:
+          type: string
+        status:
+          type: string
+          enum:
+          - PENDING
+          - DELIVERED
+          - FAILED
+        attempts:
+          type: integer
+        response_status:
+          type: integer
+          nullable: true
+        next_retry_at:
+          type: string
+          format: date-time
+          nullable: true
+        delivered_at:
+          type: string
+          format: date-time
+          nullable: true
+        last_error:
+          type: string
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+    CreateWebhookRequest:
+      type: object
+      required:
+      - name
+      - target_url
+      - secret
+      - event_types
+      properties:
+        name:
+          type: string
+          maxLength: 160
+        target_url:
+          type: string
+          format: uri
+          maxLength: 1000
+          description: HTTPS obligatoire en production (HTTP accepté en sandbox),
+            pas d'identifiants dans l'URL, pas d'hôte `localhost`/`.local`/IP
+            privée ou réservée (protection SSRF).
+        secret:
+          type: string
+          minLength: 16
+          maxLength: 160
+          description: Utilisé pour signer les payloads livrés (HMAC-SHA256). Ne
+            jamais le stocker en clair côté intégrateur.
+        event_types:
+          type: array
+          minItems: 1
+          items:
+            type: string
+            maxLength: 120
+          description: Types d'événements à recevoir. Accepte `*` pour s'abonner
+            à tous les événements.
+        is_active:
+          type: boolean
+          default: true
+        metadata:
+          type: object
+    UpdateWebhookRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          maxLength: 160
+        target_url:
+          type: string
+          format: uri
+          maxLength: 1000
+        secret:
+          type: string
+          minLength: 16
+          maxLength: 160
+        event_types:
+          type: array
+          minItems: 1
+          items:
+            type: string
+            maxLength: 120
+        is_active:
+          type: boolean
+        metadata:
+          type: object
     PriorAuthorization:
       type: object
       description: Demande de prévalidation assurance avant exécution d'une prestation.
@@ -2400,19 +2565,102 @@ paths:
       responses:
         '200':
           description: Page de synchronisation
-  /api/v1/webhook-subscriptions:
-    post:
-      operationId: createWebhookSubscription
-      summary: Créer une souscription webhook ERP
+  /api/v1/webhooks:
+    get:
+      operationId: listWebhooks
+      summary: Lister les abonnements webhook
+      description: Retourne la liste des abonnements webhook du prestataire authentifié.
+        Les abonnements sont filtrés par le prestataire dérivé de la clé API.
       parameters:
       - $ref: '#/components/parameters/RequestId'
+      - in: query
+        name: per_page
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 20
+      responses:
+        '200':
+          description: Liste paginée des abonnements webhook
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Webhook'
+                  meta:
+                    $ref: '#/components/schemas/PaginationMeta'
+        '401':
+          description: En-tête `X-Api-Key` manquant ou invalide
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthError'
+        '403':
+          description: Scope `provider.webhooks.view` manquant
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthError'
+    post:
+      operationId: createWebhook
+      summary: Créer un abonnement webhook
+      description: Crée un abonnement webhook pour le prestataire authentifié.
+        Le prestataire est dérivé de la clé API et ne peut pas être fourni dans
+        le corps de la requête.
+      parameters:
+      - $ref: '#/components/parameters/RequestId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateWebhookRequest'
+            example:
+              name: ERP Paiements
+              target_url: https://erp.example.com/webhooks/azurance
+              secret: mon-secret-super-securise-16chars
+              event_types:
+              - payment.succeeded
+              - claim.paid
+              - claim.status_changed
+              is_active: true
       responses:
         '201':
-          description: Souscription créée
-  /api/v1/webhook-subscriptions/{uuid}:
+          description: Abonnement créé
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Webhook'
+        '401':
+          description: En-tête `X-Api-Key` manquant ou invalide
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthError'
+        '403':
+          description: Scope `provider.webhooks.manage` manquant
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthError'
+        '422':
+          description: Champ invalide (URL non HTTPS, event_type inconnu, secret trop court, etc.)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+  /api/v1/webhooks/{uuid}:
     patch:
-      operationId: updateWebhookSubscription
-      summary: Modifier un abonnement webhook
+      operationId: updateWebhook
+      summary: Mettre à jour un abonnement webhook
       parameters:
       - $ref: '#/components/parameters/RequestId'
       - in: path
@@ -2420,25 +2668,51 @@ paths:
         required: true
         schema:
           type: string
+          format: uuid
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              type: object
-              additionalProperties: true
-              description: Champs à mettre à jour (Record<string, unknown>).
+              $ref: '#/components/schemas/UpdateWebhookRequest'
+            example:
+              is_active: false
       responses:
         '200':
-          description: Abonnement webhook mis à jour
+          description: Abonnement mis à jour
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Webhook'
         '401':
-          description: API key absente ou invalide
+          description: En-tête `X-Api-Key` manquant ou invalide
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthError'
         '403':
-          description: Scope billing.webhooks.manage insuffisant
+          description: Scope `provider.webhooks.manage` manquant
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthError'
         '404':
-          description: Abonnement webhook introuvable
+          description: Aucun abonnement avec cet UUID pour ce prestataire
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Champ invalide
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
     delete:
-      operationId: deleteWebhookSubscription
+      operationId: deleteWebhook
       summary: Supprimer un abonnement webhook
       parameters:
       - $ref: '#/components/parameters/RequestId'
@@ -2447,15 +2721,126 @@ paths:
         required: true
         schema:
           type: string
+          format: uuid
       responses:
         '204':
-          description: Abonnement webhook supprimé
+          description: Abonnement supprimé (corps vide)
         '401':
-          description: API key absente ou invalide
+          description: En-tête `X-Api-Key` manquant ou invalide
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthError'
         '403':
-          description: Scope billing.webhooks.manage insuffisant
+          description: Scope `provider.webhooks.manage` manquant
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthError'
         '404':
-          description: Abonnement webhook introuvable
+          description: Aucun abonnement avec cet UUID pour ce prestataire
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/v1/webhooks/{uuid}/deliveries:
+    get:
+      operationId: listWebhookDeliveries
+      summary: Lister les livraisons d'un abonnement webhook
+      description: Retourne l'historique paginé des tentatives de livraison des
+        événements webhook pour l'abonnement spécifié.
+      parameters:
+      - $ref: '#/components/parameters/RequestId'
+      - in: path
+        name: uuid
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: UUID de l'abonnement webhook
+      - in: query
+        name: per_page
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 20
+      responses:
+        '200':
+          description: Liste paginée des livraisons
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/WebhookDelivery'
+                  meta:
+                    $ref: '#/components/schemas/PaginationMeta'
+        '401':
+          description: En-tête `X-Api-Key` manquant ou invalide
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthError'
+        '403':
+          description: Scope `provider.webhooks.view` manquant
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthError'
+        '404':
+          description: Aucun abonnement avec cet UUID pour ce prestataire
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/v1/webhooks/deliveries/{uuid}/retry:
+    post:
+      operationId: retryWebhookDelivery
+      summary: Relancer une livraison webhook échouée
+      description: Reprogramme la livraison d'un événement webhook précédemment
+        marqué comme échoué (statut `FAILED`). Le même identifiant d'événement
+        est conservé — l'intégrateur doit dédupliquer via `X-Azurance-Event-Id`.
+      parameters:
+      - $ref: '#/components/parameters/RequestId'
+      - in: path
+        name: uuid
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: UUID de la livraison webhook à relancer
+      responses:
+        '200':
+          description: Livraison relancée
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/WebhookDelivery'
+        '401':
+          description: En-tête `X-Api-Key` manquant ou invalide
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthError'
+        '403':
+          description: Scope `provider.webhooks.manage` manquant
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthError'
+        '404':
+          description: Aucune livraison avec cet UUID pour ce prestataire
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
   /api/v1/eligibility/member-card:
     post:
       operationId: getMemberCard

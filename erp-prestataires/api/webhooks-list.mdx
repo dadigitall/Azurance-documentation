@@ -1,0 +1,56 @@
+---
+title: "Lister les webhooks"
+description: "Récupère la liste des abonnements webhook du prestataire."
+openapi: "/openapi/provider-api.openapi.yml GET /api/v1/webhooks"
+---
+
+Cet endpoint récupère la liste des abonnements webhook du prestataire authentifié. Les abonnements sont filtrés par le prestataire dérivé de la clé API.
+
+## Scope requis
+
+`provider.webhooks.view`
+
+## Paramètres
+
+| Paramètre | Type | Requis | Description |
+| --- | --- | --- | --- |
+| `per_page` (query) | integer | non | Nombre d'abonnements par page (1-100, défaut 20). |
+
+## Réponse
+
+| Champ | Type | Description |
+| --- | --- | --- |
+| `data` | array | Liste des abonnements. |
+| `data[].uuid` | string | Identifiant unique de l'abonnement. |
+| `data[].name` | string | Nom de l'abonnement. |
+| `data[].target_url` | string | URL de callback. |
+| `data[].event_types` | array | Types d'événements abonnés. |
+| `data[].is_active` | boolean | Indique si l'abonnement est actif. |
+| `data[].metadata` | object | Métadonnées libres. |
+| `data[].created_at` | string | Date de création. |
+| `data[].updated_at` | string | Date de mise à jour. |
+| `meta` | object | Métadonnées de pagination. |
+
+## Exemple de réponse
+
+```json
+{
+  "data": [
+    {
+      "uuid": "wh_sandbox_001",
+      "name": "ERP Paiements",
+      "target_url": "https://erp.example.com/webhooks/azurance",
+      "event_types": ["payment.succeeded", "claim.paid", "claim.status_changed"],
+      "is_active": true,
+      "metadata": null,
+      "created_at": "2026-09-14T10:00:00.000000Z",
+      "updated_at": "2026-09-14T10:00:00.000000Z"
+    }
+  ],
+  "meta": {
+    "current_page": 1,
+    "per_page": 20,
+    "total": 1
+  }
+}
+```

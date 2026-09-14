@@ -1,0 +1,89 @@
+---
+title: "Créer un webhook"
+description: "Crée un abonnement webhook pour recevoir les événements de suivi."
+openapi: "/openapi/provider-api.openapi.yml POST /api/v1/webhooks"
+---
+
+Cet endpoint crée un abonnement webhook permettant au prestataire de recevoir les événements en push plutôt que par polling. Azurance signe chaque livraison avec un secret partagé via HMAC-SHA256.
+
+Le prestataire est dérivé de la clé API — ne jamais fournir `tenant_id`, `provider_uuid` ou `provider_uid` dans le corps de la requête.
+
+## Scope requis
+
+`provider.webhooks.manage`
+
+## Champs du body
+
+| Champ | Type | Requis | Description |
+| --- | --- | --- | --- |
+| `name` | string | oui | Nom lisible de l'abonnement (max 160 caractères). |
+| `target_url` | string | oui | URL HTTPS de réception, sans identifiants dans l'URL. |
+| `secret` | string | oui | Secret partagé utilisé pour la signature (16 à 160 caractères). |
+| `event_types` | array | oui | Liste des événements souscrits (voir ci-dessous). Accepte `*` pour tous les événements. |
+| `is_active` | boolean | non | Active ou désactive l'abonnement à la création (défaut: true). |
+| `metadata` | object | non | Métadonnées libres. |
+
+## Event types disponibles
+
+| Event | Usage |
+| --- | --- |
+| `payable_invoice.issued` | Bordereau payable émis. |
+| `payable_invoice.partially_paid` | Bordereau partiellement payé. |
+| `payable_invoice.paid` | Bordereau intégralement payé. |
+| `payment.created` | Paiement créé. |
+| `payment.processing` | Paiement en traitement. |
+| `payment.succeeded` | Paiement réussi. |
+| `payment.failed` | Paiement échoué. |
+| `claim.submitted` | Claim soumis par le prestataire. |
+| `claim.status_changed` | Changement de statut d'un claim. |
+| `claim.info_needed` | Informations complémentaires demandées. |
+| `claim.approved` | Claim approuvé. |
+| `claim.rejected` | Claim rejeté. |
+| `claim.paid` | Claim payé. |
+| `prior_authorization.requested` | Demande d'autorisation préalable créée. |
+| `prior_authorization.decided` | Décision sur une autorisation préalable. |
+
+## Contraintes de sécurité
+
+- `target_url` doit être en HTTPS en production (HTTP accepté en sandbox pour les tests locaux).
+- Pas d'identifiants dans l'URL (`https://user:pass@host` refusé).
+- Pas d'hôte `localhost`, `.local`, IP privée ou réservée (protection SSRF).
+- Une validation DNS est effectuée au moment de la livraison pour prévenir le DNS rebinding.
+
+## Vérification de la signature
+
+Chaque livraison inclut les headers `X-Azurance-Event-Id`, `X-Azurance-Event-Type`, `X-Azurance-Delivery-Timestamp` et `X-Azurance-Signature` (format `sha256=<digest>`). Le message signé est `{timestamp}.{raw_json_payload}`. Vérifiez la signature sur le body brut avant tout parsing, et stockez `X-Azurance-Event-Id` pour traiter chaque événement une seule fois (idempotence).
+
+## Exemple de requête
+
+```bash
+curl -X POST https://provider-api-sandbox.elenami.com/api/v1/webhooks \
+  -H "X-Api-Key: $AZURANCE_API_KEY" \
+  -H "Content-Type: application/json" \
+  -H "X-Request-Id: req-create-001" \
+  -d '{
+    "name": "ERP Paiements",
+    "target_url": "https://erp.example.com/webhooks/azurance",
+    "secret": "mon-secret-super-securise-16chars",
+    "event_types": ["payment.succeeded", "claim.paid", "claim.status_changed"]
+  }'
+```
+
+## Exemple de réponse
+
+```json
+{
+  "data": {
+    "uuid": "wh_sandbox_001",
+    "name": "ERP Paiements",
+    "target_url": "https://erp.example.com/webhooks/azurance",
+    "event_types": ["payment.succeeded", "claim.paid", "claim.status_changed"],
+    "is_active": true,
+    "metadata": null,
+    "created_at": "2026-09-14T10:00:00.000000Z",
+    "updated_at": "2026-09-14T10:00:00.000000Z"
+  }
+}
+```
+
+Le `secret` n'est jamais renvoyé par l'API, même juste après la création. Le conserver côté intégrateur dès la création.

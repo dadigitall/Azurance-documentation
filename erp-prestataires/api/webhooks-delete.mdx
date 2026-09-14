@@ -1,0 +1,33 @@
+---
+title: "Supprimer un webhook"
+description: "Supprime un abonnement webhook."
+openapi: "/openapi/provider-api.openapi.yml DELETE /api/v1/webhooks/{uuid}"
+---
+
+Cet endpoint supprime définitivement un abonnement webhook. Les livraisons déjà créées sont conservées pour l'historique, mais aucune nouvelle livraison ne sera effectuée.
+
+## Scope requis
+
+`provider.webhooks.manage`
+
+## Paramètres
+
+| Paramètre | Type | Requis | Description |
+| --- | --- | --- | --- |
+| `uuid` (path) | string | oui | UUID de l'abonnement à supprimer. |
+
+## Exemple de requête
+
+```bash
+curl -X DELETE https://provider-api-sandbox.elenami.com/api/v1/webhooks/wh_sandbox_001 \
+  -H "X-Api-Key: $AZURANCE_API_KEY" \
+  -H "X-Request-Id: req-delete-001"
+```
+
+## Réponse
+
+```http
+HTTP/1.1 204 No Content
+```
+
+Corps de réponse vide.

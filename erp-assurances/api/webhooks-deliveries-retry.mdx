@@ -1,0 +1,71 @@
+---
+title: "Relancer une livraison webhook"
+description: "Reprogramme la livraison d'un événement webhook précédemment échoué."
+openapi: "/openapi/insurer-api.openapi.yml POST /api/v1/webhooks/deliveries/{uuid}/retry"
+---
+
+Cet endpoint relance manuellement la livraison d'un événement webhook précédemment marqué comme échoué (statut `FAILED`). La livraison conserve le même identifiant d'événement — l'intégrateur doit toujours dédupliquer via l'en-tête `X-Azurance-Event-Id`.
+
+## Scope requis
+
+`insurer.webhooks.manage`
+
+## Paramètres
+
+| Paramètre | Type | Requis | Description |
+| --- | --- | --- | --- |
+| `uuid` (path) | string | oui | UUID de la livraison webhook à relancer. |
+
+## Comportement
+
+- La livraison doit être au statut `FAILED` pour pouvoir être relancée.
+- La livraison est immédiatement re-dispatchée vers l'URL d'abonnement.
+- Le même `event_id` est utilisé — l'intégrateur doit dédupliquer.
+- Si la livraison réussit, le statut passe à `DELIVERED`. Sinon, le retry normal s'applique (backoff 30s, 5min, 30min).
+
+## Réponse
+
+| Champ | Type | Description |
+| --- | --- | --- |
+| `data` | object | Livraison relancée. |
+| `data.uuid` | string | UUID de la livraison. |
+| `data.event_id` | string | Identifiant de l'événement (inchangé). |
+| `data.event_type` | string | Type d'événement. |
+| `data.status` | string | Nouveau statut (`DELIVERED` ou `PENDING`). |
+| `data.attempts` | integer | Nombre de tentatives après retry. |
+
+## Erreurs
+
+| Statut | Description |
+| --- | --- |
+| 401 | En-tête `X-Api-Key` manquant ou invalide. |
+| 403 | Scope `insurer.webhooks.manage` manquant. |
+| 404 | Aucune livraison avec cet UUID pour ce tenant. |
+
+## Exemple de requête
+
+```bash
+curl -X POST https://insurer-api-sandbox.elenami.com/api/v1/webhooks/deliveries/del_sandbox_001/retry \
+  -H "X-Api-Key: $AZURANCE_API_KEY" \
+  -H "X-Request-Id: req-retry-001"
+```
+
+## Exemple de réponse
+
+```json
+{
+  "data": {
+    "uuid": "del_sandbox_001",
+    "event_id": "evt_01J9XK5M2N3P4Q5R6S7T8U9V0W",
+    "event_type": "payment.succeeded",
+    "status": "DELIVERED",
+    "attempts": 2,
+    "response_status": 204,
+    "next_retry_at": null,
+    "delivered_at": "2026-09-14T15:00:00.000000Z",
+    "last_error": null,
+    "created_at": "2026-09-14T13:50:33.000000Z",
+    "updated_at": "2026-09-14T15:00:00.000000Z"
+  }
+}
+```

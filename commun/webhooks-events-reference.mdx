@@ -1,0 +1,107 @@
+---
+title: "Référence des événements webhook"
+description: "Catalogue complet des événements webhook émis par Azurance."
+icon: "bell"
+---
+
+Cette page référence tous les événements webhook émis par Azurance. Les intégrateurs peuvent s'abonner à ces événements via les endpoints de gestion d'abonnements webhook.
+
+## Principe
+
+- Chaque événement a un identifiant unique (`event_id`) transmis dans l'en-tête `X-Azurance-Event-Id`.
+- Les événements sont livrés au moins une fois (at-least-once). L'intégrateur doit dédupliquer via `event_id`.
+- Les livraisons échouées sont retentées avec un backoff (30s, 5min, 30min).
+- Seules les erreurs temporaires (429, 5xx, erreurs réseau) sont retentées. Les erreurs 4xx sont définitives.
+- Les abonnements peuvent utiliser `*` pour recevoir tous les événements.
+
+## En-têtes de livraison
+
+Chaque livraison inclut les en-têtes suivants :
+
+| En-tête | Description |
+| --- | --- |
+| `X-Azurance-Event-Id` | Identifiant unique de l'événement (pour déduplication). |
+| `X-Azurance-Event-Type` | Type d'événement (ex: `payment.succeeded`). |
+| `X-Azurance-Delivery-Timestamp` | Horodatage ISO 8601 de la tentative de livraison. |
+| `X-Azurance-Signature` | Signature HMAC-SHA256 au format `sha256=<digest>`. |
+| `Content-Type` | `application/json`. |
+
+## Vérification de la signature
+
+Le message signé est `{timestamp}.{raw_json_payload}` où `timestamp` est la valeur de `X-Azurance-Delivery-Timestamp` et `raw_json_payload` est le corps HTTP brut reçu.
+
+```python
+import hmac
+import hashlib
+
+def verify_signature(timestamp, body, secret, signature_header):
+    message = f"{timestamp}.{body}".encode()
+    expected = "sha256=" + hmac.new(
+        secret.encode(), message, hashlib.sha256
+    ).hexdigest()
+    return hmac.compare_digest(expected, signature_header)
+```
+
+Vérifiez toujours la signature sur le body brut avant tout parsing JSON.
+
+## Exigence HTTPS
+
+| Environnement | HTTP accepté | HTTPS obligatoire |
+| --- | --- | --- |
+| Sandbox | Oui | Non |
+| Production | Non | Oui |
+
+En sandbox, HTTP est accepté pour réduire la friction lors des tests locaux (ngrok, localtunnel, serveur local). En production, HTTPS est obligatoire — un webhook en HTTP plain transmettrait les payloads et le secret de signature en clair.
+
+Les protections SSRF (IPs privées, localhost, credentials dans l'URL) restent actives dans tous les environnements.
+
+## Événements de facturation
+
+| Événement | Émis quand | Champs clés du payload |
+| --- | --- | --- |
+| `payable_invoice.issued` | Bordereau créé | `payable_invoice_uuid`, `invoice_number`, `provider_uuid`, `total_amount` |
+| `payable_invoice.paid` | Bordereau intégralement payé | `payable_invoice_uuid`, `paid_amount`, `remaining_amount` |
+| `payable_invoice.partially_paid` | Bordereau partiellement payé | `payable_invoice_uuid`, `paid_amount`, `remaining_amount` |
+| `payment.created` | Paiement créé | `payment_uuid`, `payment_number`, `amount` |
+| `payment.processing` | Paiement en traitement | `payment_uuid`, `status` |
+| `payment.succeeded` | Paiement confirmé | `payment_uuid`, `amount`, `beneficiary_uuid` |
+| `payment.failed` | Paiement échoué | `payment_uuid`, `amount` |
+
+## Événements de claims
+
+| Événement | Émis quand | Champs clés du payload |
+| --- | --- | --- |
+| `claim.submitted` | Claim soumis par un prestataire | `claim_uuid`, `claim_number`, `provider_uuid`, `amount_claimed` |
+| `claim.status_changed` | Changement de statut d'un claim | `claim_uuid`, `previous_status`, `new_status` |
+| `claim.info_needed` | Informations complémentaires demandées | `claim_uuid`, `reason` |
+| `claim.approved` | Claim approuvé | `claim_uuid`, `amount_approved`, `reviewed_by` |
+| `claim.rejected` | Claim rejeté | `claim_uuid`, `reason` |
+| `claim.paid` | Claim payé | `claim_uuid`, `amount_paid`, `paid_at` |
+
+## Événements d'autorisation préalable
+
+| Événement | Émis quand | Champs clés du payload |
+| --- | --- | --- |
+| `prior_authorization.requested` | Demande d'autorisation créée | `pa_uid`, `provider_uuid`, `estimated_amount` |
+| `prior_authorization.decided` | Décision rendue | `pa_uid`, `decision`, `authorized_amount` |
+
+## Retry et backoff
+
+Les livraisons échouées sont retentées selon le schéma suivant :
+
+| Tentative | Délai |
+| --- | --- |
+| 1 (initiale) | Immédiat |
+| 2 | 30 secondes |
+| 3 | 5 minutes |
+| 4 | 30 minutes |
+
+Après 4 tentatives échouées (ou une erreur 4xx non-429), la livraison est marquée `FAILED`. Un abonnement accumulant plus de 10 livraisons `FAILED` en 60 minutes est automatiquement désactivé.
+
+## Idempotence
+
+Chaque événement a un `event_id` unique et stable. L'intégrateur doit stocker cet identifiant et ignorer les livraisons déjà traitées. La même livraison peut être reçue plusieurs fois en cas de retry ou de relance manuelle.
+
+## Déduplication
+
+Azurance garantit qu'un même événement ne crée qu'une seule livraison par abonnement (contrainte d'unicité en base). Cependant, l'intégrateur peut recevoir la même livraison plusieurs fois (retry, relance manuelle) — la déduplication côté intégrateur via `event_id` est obligatoire.
