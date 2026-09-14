@@ -435,6 +435,7 @@
                 "group": "Facturation",
                 "pages": [
                   "erp-assurances/api/billing-payable-invoices-list",
+                  "erp-assurances/api/billing-payable-invoices-create",
                   "erp-assurances/api/billing-payable-invoice-get",
                   "erp-assurances/api/billing-payable-invoice-items",
                   "erp-assurances/api/billing-payments-list",

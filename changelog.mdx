@@ -6,6 +6,12 @@ icon: "list"
 
 Suivez les changements de contrat public, les nouvelles pages et les corrections importantes.
 
+## 2026-09-14 - Création de bordereau de paiement
+
+- Nouvel endpoint `POST /api/v1/billing/payable-invoices` (scope `insurer.billing.manage`) : regroupe un ou plusieurs claims approuvés en un bordereau payable.
+- Nouveaux schémas OpenAPI : `CreatePayableInvoiceRequest`, `ClaimReference`.
+- Nouvelle page : `erp-assurances/api/billing-payable-invoices-create`.
+
 ## 2026-09-01 - Référentiel LOINC biologie médicale (ANS)
 
 - Nouveau référentiel : analyses de biologie médicale LOINC FR (JDV V2.24, source ANS / esante.gouv.fr)
@@ -24,7 +30,7 @@ Suivez les changements de contrat public, les nouvelles pages et les corrections
 - `surgical_history` est désormais une vue calculée à partir des actes médicaux de catégorie `surgery` déclarés lors des consultations.
 - Cache Redis (TTL 15-60 min selon le fragment) avec invalidation proactive sur mutation.
 - Nouvel endpoint interne : `GET /insured/{uid}/prescriptions/active` (prescriptions actives d'un assuré).
-- Filtre `covered_person_uid` ajouté sur `GET /api/v1/claims` (claims-service).
+- Filtre `covered_person_uid` ajouté sur `GET /api/v1/claims`.
 
 ## 2026-08-27 - Mise à jour des encounters
 

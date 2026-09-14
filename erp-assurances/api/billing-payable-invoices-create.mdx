@@ -1,0 +1,115 @@
+---
+title: "Créer un bordereau de paiement"
+description: "Regroupe un ou plusieurs claims approuvés en un bordereau payable."
+openapi: "/openapi/insurer-api.openapi.yml POST /api/v1/billing/payable-invoices"
+---
+
+Cet endpoint crée un bordereau de paiement à partir d'un ou plusieurs claims approuvés. Azurance vérifie chaque claim (statut `APPROVED`, `amount_approved > 0`, devise) et crée une ligne de bordereau par claim.
+
+## Scope requis
+
+`insurer.billing.manage`
+
+## Règles métier
+
+- Chaque claim doit être en statut `APPROVED` avec un `amount_approved` strictement positif.
+- Un claim déjà inclus dans un autre bordereau est rejeté (422).
+- Si `beneficiary_type` vaut `PROVIDER`, le `provider_uuid` doit correspondre au prestataire des claims.
+- La devise de chaque claim doit correspondre à `currency` (défaut `XOF`).
+- L'idempotence est assurée par le header `Idempotency-Key` ou le champ `idempotency_key` du body.
+
+## Champs du body
+
+| Champ | Type | Requis | Description |
+| --- | --- | --- | --- |
+| `idempotency_key` | string | non | Clé d'idempotence (alternative au header `Idempotency-Key`). |
+| `beneficiary_type` | string | oui | `PROVIDER` ou `INSURED`. |
+| `beneficiary_uuid` | string | oui | Identifiant unique du bénéficiaire. |
+| `beneficiary_name` | string | non | Nom du bénéficiaire. |
+| `provider_uuid` | string | oui si `PROVIDER` | Identifiant du prestataire. |
+| `provider_name` | string | non | Nom du prestataire. |
+| `period_start` | string (date) | non | Début de période couverte. |
+| `period_end` | string (date) | non | Fin de période (≥ `period_start`). |
+| `currency` | string (ISO 4217) | non | Devise. Défaut `XOF`. |
+| `claim_uuids` | string[] | oui | UUIDs des claims approuvés (au moins un). |
+| `claim_references` | object[] | non | Références externes par claim. |
+| `claim_references[].claim_uuid` | string | oui | UUID du claim concerné. |
+| `claim_references[].provider_invoice_ref` | string | non | N° de facture prestataire. |
+| `claim_references[].provider_invoice_line_ref` | string | non | Ligne de facture prestataire. |
+| `claim_references[].provider_patient_ref` | string | non | Identifiant patient côté prestataire. |
+| `metadata` | object | non | Métadonnées libres. |
+
+## Exemple de requête
+
+```bash
+curl --request POST \
+  --url "https://insurer-api-sandbox.elenami.com/api/v1/billing/payable-invoices" \
+  --header "X-Api-Key: $AZURANCE_INSURER_API_KEY" \
+  --header "X-Request-Id: $(uuidgen)" \
+  --header "Idempotency-Key: bordereau-2026-09-001" \
+  --header "Content-Type: application/json" \
+  --data '{
+  "beneficiary_type": "PROVIDER",
+  "beneficiary_uuid": "prov_sandbox_001",
+  "beneficiary_name": "Clinique Santé Plus",
+  "provider_uuid": "prov_sandbox_001",
+  "provider_name": "Clinique Santé Plus",
+  "currency": "XOF",
+  "period_start": "2026-09-01",
+  "period_end": "2026-09-30",
+  "claim_uuids": [
+    "claim_sandbox_8dd71",
+    "claim_sandbox_b9503"
+  ],
+  "claim_references": [
+    {
+      "claim_uuid": "claim_sandbox_8dd71",
+      "provider_invoice_ref": "INV-202609-00018"
+    }
+  ],
+  "metadata": {
+    "source": "manual"
+  }
+}'
+```
+
+## Réponse
+
+```json
+{
+  "data": {
+    "uuid": "inv_sandbox_001",
+    "invoice_number": "INV-2026-001",
+    "beneficiary_type": "PROVIDER",
+    "beneficiary_uuid": "prov_sandbox_001",
+    "beneficiary_name": "Clinique Santé Plus",
+    "provider_uuid": "prov_sandbox_001",
+    "provider_name": "Clinique Santé Plus",
+    "status": "ISSUED",
+    "total_amount": 9600.00,
+    "paid_amount": 0.00,
+    "remaining_amount": 9600.00,
+    "currency": "XOF",
+    "period_start": "2026-09-01",
+    "period_end": "2026-09-30",
+    "issued_at": "2026-09-14T10:00:00.000000Z",
+    "metadata": {
+      "source": "manual"
+    },
+    "created_at": "2026-09-14T10:00:00.000000Z",
+    "updated_at": "2026-09-14T10:00:00.000000Z"
+  }
+}
+```
+
+## Erreurs
+
+| Code | Description |
+| --- | --- |
+| 401 | Clé API manquante ou invalide. |
+| 403 | Scope `insurer.billing.manage` manquant. |
+| 422 | Validation métier échouée (claim non approuvé, claim déjà facturé, devise incompatible, etc.). |
+
+## Suite du flux
+
+Une fois le bordereau créé (`status: ISSUED`), créez un paiement via `POST /api/v1/billing/payments` puis confirmez-le via `POST /api/v1/billing/payments/{uuid}/confirm`. La confirmation déclenche automatiquement le passage des claims au statut `PAID` — ce statut n'est pas définissable manuellement via `PATCH /claims/{id}/status`.
