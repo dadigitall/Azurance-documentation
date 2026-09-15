@@ -16,6 +16,13 @@ Cet endpoint liste les répartitions (allocations) d'un paiement sur les facture
 | --- | --- | --- | --- |
 | `uuid` | string | oui | Identifiant unique du paiement. |
 
+## Paramètres de requête
+
+| Paramètre | Type | Requis | Défaut | Description |
+| --- | --- | --- | --- | --- |
+| `limit` | integer | non | 100 | Nombre d'allocations par page (max 100). |
+| `cursor` | integer | non | — | Curseur de pagination (valeur de `meta.next_cursor` de la page précédente). |
+
 ## Réponse
 
 | Champ | Type | Description |
@@ -57,9 +64,7 @@ La somme des allocations doit correspondre au montant total du paiement. Pour le
     }
   ],
   "meta": {
-    "current_page": 1,
-    "per_page": 100,
-    "total": 1
+    "next_cursor": null
   }
 }
 ```

@@ -6257,10 +6257,11 @@ paths:
     get:
       operationId: listPayableInvoiceItems
       summary: Lister les lignes d'une facture payable
-      description: Pagination par curseur, comme la liste des factures (`limit` par
-        défaut 100).
+      description: Pagination par curseur identique à la liste des factures — repasser
+        `meta.next_cursor` dans `cursor` (`limit` par défaut 100, max 100).
       parameters:
       - $ref: '#/components/parameters/RequestId'
+      - $ref: '#/components/parameters/Cursor'
       - in: path
         name: uuid
         required: true
@@ -6272,10 +6273,10 @@ paths:
         schema:
           type: integer
           minimum: 1
+          maximum: 100
       responses:
         '200':
-          description: Lignes de la facture (curseur — pas de `meta.next_cursor` ici,
-            pagination Laravel `cursorPaginate` native)
+          description: Lignes de la facture (curseur, `meta.next_cursor` comme la liste)
           content:
             application/json:
               schema:
@@ -6285,6 +6286,12 @@ paths:
                     type: array
                     items:
                       $ref: '#/components/schemas/PayableInvoiceItem'
+                  meta:
+                    type: object
+                    properties:
+                      next_cursor:
+                        type: integer
+                        nullable: true
         '401':
           description: En-tête `X-Api-Key` manquant ou invalide
           content:
@@ -6573,10 +6580,11 @@ paths:
     get:
       operationId: listPaymentAllocations
       summary: Lister les allocations d'un paiement
-      description: Pagination par curseur (`limit`, pas de `cursor` explicite en réponse
-        dans ce cas — `Link`/pagination native Laravel `cursorPaginate`).
+      description: Pagination par curseur identique aux factures — repasser `meta.next_cursor`
+        dans `cursor` (`limit` par défaut 100, max 100).
       parameters:
       - $ref: '#/components/parameters/RequestId'
+      - $ref: '#/components/parameters/Cursor'
       - in: path
         name: uuid
         required: true
@@ -6588,6 +6596,7 @@ paths:
         schema:
           type: integer
           minimum: 1
+          maximum: 100
       responses:
         '200':
           description: Allocations du paiement
@@ -6600,6 +6609,12 @@ paths:
                     type: array
                     items:
                       $ref: '#/components/schemas/PaymentAllocation'
+                  meta:
+                    type: object
+                    properties:
+                      next_cursor:
+                        type: integer
+                        nullable: true
         '401':
           description: En-tête `X-Api-Key` manquant ou invalide
           content:

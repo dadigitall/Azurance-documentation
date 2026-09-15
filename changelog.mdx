@@ -6,6 +6,13 @@ icon: "list"
 
 Suivez les changements de contrat public, les nouvelles pages et les corrections importantes.
 
+## 2026-09-15 - Billing : pagination uniformisée et corrections
+
+- `GET /api/v1/billing/payable-invoices/{uuid}/items` et `GET /api/v1/billing/payments/{uuid}/allocations` utilisent désormais le même curseur numérique que la liste des factures : `meta.next_cursor` est présent dans la réponse et le paramètre `cursor` (entier) est accepté.
+- Les réponses paginées n'exposent plus `links` ni `meta.path` (URLs internes supprimées).
+- Les filtres `status` et `payment_method` sont validés côté serveur : une valeur hors enum renvoie `422` au lieu d'une liste vide.
+- `limit` est plafonné à 100 sur les endpoints curseur.
+
 ## 2026-09-15 - Système de webhooks complet (prestataires + assureurs)
 
 - Nouveaux endpoints webhook prestataire : `GET/POST/PATCH/DELETE /api/v1/webhooks`, `GET /api/v1/webhooks/{uuid}/deliveries`, `POST /api/v1/webhooks/deliveries/{uuid}/retry`.
