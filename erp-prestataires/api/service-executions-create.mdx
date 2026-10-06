@@ -14,7 +14,8 @@ Cet endpoint enregistre une prestation réellement effectuée par le prestataire
 
 | Champ | Type | Requis | Description |
 | --- | --- | --- | --- |
-| `subscription_uid` | string (uuid) | oui | Identifiant de la souscription. |
+| `contract_uid` | uuid | oui* | Identifiant du contrat de couverture. |
+| `subscription_uid` | uuid | non | **Déprécié** — alias de `contract_uid`. |
 | `covered_person_type` | string | oui | `policyholder` ou `beneficiary`. |
 | `covered_person_uid` | string | oui | Identifiant de la personne couverte. |
 | `coverage_type_code` | string | oui | Code du type de couverture. |
@@ -40,7 +41,7 @@ Cet endpoint enregistre une prestation réellement effectuée par le prestataire
     "status": "completed",
     "covered_person_type": "policyholder",
     "covered_person_uid": "mbr_sandbox_001",
-    "subscription_uid": "sub_sandbox_001",
+    "contract_uid": "sub_sandbox_001",
     "policy_number": "NSIA-POL-2025-001",
     "provider_uid": "prov_sandbox_001",
     "coverage_type_code": "AMBULATORY",

@@ -94,7 +94,7 @@ POST /api/v1/consent-requests
 {
   "covered_person_type": "beneficiary",
   "covered_person_uid": "12000000-0000-4000-8000-000000000001",
-  "subscription_uid": "11000000-0000-4000-8000-000000000001",
+  "contract_uid": "11000000-0000-4000-8000-000000000001",
   "purpose": "pharmacy_dispensing",
   "purpose_detail": "Dispensation de médicaments sur ordonnance",
   "scopes": [
@@ -165,7 +165,7 @@ Idempotency-Key: erp-dispensation-2026-0001
 
 ```json
 {
-  "subscription_uid": "11000000-0000-4000-8000-000000000001",
+  "contract_uid": "11000000-0000-4000-8000-000000000001",
   "covered_person_type": "beneficiary",
   "covered_person_uid": "12000000-0000-4000-8000-000000000001",
   "coverage_type_code": "PHARMACY_DRUG",
@@ -216,7 +216,7 @@ Idempotency-Key: erp-claim-2026-0001
 ```json
 {
   "service_execution_uid": "svc-exec-sandbox-001",
-  "subscription_id": "11000000-0000-4000-8000-000000000001",
+  "contract_uid": "11000000-0000-4000-8000-000000000001",
   "policyholder_id": "21000000-0000-4000-8000-000000000001",
   "covered_person_type": "beneficiary",
   "covered_person_uid": "12000000-0000-4000-8000-000000000001",

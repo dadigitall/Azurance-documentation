@@ -13,8 +13,8 @@ Cet endpoint résout un assuré à partir de son numéro de carte membre ou iden
 ## Cas d'usage
 
 - Afficher les informations d'un assuré à l'accueil d'un établissement avant la consultation.
-- Vérifier rapidement qu'un assuré est actif et récupérer ses identifiants (`covered_person_uid`, `subscription_uid`) pour les étapes suivantes (consentement, éligibilité, claim).
-- Récupérer les métadonnées de souscription (`policy_number`, `subscription_number`, `member_number`) pour les stocker dans le dossier administratif.
+- Vérifier rapidement qu'un assuré est actif et récupérer ses identifiants (`covered_person_uid`, `contract_uid`) pour les étapes suivantes (consentement, éligibilité, claim).
+- Récupérer les métadonnées du contrat (`policy_number`, `contract_number`, `member_number`) pour les stocker dans le dossier administratif.
 
 ## Champs du body
 
@@ -36,8 +36,8 @@ La réponse contient un tableau `data` de candidats `CoveredPerson`. Chaque cand
 | `auth_user_uid` | string | Identifiant du compte assuré (si enrollé). |
 | `policyholder_uid` | string | Identifiant UUID du souscripteur. |
 | `policyholder_auth_user_uid` | string | Compte assuré du souscripteur (si enrollé). |
-| `subscription_uid` | string | Identifiant UUID de la souscription. |
-| `subscription_number` | string | Numéro de souscription. |
+| `contract_uid` | string | Identifiant UUID du contrat de couverture. |
+| `contract_number` | string | Numéro du contrat de couverture. |
 | `policy_number` | string | Numéro de police. |
 | `member_number` | string | Numéro de membre. |
 | `beneficiary_number` | string | Numéro de bénéficiaire (null pour un souscripteur). |
@@ -70,8 +70,8 @@ La réponse contient un tableau `data` de candidats `CoveredPerson`. Chaque cand
       "auth_user_uid": "user_001",
       "policyholder_uid": "5f6e7d8c-0000-4000-8000-000000000099",
       "policyholder_auth_user_uid": "user_001",
-      "subscription_uid": "1a2b3c4d-0000-4000-8000-000000000055",
-      "subscription_number": "SUB-2026-001122",
+      "contract_uid": "1a2b3c4d-0000-4000-8000-000000000055",
+      "contract_number": "SUB-2026-001122",
       "policy_number": "POL-2026-004821",
       "member_number": "MEM-2026-004821",
       "beneficiary_number": null,

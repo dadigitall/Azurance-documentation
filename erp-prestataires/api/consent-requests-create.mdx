@@ -14,7 +14,8 @@ openapi: "/openapi/provider-api.openapi.yml POST /api/v1/consent-requests"
 | --- | --- | --- | --- |
 | `covered_person_type` | string | oui | `policyholder` ou `beneficiary`. |
 | `covered_person_uid` | string | oui | Identifiant de la personne couverte. |
-| `subscription_uid` | string (uuid) | oui | Identifiant de la souscription. |
+| `contract_uid` | uuid | oui* | Identifiant du contrat de couverture. |
+| `subscription_uid` | uuid | non | **Déprécié** — alias de `contract_uid`. |
 | `purpose` | string | oui | Motif métier (voir tableau ci-dessous). |
 | `scopes` | array | oui | Scopes à autoriser via ce consentement. |
 | `channel` | string | non | Canal du challenge (`sms`, `email`, `whatsapp`, `totp`, `face_match`). |
@@ -41,7 +42,7 @@ Pour un bénéficiaire mineur, le titulaire de la police peut valider à sa plac
 
 ## Réponse
 
-La réponse `201` est volontairement minimale : elle contient l'identifiant de la demande (`id`), son statut, le canal de challenge, le niveau d'assurance requis et la date d'expiration. Les champs `purpose`, `scopes`, `covered_person_*` et `subscription_uid` ne sont pas renvoyés dans la réponse de création — ils sont en entrée seulement et conservés côté service pour la vérification.
+La réponse `201` est volontairement minimale : elle contient l'identifiant de la demande (`id`), son statut, le canal de challenge, le niveau d'assurance requis et la date d'expiration. Les champs `purpose`, `scopes`, `covered_person_*` et `contract_uid` ne sont pas renvoyés dans la réponse de création — ils sont en entrée seulement et conservés côté service pour la vérification.
 
 Si `assurance_level_required` est `3` (Face Match), la réponse contient en plus `face_match_session_id` et `validated_by_type` pour initier la session biométrique dans l'application assurée.
 
@@ -51,7 +52,7 @@ Si `assurance_level_required` est `3` (Face Match), la réponse contient en plus
 {
   "covered_person_type": "policyholder",
   "covered_person_uid": "5f6e7d8c-0000-4000-8000-000000000099",
-  "subscription_uid": "1a2b3c4d-0000-4000-8000-000000000055",
+  "contract_uid": "1a2b3c4d-0000-4000-8000-000000000055",
   "purpose": "claim_submission",
   "purpose_detail": "Soumission de claim pour consultation du 15/08",
   "scopes": [

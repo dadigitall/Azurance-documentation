@@ -22,7 +22,8 @@ Cet endpoint crée un brouillon de claim en statut `draft`. Aucun check final d'
 
 | Champ | Type | Requis | Description |
 | --- | --- | --- | --- |
-| `subscription_id` | string | oui | Identifiant de souscription. |
+| `contract_uid` | uuid | oui* | Identifiant du contrat de couverture. |
+| `subscription_id` | string | non | **Déprécié** — alias de `contract_uid`. |
 | `policyholder_id` | string | oui | Identifiant du titulaire de police. |
 | `coverage_type_code` | string | oui | Code de garantie visée. |
 | `service_date` | date | oui | Date de la prestation (`YYYY-MM-DD`). |
@@ -47,7 +48,7 @@ curl --request POST \
   --header "Content-Type: application/json" \
   --header "Idempotency-Key: 550e8400-e29b-41d4-a716-446655440000" \
   --data '{
-    "subscription_id": "sub_sandbox_001",
+    "contract_uid": "sub_sandbox_001",
     "policyholder_id": "mbr_sandbox_001",
     "coverage_type_code": "OUTPATIENT_PHARMACY",
     "service_date": "2026-01-15",
@@ -73,7 +74,7 @@ curl --request POST \
     "uuid": "claim_sandbox_draft_001",
     "claim_number": "CLM-2026-001234",
     "status": "draft",
-    "subscription_id": "sub_sandbox_001",
+    "contract_uid": "sub_sandbox_001",
     "policyholder_id": "mbr_sandbox_001",
     "coverage_type_code": "OUTPATIENT_PHARMACY",
     "service_date": "2026-01-15",

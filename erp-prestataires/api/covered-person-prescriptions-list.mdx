@@ -21,7 +21,8 @@ Cet endpoint liste les ordonnances d'une personne couverte consultables après c
 
 | Paramètre | Type | Description |
 | --- | --- | --- |
-| `subscription_uid` | uuid | Identifiant de la souscription concernée. |
+| `contract_uid` | uuid | Identifiant du contrat de couverture (requis). |
+| `subscription_uid` | uuid | **Déprécié** — alias de `contract_uid`. |
 | `consent_ref` | uuid | Référence du consentement fort validé. |
 
 ## Paramètres de requête optionnels
@@ -36,7 +37,7 @@ Cet endpoint liste les ordonnances d'une personne couverte consultables après c
 1. Résoudre la personne couverte via `POST /api/v1/covered-persons/resolve`.
 2. Initier un consentement via `POST /api/v1/consent-requests` avec le purpose `prescription_access`.
 3. Valider le challenge via `POST /api/v1/consent-requests/{uid}/verify` pour obtenir `consent_ref`.
-4. Appeler cet endpoint avec `subscription_uid` et `consent_ref`.
+4. Appeler cet endpoint avec `contract_uid` et `consent_ref`.
 
 ## Réponse
 

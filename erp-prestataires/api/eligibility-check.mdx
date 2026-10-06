@@ -16,7 +16,8 @@ Cet endpoint effectue un précheck d'éligibilité sans création de claim. Il c
 | --- | --- | --- | --- |
 | `coverage_type_code` | string | oui | Code de garantie visée. |
 | `amount` | number | oui | Montant à vérifier. |
-| `subscription_uid` | uuid | non | Identifiant de la souscription. |
+| `contract_uid` | uuid | non | Identifiant du contrat de couverture (recommandé). |
+| `subscription_uid` | uuid | non | **Déprécié** — alias de `contract_uid`. |
 | `covered_person_type` | string | non | `policyholder` ou `beneficiary`. |
 | `covered_person_uid` | string | non | Identifiant de la personne couverte. |
 | `consent_ref` | uuid | non | Référence de consentement fort. |
@@ -42,7 +43,7 @@ La réponse `200` contient le résultat d'éligibilité : statut, montant éligi
     "coverage_name": "Soins ambulatoires",
     "coverage_status": "active",
     "policy_number": "NSIA-POL-2025-001",
-    "subscription_uid": "sub_sandbox_001",
+    "contract_uid": "sub_sandbox_001",
     "covered_person_type": "policyholder",
     "covered_person_uid": "mbr_sandbox_001",
     "insurer_uid": "ins_sandbox_001",

@@ -14,7 +14,8 @@ Cet endpoint crée une demande formelle de prévalidation avant l'exécution d'u
 
 | Champ | Type | Requis | Description |
 | --- | --- | --- | --- |
-| `subscription_uid` | string | oui | Identifiant de la souscription concernée. |
+| `contract_uid` | uuid | oui* | Identifiant du contrat de couverture. |
+| `subscription_uid` | string | non | **Déprécié** — alias de `contract_uid`. |
 | `covered_person_type` | string | oui | `policyholder` ou `beneficiary`. |
 | `covered_person_uid` | string | oui | Identifiant de la personne couverte. |
 | `coverage_type_code` | string | oui | Code de garantie visée (ex. `PHYSIOTHERAPY`). |
@@ -51,7 +52,7 @@ La réponse `201` contient un objet `PriorAuthorization` avec son `uuid`, son `s
     "status": "pending",
     "covered_person_type": "policyholder",
     "covered_person_uid": "mbr_sandbox_001",
-    "subscription_uid": "sub_sandbox_001",
+    "contract_uid": "sub_sandbox_001",
     "policy_number": "NSIA-POL-2025-001",
     "provider_uid": "prov_sandbox_001",
     "insurer_uid": "ins_sandbox_001",

@@ -31,16 +31,26 @@ components:
     SubmitClaimRequest:
       type: object
       required:
-      - subscription_id
       - policyholder_id
       - coverage_type_code
       - service_date
       - amount_claimed
       - items
       properties:
+        contract_uid:
+          type: string
+          format: uuid
+          description: Identifiant du contrat de couverture. Recommandé — un des champs
+            contract_uid/subscription_uid/subscription_id est requis.
         subscription_id:
           type: string
-          description: Identifiant de souscription.
+          deprecated: true
+          description: Alias legacy de contract_uid (v1 sandbox).
+        subscription_uid:
+          type: string
+          format: uuid
+          deprecated: true
+          description: Alias legacy de contract_uid.
         policyholder_id:
           type: string
           description: Identifiant du titulaire de police.
@@ -61,9 +71,6 @@ components:
         covered_person_uid:
           type: string
           description: Identifiant de la personne couverte.
-        subscription_uid:
-          type: string
-          format: uuid
         consent_ref:
           type: string
           format: uuid
@@ -308,6 +315,8 @@ components:
             = traitement non urgent.
         subscription_uid:
           type: string
+          deprecated: true
+          description: Alias legacy du contrat de couverture (voir contract_uid dans les requêtes).
         covered_person_type:
           type: string
           enum:
@@ -691,7 +700,7 @@ paths:
       - lang: curl
         source: "curl --request POST \\\n  --url \"https://provider-api-sandbox.elenami.com/api/v1/prior-authorizations\"\
           \ \\\n  --header \"Content-Type: application/json\" \\\n  --header \"X-Api-Key:\
-          \ $AZURANCE_PROVIDER_API_KEY\" \\\n  --data '{\"subscription_uid\":\"sub_001\"\
+          \ $AZURANCE_PROVIDER_API_KEY\" \\\n  --data '{\"contract_uid\":\"ctr_001\"\
           ,\"covered_person_type\":\"beneficiary\",\"covered_person_uid\":\"ben_001\"\
           ,\"coverage_type_code\":\"PHYSIOTHERAPY\",\"estimated_amount\":150000,\"\
           currency\":\"XOF\",\"priority\":\"STANDARD\",\"consent_ref\":\"00000000-0000-4000-8000-000000000001\"\
@@ -705,7 +714,6 @@ paths:
             schema:
               type: object
               required:
-              - subscription_uid
               - covered_person_type
               - covered_person_uid
               - coverage_type_code
@@ -713,8 +721,15 @@ paths:
               - consent_ref
               - items
               properties:
+                contract_uid:
+                  type: string
+                  format: uuid
+                  description: Identifiant du contrat de couverture. Requis sauf si
+                    subscription_uid fourni (alias déprécié).
                 subscription_uid:
                   type: string
+                  deprecated: true
+                  description: Alias legacy de contract_uid.
                 covered_person_type:
                   type: string
                   enum:
@@ -1781,9 +1796,15 @@ paths:
               - coverage_type_code
               - amount
               properties:
+                contract_uid:
+                  type: string
+                  format: uuid
+                  description: Identifiant du contrat de couverture (recommandé).
                 subscription_uid:
                   type: string
                   format: uuid
+                  deprecated: true
+                  description: Alias legacy de contract_uid.
                 covered_person_type:
                   type: string
                   enum:
@@ -1796,7 +1817,8 @@ paths:
                   format: uuid
                 subscription_id:
                   type: string
-                  description: Ancien champ sandbox conservé temporairement.
+                  deprecated: true
+                  description: Alias legacy de contract_uid (v1 sandbox).
                 policyholder_id:
                   type: string
                   description: Ancien champ sandbox conservé temporairement.
@@ -1944,7 +1966,6 @@ paths:
               required:
               - covered_person_type
               - covered_person_uid
-              - subscription_uid
               - purpose
               - scopes
               properties:
@@ -1955,8 +1976,16 @@ paths:
                   - beneficiary
                 covered_person_uid:
                   type: string
+                contract_uid:
+                  type: string
+                  format: uuid
+                  description: Identifiant du contrat de couverture. Requis sauf si
+                    subscription_uid fourni (alias déprécié).
                 subscription_uid:
                   type: string
+                  format: uuid
+                  deprecated: true
+                  description: Alias legacy de contract_uid.
                   format: uuid
                 purpose:
                   type: string
@@ -2058,11 +2087,20 @@ paths:
         schema:
           type: string
       - in: query
-        name: subscription_uid
+        name: contract_uid
         required: true
         schema:
           type: string
           format: uuid
+        description: Identifiant du contrat de couverture.
+      - in: query
+        name: subscription_uid
+        required: false
+        deprecated: true
+        schema:
+          type: string
+          format: uuid
+        description: Alias legacy de contract_uid.
       - in: query
         name: consent_ref
         required: true
@@ -2253,7 +2291,7 @@ paths:
         source: "curl --request POST \\\n  --url \"https://provider-api-sandbox.elenami.com/api/v1/claims/draft\"\
           \ \\\n  --header \"X-Api-Key: $AZURANCE_PROVIDER_API_KEY\" \\\n  --header\
           \ \"Content-Type: application/json\" \\\n  --header \"Idempotency-Key: $(uuidgen)\"\
-          \ \\\n  --data '{\"subscription_id\":\"sub_sandbox_001\",\"policyholder_id\"\
+          \ \\\n  --data '{\"contract_uid\":\"ctr_sandbox_001\",\"policyholder_id\"\
           :\"mbr_sandbox_001\",\"coverage_type_code\":\"OUTPATIENT_PHARMACY\",\"service_date\"\
           :\"2026-01-15\",\"amount_claimed\":50000,\"currency\":\"XOF\",\"items\"\
           :[{\"description\":\"Consultation générale\",\"quantity\":1,\"unit_price\"\
@@ -2267,7 +2305,7 @@ paths:
             schema:
               $ref: '#/components/schemas/SubmitClaimRequest'
             example:
-              subscription_id: sub_sandbox_001
+              contract_uid: ctr_sandbox_001
               policyholder_id: mbr_sandbox_001
               coverage_type_code: OUTPATIENT_PHARMACY
               service_date: '2026-01-15'
@@ -2298,8 +2336,14 @@ paths:
                       status:
                         type: string
                         example: draft
+                      contract_uid:
+                        type: string
+                        format: uuid
+                        description: Identifiant du contrat de couverture.
                       subscription_id:
                         type: string
+                        deprecated: true
+                        description: Alias legacy de contract_uid.
                       policyholder_id:
                         type: string
                       coverage_type_code:
@@ -2320,6 +2364,7 @@ paths:
                   uuid: claim_sandbox_draft_001
                   claim_number: CLM-2026-001234
                   status: draft
+                  contract_uid: sub_sandbox_001
                   subscription_id: sub_sandbox_001
                   policyholder_id: mbr_sandbox_001
                   coverage_type_code: OUTPATIENT_PHARMACY
@@ -2368,6 +2413,7 @@ paths:
                   uuid: claim_sandbox_draft_001
                   claim_number: CLM-2026-001234
                   status: draft
+                  contract_uid: sub_sandbox_001
                   subscription_id: sub_sandbox_001
                   policyholder_id: mbr_sandbox_001
                   coverage_type_code: OUTPATIENT_PHARMACY
@@ -2511,7 +2557,6 @@ paths:
             schema:
               type: object
               required:
-              - subscription_uid
               - covered_person_type
               - covered_person_uid
               - coverage_type_code
@@ -2519,9 +2564,16 @@ paths:
               - consent_ref
               - items
               properties:
+                contract_uid:
+                  type: string
+                  format: uuid
+                  description: Identifiant du contrat de couverture. Requis sauf si
+                    subscription_uid fourni (alias déprécié).
                 subscription_uid:
                   type: string
                   format: uuid
+                  deprecated: true
+                  description: Alias legacy de contract_uid.
                 covered_person_type:
                   type: string
                   enum:

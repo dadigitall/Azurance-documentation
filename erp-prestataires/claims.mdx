@@ -24,7 +24,7 @@ POST /api/v1/claims
 
 ```json
 {
-  "subscription_id": "sub-sandbox-001",
+  "contract_uid": "sub-sandbox-001",
   "policyholder_id": "insured-sandbox-001",
   "service_execution_uid": "svc-exec-sandbox-001",
   "covered_person_type": "beneficiary",
@@ -56,7 +56,8 @@ POST /api/v1/claims
 
 | Champ | Requis | Description |
 | --- | --- | --- |
-| `subscription_id` | Oui | UUID public ou identifiant public de la souscription. |
+| `contract_uid` | Oui | UUID public du contrat de couverture. |
+| `subscription_id` | Non | **Déprécié** — alias de `contract_uid`. |
 | `policyholder_id` | Oui | Identifiant public de l'assuré ou bénéficiaire. |
 | `service_execution_uid` | Non | Prestation réellement effectuée, créée via `POST /api/v1/service-executions`. |
 | `covered_person_type` | Non | `policyholder` ou `beneficiary`. Obligatoire si le flux utilise `covered_person`. |

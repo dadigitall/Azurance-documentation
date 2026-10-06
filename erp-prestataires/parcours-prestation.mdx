@@ -48,7 +48,7 @@ Identifiants supportés:
 | `npi` | Peut retourner plusieurs affiliations si la personne est assurée chez plusieurs assureurs. |
 | `phone_number` | Peut retourner plusieurs affiliations. |
 | `policy_number` | Peut retourner le titulaire et les ayants droit rattachés au contrat. |
-| `subscription_number` | Numéro de souscription ou d'adhésion fourni par l'assureur; cible généralement une affiliation précise. |
+| `contract_number` | Numéro du contrat de couverture (police individuelle ou adhésion) fourni par l'assureur; cible généralement une affiliation précise. |
 | `member_number` | Numéro d'adhérent, de carte ou de membre attribué par l'assureur à une personne couverte. À utiliser seulement si l'assureur l'expose sur les supports assurés. |
 | `beneficiary_number` | Numéro d'ayant droit attribué par l'assureur; cible un bénéficiaire rattaché à un contrat. |
 
@@ -64,7 +64,7 @@ POST /api/v1/consent-requests
 {
   "covered_person_type": "beneficiary",
   "covered_person_uid": "12000000-0000-4000-8000-000000000001",
-  "subscription_uid": "11000000-0000-4000-8000-000000000001",
+  "contract_uid": "11000000-0000-4000-8000-000000000001",
   "purpose": "pharmacy_dispensing",
   "purpose_detail": "Dispensation de médicaments sur ordonnance",
   "scopes": [
@@ -102,7 +102,7 @@ Pour demander une validation Face Match:
 {
   "covered_person_type": "beneficiary",
   "covered_person_uid": "12000000-0000-4000-8000-000000000001",
-  "subscription_uid": "11000000-0000-4000-8000-000000000001",
+  "contract_uid": "11000000-0000-4000-8000-000000000001",
   "purpose": "pharmacy_dispensing",
   "purpose_detail": "Dispensation nécessitant une validation biométrique",
   "scopes": [
@@ -157,7 +157,7 @@ Le `consent_ref` est court, expirant et lié au prestataire, à la personne couv
 Pour une pharmacie:
 
 ```http
-GET /api/v1/covered-persons/{type}/{uid}/prescriptions?subscription_uid=...
+GET /api/v1/covered-persons/{type}/{uid}/prescriptions?contract_uid=...
 GET /api/v1/prescriptions/{prescription_uid}
 ```
 
@@ -172,7 +172,7 @@ Idempotency-Key: erp-dispensation-2026-0001
 
 ```json
 {
-  "subscription_uid": "11000000-0000-4000-8000-000000000001",
+  "contract_uid": "11000000-0000-4000-8000-000000000001",
   "covered_person_type": "beneficiary",
   "covered_person_uid": "12000000-0000-4000-8000-000000000001",
   "coverage_type_code": "PHARMACY_DRUG",
