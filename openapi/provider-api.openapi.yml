@@ -503,6 +503,85 @@ components:
           type: number
           nullable: true
           description: Score de correspondance retourné uniquement par resolve.
+    CoverageContract:
+      type: object
+      description: Contrat de couverture effectif rattaché à la personne. Une
+        personne peut relever de plusieurs contrats (police individuelle,
+        adhésion à une police collective employeur).
+      properties:
+        contract_uid:
+          type: string
+          format: uuid
+          description: Identifiant unique du contrat de couverture.
+        contract_number:
+          type: string
+          description: Numéro métier du contrat.
+        plan_code:
+          type: string
+        plan_name:
+          type: string
+        status:
+          type: string
+          enum:
+          - PENDING
+          - ACTIVE
+          - SUSPENDED
+          - EXPIRED
+          - CANCELLED
+        effective_date:
+          type: string
+          format: date
+        expiry_date:
+          type: string
+          format: date
+        annual_coverage_limit:
+          type: number
+          nullable: true
+        annual_used_amount:
+          type: number
+          nullable: true
+    CoveredPersonCandidate:
+      type: object
+      properties:
+        covered_person_type:
+          type: string
+          enum:
+          - policyholder
+          - beneficiary
+        covered_person_uid:
+          type: string
+        contract:
+          $ref: '#/components/schemas/CoverageContract'
+        subscription_uid:
+          type: string
+          format: uuid
+          deprecated: true
+          description: Alias legacy de contract.contract_uid.
+        subscription_number:
+          type: string
+          deprecated: true
+          description: Alias legacy de contract.contract_number.
+        policy_number:
+          type: string
+        member_number:
+          type: string
+          nullable: true
+        beneficiary_number:
+          type: string
+          nullable: true
+        insurer_uid:
+          type: string
+        insurer_name:
+          type: string
+          nullable: true
+        coverage_status:
+          type: string
+        display_name:
+          type: string
+          description: Nom masqué (initiales) pour la confidentialité.
+        relationship:
+          type: string
+          nullable: true
     MedicationReferenceLine:
       type: object
       properties:
@@ -1757,16 +1836,23 @@ paths:
                   - npi
                   - phone_number
                   - policy_number
+                  - contract_number
                   - subscription_number
                   - member_number
                   - beneficiary_number
-                  - policyholder_uid
-                  - beneficiary_uid
+                  description: 'contract_number est le terme métier recommandé ; subscription_number
+                    est conservé comme alias legacy.'
                 identifier:
                   type: string
+                contract_uid:
+                  type: string
+                  format: uuid
+                  description: Restreint la recherche à un contrat de couverture précis.
                 subscription_uid:
                   type: string
                   format: uuid
+                  deprecated: true
+                  description: Alias legacy de contract_uid.
                 limit:
                   type: integer
                   minimum: 1
@@ -1774,6 +1860,15 @@ paths:
       responses:
         '200':
           description: Liste bornée de candidats covered_person
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/CoveredPersonCandidate'
         '400':
           description: Recherche non indexée, wildcard ou identifiant trop court
         '429':
@@ -1821,6 +1916,15 @@ paths:
       responses:
         '200':
           description: Résultats de recherche de support
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/CoveredPersonCandidate'
         '401':
           description: API key absente ou invalide
         '403':
@@ -2011,16 +2115,24 @@ paths:
           - policyholder
           - beneficiary
       - in: query
-        name: subscription_uid
+        name: contract_uid
         required: false
         schema:
           type: string
-        description: Requis si covered_person_type=beneficiary.
+          format: uuid
+        description: Identifiant du contrat de couverture. Requis si covered_person_type=beneficiary.
+      - in: query
+        name: subscription_uid
+        required: false
+        deprecated: true
+        schema:
+          type: string
+        description: Alias legacy de contract_uid.
       responses:
         '200':
           description: Portrait biométrique de la personne couverte
         '400':
-          description: subscription_uid requis lorsque covered_person_type=beneficiary
+          description: contract_uid requis lorsque covered_person_type=beneficiary
         '401':
           description: API key absente ou invalide
         '403':

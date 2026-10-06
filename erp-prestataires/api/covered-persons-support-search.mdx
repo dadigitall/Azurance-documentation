@@ -35,24 +35,54 @@ Ce scope est séparé de `covered_persons.resolve` et doit être explicitement a
 }
 ```
 
+## Réponse
+
+Chaque candidat représente **la couverture d'une personne sous un contrat donné** — le bloc `contract` porte le numéro de contrat, le plan, le statut, les dates d'effet/expiration et les limites annuelles. Une personne couverte par plusieurs contrats apparaît sur plusieurs lignes.
+
+Lorsque `policy_number` est fourni comme discriminant, la recherche identifie le contrat familial et retourne **toutes les personnes couvertes** par ce contrat (titulaire + bénéficiaires).
+
 ## Exemple de réponse
 
 ```json
 {
   "data": [
     {
-      "identity_uid": "idt_sandbox_001",
       "covered_person_type": "policyholder",
-      "first_name": "Koffi",
-      "last_name": "Adjoua",
-      "date_of_birth": "1985-03-15",
-      "subscription_uid": "sub_sandbox_001",
-      "insurer_tenant_slug": "elenami-assurances"
+      "covered_person_uid": "mbr_sandbox_001",
+      "contract": {
+        "contract_uid": "ctr_sandbox_001",
+        "contract_number": "CTR-SUNU-2025-001",
+        "plan_code": "PLAN-FAMILY",
+        "plan_name": "Plan Famille",
+        "status": "ACTIVE",
+        "effective_date": "2025-01-01",
+        "expiry_date": "2026-12-31",
+        "annual_coverage_limit": 1000000,
+        "annual_used_amount": 75000
+      },
+      "subscription_uid": "ctr_sandbox_001",
+      "subscription_number": "CTR-SUNU-2025-001",
+      "policy_number": "SUNU-POL-2025-001",
+      "insurer_uid": "ins_sandbox_001",
+      "insurer_name": "SUNU Assurance",
+      "coverage_status": "ACTIVE",
+      "display_name": "K. A.",
+      "relationship": "policyholder"
     }
   ],
-  "total": 1
+  "meta": {
+    "match_type": "single",
+    "limit": 5,
+    "searched_tenants": 1,
+    "successful_tenants": 1,
+    "failed_tenants": 0,
+    "partial_results": false,
+    "tenant_errors": []
+  }
 }
 ```
+
+> **Note** : `subscription_uid` et `subscription_number` sont des alias dépréciés de `contract.contract_uid` et `contract.contract_number`. Utiliser le bloc `contract` pour les nouvelles intégrations.
 
 ## Erreurs
 

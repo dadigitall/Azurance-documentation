@@ -16,7 +16,8 @@ Cet endpoint résout une personne couverte à partir d'un identifiant métier, s
 | --- | --- | --- | --- |
 | `identifier_type` | string | oui | Type d'identifiant (voir ci-dessous). |
 | `identifier` | string | oui | Valeur de l'identifiant recherché. |
-| `subscription_uid` | uuid | non | Identifiant de souscription pour restreindre la recherche. |
+| `contract_uid` | uuid | non | Identifiant du contrat de couverture pour restreindre la recherche. |
+| `subscription_uid` | uuid | non | **Déprécié** — alias de `contract_uid`, conservé pour compatibilité. |
 | `limit` | integer | non | Nombre de candidats, maximum 10. |
 
 ## Types d'identifiants
@@ -26,15 +27,18 @@ Cet endpoint résout une personne couverte à partir d'un identifiant métier, s
 | `npi` | Numéro d'identification personnel. |
 | `phone_number` | Numéro de téléphone. |
 | `policy_number` | Numéro de police. |
-| `subscription_number` | Numéro de souscription. |
+| `contract_number` | Numéro du contrat de couverture (recommandé). |
+| `subscription_number` | **Déprécié** — alias de `contract_number`. |
 | `member_number` | Numéro de membre. |
 | `beneficiary_number` | Numéro de bénéficiaire. |
-| `policyholder_uid` | Identifiant public du titulaire. |
-| `beneficiary_uid` | Identifiant public du bénéficiaire. |
 
 ## Réponse
 
-La réponse contient une liste bornée de candidats `covered_person` avec leur type, leur uid et les métadonnées minimales. Une recherche non indexée, un wildcard ou un identifiant trop court renvoie une erreur `400` ; un rate limit dépassé renvoie `429`.
+Chaque candidat représente **la couverture d'une personne sous un contrat donné**. Une même personne couverte par plusieurs contrats (police individuelle + adhésion à une police collective employeur, par exemple) apparaît sur plusieurs lignes, une par contrat.
+
+Le bloc `contract` décrit le contrat de couverture effectif : `contract_uid`, `contract_number`, `plan_code`, `plan_name`, `status`, `effective_date`, `expiry_date`, `annual_coverage_limit`, `annual_used_amount`. Les champs `subscription_uid` et `subscription_number` sont des alias dépréciés de `contract.contract_uid` et `contract.contract_number`.
+
+Une recherche non indexée, un wildcard ou un identifiant trop court renvoie une erreur `400` ; un rate limit dépassé renvoie `429`.
 
 ## Exemple de réponse
 
@@ -44,12 +48,23 @@ La réponse contient une liste bornée de candidats `covered_person` avec leur t
     {
       "covered_person_type": "policyholder",
       "covered_person_uid": "mbr_sandbox_001",
-      "subscription_uid": "sub_sandbox_001",
-      "subscription_number": "S-NSIA-2025-001",
-      "policy_number": "NSIA-POL-2025-001",
+      "contract": {
+        "contract_uid": "ctr_sandbox_001",
+        "contract_number": "CTR-SUNU-2025-001",
+        "plan_code": "PLAN-FAMILY",
+        "plan_name": "Plan Famille",
+        "status": "ACTIVE",
+        "effective_date": "2025-01-01",
+        "expiry_date": "2026-12-31",
+        "annual_coverage_limit": 1000000,
+        "annual_used_amount": 75000
+      },
+      "subscription_uid": "ctr_sandbox_001",
+      "subscription_number": "CTR-SUNU-2025-001",
+      "policy_number": "SUNU-POL-2025-001",
       "insurer_uid": "ins_sandbox_001",
-      "insurer_name": "NSIA Assurance CI",
-      "coverage_status": "active",
+      "insurer_name": "SUNU Assurance",
+      "coverage_status": "ACTIVE",
       "display_name": "K. Y.",
       "date_of_birth": "1985-05-15",
       "gender": "M"

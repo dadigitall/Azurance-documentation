@@ -6,6 +6,14 @@ icon: "list"
 
 Suivez les changements de contrat public, les nouvelles pages et les corrections importantes.
 
+## 2026-10-06 - Recherche d'assuré : bloc `contract` et terminologie contrat
+
+- Les candidats retournés par `POST /api/v1/covered-persons/resolve` et `POST /api/v1/covered-persons/support-search` portent désormais un bloc `contract` : `contract_uid`, `contract_number`, `plan_code`, `plan_name`, `status`, `effective_date`, `expiry_date`, `annual_coverage_limit`, `annual_used_amount`.
+- Nouveaux schémas OpenAPI : `CoverageContract`, `CoveredPersonCandidate`.
+- Nouveaux alias d'entrée recommandés : `contract_uid` (resolve + portrait) et `identifier_type=contract_number`.
+- `subscription_uid`, `subscription_number` et `subscription_number` (identifier_type) restent acceptés comme alias legacy dépréciés — aucune rupture de compatibilité.
+- Une personne couverte par plusieurs contrats (police individuelle + adhésion employeur) apparaît sur plusieurs lignes, une par contrat.
+
 ## 2026-09-15 - Billing : pagination uniformisée et corrections
 
 - `GET /api/v1/billing/payable-invoices/{uuid}/items` et `GET /api/v1/billing/payments/{uuid}/allocations` utilisent désormais le même curseur numérique que la liste des factures : `meta.next_cursor` est présent dans la réponse et le paramètre `cursor` (entier) est accepté.

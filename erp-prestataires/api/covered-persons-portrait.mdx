@@ -27,7 +27,8 @@ Cet endpoint retourne une URL signée à courte durée de validité (300 seconde
 
 | Paramètre | Type | Description |
 | --- | --- | --- |
-| `subscription_uid` | string | Requis si `covered_person_type` est `beneficiary`. Identifiant de la souscription rattachée au bénéficiaire. |
+| `contract_uid` | uuid | Requis si `covered_person_type` est `beneficiary`. Identifiant du contrat de couverture rattaché au bénéficiaire. |
+| `subscription_uid` | string | **Déprécié** — alias de `contract_uid`, conservé pour compatibilité. |
 
 ## Champs de réponse
 
@@ -53,7 +54,7 @@ Cet endpoint retourne une URL signée à courte durée de validité (300 seconde
 
 | Code | Code d'erreur | Description |
 | --- | --- | --- |
-| 400 | — | `subscription_uid` requis pour un bénéficiaire. |
+| 400 | — | `contract_uid` requis pour un bénéficiaire. |
 | 401 | — | Clé API manquante ou invalide. |
 | 403 | — | Scope `covered_persons.resolve` non autorisé. |
 | 404 | `PORTRAIT_NOT_FOUND` | Personne couverte ou portrait introuvable. |
