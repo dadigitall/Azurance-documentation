@@ -42,7 +42,10 @@ Cet endpoint retourne les produits médicaments du référentiel pivot Azurance.
 | `source_details` | object | Détails de la source (`code`, `label`, `confidence`). |
 | `designation` | string | Désignation officielle ou importée du produit. |
 | `display_name` | string | Nom d'affichage (identique à `designation`). |
-| `dci_raw` | string | DCI/substances lorsque disponibles. |
+| `dci_raw` | string | DCI/substances
+| `atc_code` | string | Code ATC OMS (ex. `A11CA01`), `null` si non classifié. |
+| `atc_label` | string | Libellé de la classe ATC. |
+| `atc_match_status` | string | `verified` ou `unverified`. | lorsque disponibles. |
 | `inn_name` | string | Dénomination commune internationale (identique à `dci_raw`). |
 | `marketing_authorization_holder` | string | Titulaire de l'autorisation de mise sur le marché. |
 | `origin_country` | string | Pays d'origine du produit. |
@@ -77,6 +80,9 @@ La réponse est paginée et contient un tableau `data` de `MedicationProduct` ai
       "designation": "Paracétamol 500mg, comprimé",
       "display_name": "Paracétamol 500mg, comprimé",
       "dci_raw": "Paracétamol",
+      "atc_code": null,
+      "atc_label": null,
+      "atc_match_status": null,
       "inn_name": "Paracétamol",
       "marketing_authorization_holder": "PharmaLab BJ",
       "origin_country": "BJ",

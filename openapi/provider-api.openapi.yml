@@ -492,6 +492,23 @@ components:
           type: string
           nullable: true
           description: DCI/substances lorsque disponibles.
+        atc_code:
+          type: string
+          nullable: true
+          description: Code ATC (classification OMS) du produit, ex. A11CA01
+            (vitamine A), J01CA04 (amoxicilline). null si non classifié.
+        atc_label:
+          type: string
+          nullable: true
+          description: Libellé de la classe ATC lorsque disponible.
+        atc_match_status:
+          type: string
+          nullable: true
+          enum:
+          - verified
+          - unverified
+          description: "verified = source déterministe (CIS_MITM ANSM ou règle
+            curée) ; unverified = proposition à valider."
         authorization_number:
           type: string
           nullable: true

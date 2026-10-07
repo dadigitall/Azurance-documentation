@@ -35,6 +35,9 @@ La réponse contient un tableau `data` de `MedicationProduct` correspondant au t
 | `designation` | string | Désignation officielle ou importée. |
 | `display_name` | string | Nom d'affichage. |
 | `dci_raw` | string | DCI/substances. |
+| `atc_code` | string | Code ATC OMS (ex. `A11CA01`, `J01CA04`), `null` si non classifié. |
+| `atc_label` | string | Libellé de la classe ATC. |
+| `atc_match_status` | string | `verified` (source déterministe) ou `unverified` (à valider). |
 | `inn_name` | string | Dénomination commune internationale. |
 | `marketing_authorization_holder` | string | Titulaire de l'AMM. |
 | `origin_country` | string | Pays d'origine. |
@@ -72,6 +75,9 @@ GET /api/v1/reference/medications/search?q=paracetamol&country_code=BJ&limit=10
       "display_name": "Paracétamol 500mg, comprimé",
       "dci_raw": "Paracétamol",
       "inn_name": "Paracétamol",
+      "atc_code": "N02BE01",
+      "atc_label": "Anilides",
+      "atc_match_status": "verified",
       "marketing_authorization_holder": "PharmaLab BJ",
       "origin_country": "BJ",
       "public_price": 500,

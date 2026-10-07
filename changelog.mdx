@@ -6,6 +6,11 @@ icon: "list"
 
 Suivez les changements de contrat public, les nouvelles pages et les corrections importantes.
 
+## 2026-10-07 - Référentiel médicaments : classification ATC
+
+- Les produits du référentiel `GET /api/v1/reference/medications/*` portent désormais `atc_code`, `atc_label` et `atc_match_status` lorsqu'une classification est disponible (source déterministe : fichier officiel `CIS_MITM` de l'ANSM, règles curées pour les produits vitaminés).
+- `atc_match_status=verified` indique une classification fiable utilisable pour les règles de garantie (ex. vitamines `A11*`, `B03BA`, `B03BB`, `B02BA`) ; `unverified` signale une proposition à valider.
+
 ## 2026-10-06 - Recherche d'assuré : bloc `contract` et terminologie contrat
 
 - Les candidats retournés par `POST /api/v1/covered-persons/resolve` et `POST /api/v1/covered-persons/support-search` portent désormais un bloc `contract` : `contract_uid`, `contract_number`, `plan_code`, `plan_name`, `status`, `effective_date`, `expiry_date`, `annual_coverage_limit`, `annual_used_amount`.

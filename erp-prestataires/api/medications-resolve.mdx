@@ -40,6 +40,9 @@ La réponse contient trois champs :
 | `designation` | string | Désignation officielle ou importée. |
 | `display_name` | string | Nom d'affichage. |
 | `dci_raw` | string | DCI/substances. |
+| `atc_code` | string | Code ATC OMS (ex. `A11CA01`), `null` si non classifié. |
+| `atc_label` | string | Libellé de la classe ATC. |
+| `atc_match_status` | string | `verified` ou `unverified`. |
 | `inn_name` | string | Dénomination commune internationale. |
 | `marketing_authorization_holder` | string | Titulaire de l'AMM. |
 | `origin_country` | string | Pays d'origine. |
@@ -81,6 +84,9 @@ La réponse contient trois champs :
       "designation": "Paracétamol 500mg, comprimé",
       "display_name": "Paracétamol 500mg, comprimé",
       "dci_raw": "Paracétamol",
+      "atc_code": null,
+      "atc_label": null,
+      "atc_match_status": null,
       "inn_name": "Paracétamol",
       "marketing_authorization_holder": "PharmaLab BJ",
       "origin_country": "BJ",
@@ -108,6 +114,9 @@ La réponse contient trois champs :
         "designation": "Paracétamol 500mg, comprimé",
         "display_name": "Paracétamol 500mg, comprimé",
         "dci_raw": "Paracétamol",
+      "atc_code": null,
+      "atc_label": null,
+      "atc_match_status": null,
         "inn_name": "Paracétamol",
         "marketing_authorization_holder": "PharmaLab BJ",
         "origin_country": "BJ",
@@ -134,6 +143,9 @@ La réponse contient trois champs :
         "designation": "Paracétamol 1000mg, comprimé",
         "display_name": "Paracétamol 1000mg, comprimé",
         "dci_raw": "Paracétamol",
+      "atc_code": null,
+      "atc_label": null,
+      "atc_match_status": null,
         "inn_name": "Paracétamol",
         "marketing_authorization_holder": "PharmaLab BJ",
         "origin_country": "BJ",
