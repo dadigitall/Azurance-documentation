@@ -240,22 +240,22 @@ components:
           format: uri
           maxLength: 1000
           description: HTTPS obligatoire en production (HTTP accepté en sandbox),
-            pas d'identifiants dans l'URL, pas d'hôte `localhost`/`.local`/IP
-            privée ou réservée (protection SSRF).
+            pas d'identifiants dans l'URL, pas d'hôte `localhost`/`.local`/IP privée
+            ou réservée (protection SSRF).
         secret:
           type: string
           minLength: 16
           maxLength: 160
-          description: Utilisé pour signer les payloads livrés (HMAC-SHA256). Ne
-            jamais le stocker en clair côté intégrateur.
+          description: Utilisé pour signer les payloads livrés (HMAC-SHA256). Ne jamais
+            le stocker en clair côté intégrateur.
         event_types:
           type: array
           minItems: 1
           items:
             type: string
             maxLength: 120
-          description: Types d'événements à recevoir. Accepte `*` pour s'abonner
-            à tous les événements.
+          description: Types d'événements à recevoir. Accepte `*` pour s'abonner à
+            tous les événements.
         is_active:
           type: boolean
           default: true
@@ -316,7 +316,8 @@ components:
         subscription_uid:
           type: string
           deprecated: true
-          description: Alias legacy du contrat de couverture (voir contract_uid dans les requêtes).
+          description: Alias legacy du contrat de couverture (voir contract_uid dans
+            les requêtes).
         covered_person_type:
           type: string
           enum:
@@ -495,8 +496,8 @@ components:
         atc_code:
           type: string
           nullable: true
-          description: Code ATC (classification OMS) du produit, ex. A11CA01
-            (vitamine A), J01CA04 (amoxicilline). null si non classifié.
+          description: Code ATC (classification OMS) du produit, ex. A11CA01 (vitamine
+            A), J01CA04 (amoxicilline). null si non classifié.
         atc_label:
           type: string
           nullable: true
@@ -507,8 +508,8 @@ components:
           enum:
           - verified
           - unverified
-          description: "verified = source déterministe (CIS_MITM ANSM ou règle
-            curée) ; unverified = proposition à valider."
+          description: verified = source déterministe (CIS_MITM ANSM ou règle curée)
+            ; unverified = proposition à valider.
         authorization_number:
           type: string
           nullable: true
@@ -529,11 +530,65 @@ components:
           type: number
           nullable: true
           description: Score de correspondance retourné uniquement par resolve.
+    MedicationConcept:
+      type: object
+      description: Concept médicament (principe actif / INN) du référentiel RxNorm/RxClass.
+      properties:
+        uid:
+          type: string
+          format: uuid
+        rxcui:
+          type: string
+          nullable: true
+          description: Identifiant RxNorm du concept.
+        atc_code:
+          type: string
+          nullable: true
+          description: Code ATC niveau 5 du concept (ex. A11CA01, N02BE01).
+        atc_level1_code:
+          type: string
+          nullable: true
+        atc_level1_label:
+          type: string
+          nullable: true
+        atc_level2_code:
+          type: string
+          nullable: true
+        atc_level2_label:
+          type: string
+          nullable: true
+        atc_level3_code:
+          type: string
+          nullable: true
+        atc_level3_label:
+          type: string
+          nullable: true
+        atc_level4_code:
+          type: string
+          nullable: true
+        atc_level4_label:
+          type: string
+          nullable: true
+        inn_name:
+          type: string
+          description: Nom INN/USAN normalisé (ex. acetaminophen).
+        display_name:
+          type: string
+        form_types:
+          type: array
+          items:
+            type: string
+        is_active:
+          type: boolean
+        synced_at:
+          type: string
+          format: date-time
+          nullable: true
     CoverageContract:
       type: object
-      description: Contrat de couverture effectif rattaché à la personne. Une
-        personne peut relever de plusieurs contrats (police individuelle,
-        adhésion à une police collective employeur).
+      description: Contrat de couverture effectif rattaché à la personne. Une personne
+        peut relever de plusieurs contrats (police individuelle, adhésion à une police
+        collective employeur).
       properties:
         contract_uid:
           type: string
@@ -1202,7 +1257,9 @@ paths:
     get:
       operationId: searchMedications
       summary: Rechercher un médicament du référentiel
-      description: Recherche par désignation, DCI, AMM ou titulaire. Les produits
+      description: Recherche multi-termes insensible à la casse et aux accents sur
+        la désignation, la DCI, le numéro AMM, le titulaire et le code ATC. Chaque
+        terme de la requête doit correspondre à au moins un champ. Les produits
         autorisés localement sont prioritaires.
       x-codeSamples:
       - lang: curl
@@ -1221,6 +1278,12 @@ paths:
         schema:
           type: string
           default: BJ
+      - in: query
+        name: atc_only
+        description: Ne retourner que les produits dont le code ATC vérifié est renseigné.
+        schema:
+          type: boolean
+          default: false
       - in: query
         name: include_candidates
         schema:
@@ -1879,8 +1942,8 @@ paths:
                   - subscription_number
                   - member_number
                   - beneficiary_number
-                  description: 'contract_number est le terme métier recommandé ; subscription_number
-                    est conservé comme alias legacy.'
+                  description: contract_number est le terme métier recommandé ; subscription_number
+                    est conservé comme alias legacy.
                 identifier:
                   type: string
                 contract_uid:
@@ -2003,7 +2066,6 @@ paths:
                   format: uuid
                   deprecated: true
                   description: Alias legacy de contract_uid.
-                  format: uuid
                 purpose:
                   type: string
                 scopes:
@@ -2790,9 +2852,9 @@ paths:
     post:
       operationId: createWebhook
       summary: Créer un abonnement webhook
-      description: Crée un abonnement webhook pour le prestataire authentifié.
-        Le prestataire est dérivé de la clé API et ne peut pas être fourni dans
-        le corps de la requête.
+      description: Crée un abonnement webhook pour le prestataire authentifié. Le
+        prestataire est dérivé de la clé API et ne peut pas être fourni dans le corps
+        de la requête.
       parameters:
       - $ref: '#/components/parameters/RequestId'
       requestBody:
@@ -2833,7 +2895,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/AuthError'
         '422':
-          description: Champ invalide (URL non HTTPS, event_type inconnu, secret trop court, etc.)
+          description: Champ invalide (URL non HTTPS, event_type inconnu, secret trop
+            court, etc.)
           content:
             application/json:
               schema:
@@ -2928,8 +2991,8 @@ paths:
     get:
       operationId: listWebhookDeliveries
       summary: Lister les livraisons d'un abonnement webhook
-      description: Retourne l'historique paginé des tentatives de livraison des
-        événements webhook pour l'abonnement spécifié.
+      description: Retourne l'historique paginé des tentatives de livraison des événements
+        webhook pour l'abonnement spécifié.
       parameters:
       - $ref: '#/components/parameters/RequestId'
       - in: path
@@ -2982,9 +3045,9 @@ paths:
     post:
       operationId: retryWebhookDelivery
       summary: Relancer une livraison webhook échouée
-      description: Reprogramme la livraison d'un événement webhook précédemment
-        marqué comme échoué (statut `FAILED`). Le même identifiant d'événement
-        est conservé — l'intégrateur doit dédupliquer via `X-Azurance-Event-Id`.
+      description: Reprogramme la livraison d'un événement webhook précédemment marqué
+        comme échoué (statut `FAILED`). Le même identifiant d'événement est conservé
+        — l'intégrateur doit dédupliquer via `X-Azurance-Event-Id`.
       parameters:
       - $ref: '#/components/parameters/RequestId'
       - in: path
@@ -3979,3 +4042,88 @@ paths:
           description: Clé API absente ou invalide
         '403':
           description: Scope `reference.lab_tests.view` manquant
+  /api/v1/payments/{uuid}/proof-document:
+    get:
+      operationId: getPaymentProofDocument
+      summary: Obtenir l'URL signée du justificatif de paiement
+      description: Retourne une URL signée temporaire pour télécharger le document
+        de preuve rattaché à un paiement dont le prestataire est bénéficiaire.
+      x-codeSamples:
+      - lang: curl
+        source: "curl --request GET \\\n  --url \"https://provider-api-sandbox.elenami.com/api/v1/payments/60000000-0000-4000-8000-000000000001/proof-document\"\ \\\n  --header \"X-Api-Key: $AZURANCE_PROVIDER_API_KEY\"\n"
+      parameters:
+      - $ref: '#/components/parameters/RequestId'
+      - in: path
+        name: uuid
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: URL signée du justificatif
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      payment_uuid:
+                        type: string
+                        format: uuid
+                      media_uid:
+                        type: string
+                        format: uuid
+                      signed_url:
+                        type: string
+                      expires_at:
+                        type: string
+                        format: date-time
+                        nullable: true
+        '401':
+          description: Clé API absente ou invalide
+        '403':
+          description: Scope `billing.payments.view` manquant
+        '404':
+          description: Paiement introuvable ou aucun justificatif rattaché
+  /api/v1/reference/medications/atc/{atcCode}:
+    get:
+      operationId: listMedicationsByAtcClass
+      summary: Lister les concepts médicaments d'une classe ATC
+      description: Retourne les principes actifs (INN) du référentiel appartenant
+        à la classe ATC donnée (ex. `A11` pour les vitamines, `J01` pour les
+        antibactériens systémiques). Le code est interprété comme préfixe
+        hiérarchique.
+      x-codeSamples:
+      - lang: curl
+        source: "curl --request GET \\\n  --url \"https://provider-api-sandbox.elenami.com/api/v1/reference/medications/atc/A11\"\ \\\n  --header \"X-Api-Key: $AZURANCE_PROVIDER_API_KEY\"\n"
+      parameters:
+      - $ref: '#/components/parameters/RequestId'
+      - in: path
+        name: atcCode
+        required: true
+        description: Code ou préfixe de classe ATC (ex. `A11`, `J01CA`)
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Concepts médicaments de la classe ATC
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  atc_class:
+                    type: string
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/MedicationConcept'
+                  total:
+                    type: integer
+        '401':
+          description: Clé API absente ou invalide
+        '403':
+          description: Scope `reference.medications.view` manquant

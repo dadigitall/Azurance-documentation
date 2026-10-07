@@ -6,6 +6,8 @@ openapi: "/openapi/provider-api.openapi.yml GET /api/v1/reference/medications/se
 
 Cet endpoint effectue une recherche full-text dans le référentiel médicaments. Il est conçu pour l'autocomplétion et la sélection d'un produit lors de la saisie d'une prescription ou d'une dispensation.
 
+La recherche est **multi-termes** et **insensible à la casse et aux accents** : `paracétamol`, `paracetamol 500`, `paracetamol sirop` fonctionnent. Chaque terme de la requête doit correspondre à au moins un champ parmi : `designation`, `dci_raw`, `authorization_number` (AMM), `marketing_authorization_holder` (titulaire) et `atc_code`.
+
 ## Scope requis
 
 `reference.medications.view`
@@ -16,12 +18,14 @@ Cet endpoint effectue une recherche full-text dans le référentiel médicaments
 | --- | --- | --- | --- |
 | `q` | string | oui | Terme de recherche (min 2 caractères, max 200). |
 | `country_code` | string | non | Pays du référentiel (`BJ` par défaut). |
+| `atc_only` | boolean | non | `true` pour ne retourner que les produits dont le code ATC vérifié est renseigné (défaut `false`). |
+| `include_candidates` | boolean | non | Inclure les produits candidats non encore autorisés localement. |
 | `market_status` | string | non | Filtre le statut commercial. |
 | `limit` | integer | non | Nombre maximum de résultats (max 50, défaut 20). |
 
 ## Réponse
 
-La réponse contient un tableau `data` de `MedicationProduct` correspondant au terme de recherche, trié par pertinence décroissante. L'objet `meta` indique la source de recherche et le nombre total de résultats.
+La réponse contient un tableau `data` de `MedicationProduct` correspondant au terme de recherche. Le champ `source` vaut `local_products` et `total` indique le nombre de résultats retournés.
 
 ## Champs de réponse (`MedicationProduct`)
 
@@ -90,9 +94,7 @@ GET /api/v1/reference/medications/search?q=paracetamol&country_code=BJ&limit=10
       "mappings": []
     }
   ],
-  "meta": {
-    "source": "local_products",
-    "total": 1
-  }
+  "source": "local_products",
+  "total": 1
 }
 ```

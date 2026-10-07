@@ -197,6 +197,7 @@
                   "erp-prestataires/api/medications-export",
                   "erp-prestataires/api/medications-resolve",
                   "erp-prestataires/api/medications-get",
+                  "erp-prestataires/api/medications-by-atc-class",
                   "erp-prestataires/api/reference-medical-acts-categories",
                   "erp-prestataires/api/reference-medical-acts-by-category",
                   "erp-prestataires/api/reference-medical-acts-search",
@@ -247,7 +248,8 @@
                   "erp-prestataires/api/payable-invoices-items",
                   "erp-prestataires/api/payments-get",
                   "erp-prestataires/api/payments-allocations",
-                  "erp-prestataires/api/billing-sync"
+                  "erp-prestataires/api/billing-sync",
+                  "erp-prestataires/api/payments-proof-document"
                 ],
                 "expanded": true
               },

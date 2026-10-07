@@ -1,0 +1,67 @@
+---
+title: "Médicaments par classe ATC"
+description: "Lister les concepts médicaments (INN) d'une classe ATC."
+openapi: "/openapi/provider-api.openapi.yml GET /api/v1/reference/medications/atc/{atcCode}"
+---
+
+Retourne les principes actifs (INN) du référentiel appartenant à une classe ATC. Le code est interprété comme préfixe hiérarchique : `A11` retourne toutes les vitamines (`A11CA01`, `A11CC05`…), `J01CA` ne retourne que les pénicillines à large spectre.
+
+## Scope requis
+
+`reference.medications.view`
+
+## Paramètres de chemin
+
+| Paramètre | Type | Requis | Description |
+| --- | --- | --- | --- |
+| `atcCode` | string | oui | Code ou préfixe de classe ATC (ex. `A11`, `J01CA`, `N02BE01`). |
+
+## Exemple de requête
+
+```bash
+curl --request GET \
+  --url "https://provider-api-sandbox.elenami.com/api/v1/reference/medications/atc/A11" \
+  --header "X-Api-Key: $AZURANCE_PROVIDER_API_KEY" \
+  --header "X-Request-Id: req_sandbox_01JEXAMPLE"
+```
+
+## Réponse
+
+```json
+{
+  "atc_class": "A11",
+  "total": 23,
+  "data": [
+    {
+      "uid": "60000000-0000-4000-8000-000000000001",
+      "rxcui": "11246",
+      "atc_code": "A11CA01",
+      "atc_level1_code": "A",
+      "atc_level1_label": "Voies digestives et métabolisme",
+      "atc_level2_code": "A11",
+      "atc_level2_label": "VITAMINS",
+      "atc_level3_code": "A11C",
+      "atc_level3_label": "VITAMIN A AND D, INCL. COMBINATIONS OF THE TWO",
+      "atc_level4_code": "A11CA",
+      "atc_level4_label": "Vitamin A, plain",
+      "inn_name": "vitamin a",
+      "display_name": "Vitamin a",
+      "form_types": [],
+      "is_active": true,
+      "synced_at": "2026-10-08T04:00:00Z"
+    }
+  ]
+}
+```
+
+## Erreurs
+
+| Code | Description |
+| --- | --- |
+| 401 | Clé API manquante ou invalide. |
+| 403 | Scope `reference.medications.view` manquant. |
+
+## Notes
+
+- Cet endpoint retourne des **concepts** (principes actifs avec hiérarchie ATC complète), pas des produits commercialisés. Pour les produits d'un pays donné, utiliser `GET /api/v1/reference/medications` ou `search`.
+- Classes usuelles pour les règles de garantie : `A11` (vitamines), `B03BA` (vitamine B12), `B03BB` (acide folique), `B02BA` (vitamine K), `J01` (antibactériens), `N02` (antalgiques).

@@ -1,0 +1,52 @@
+---
+title: "Justificatif de paiement"
+description: "Obtenir l'URL signée du document de preuve rattaché à un paiement."
+openapi: "/openapi/provider-api.openapi.yml GET /api/v1/payments/{uuid}/proof-document"
+---
+
+Retourne une URL signée temporaire permettant de télécharger le justificatif de paiement (bordereau, preuve de règlement) rattaché à un paiement dont le prestataire est bénéficiaire.
+
+## Scope requis
+
+`billing.payments.view`
+
+## Paramètres de chemin
+
+| Paramètre | Type | Requis | Description |
+| --- | --- | --- | --- |
+| `uuid` | string (uuid) | oui | Identifiant du paiement. |
+
+## Exemple de requête
+
+```bash
+curl --request GET \
+  --url "https://provider-api-sandbox.elenami.com/api/v1/payments/60000000-0000-4000-8000-000000000001/proof-document" \
+  --header "X-Api-Key: $AZURANCE_PROVIDER_API_KEY" \
+  --header "X-Request-Id: req_sandbox_01JEXAMPLE"
+```
+
+## Réponse
+
+```json
+{
+  "data": {
+    "payment_uuid": "60000000-0000-4000-8000-000000000001",
+    "media_uid": "60000000-0000-4000-8000-000000000002",
+    "signed_url": "https://media-sandbox.elenami.com/signed/proof-document?expires=1759930000&signature=abc123",
+    "expires_at": "2026-10-08T15:00:00Z"
+  }
+}
+```
+
+## Erreurs
+
+| Code | Description |
+| --- | --- |
+| 401 | Clé API manquante ou invalide. |
+| 403 | Scope `billing.payments.view` manquant. |
+| 404 | Paiement introuvable ou aucun justificatif rattaché (`PROOF_DOCUMENT_NOT_FOUND`). |
+
+## Notes
+
+- L'URL signée est **temporaire** : télécharger le document avant `expires_at`, puis redemander une URL si nécessaire.
+- Le champ `proof_document_url` de la ressource paiement pointe vers cet endpoint ; `proof_document_uid` indique si un justificatif existe.

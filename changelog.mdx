@@ -6,6 +6,14 @@ icon: "list"
 
 Suivez les changements de contrat public, les nouvelles pages et les corrections importantes.
 
+## 2026-10-08 - Référentiel médicaments : classe ATC et recherche améliorée
+
+- Nouvel endpoint `GET /api/v1/reference/medications/atc/{atcCode}` : liste les concepts médicaments (INN) d'une classe ATC — ex. `A11` pour toutes les vitamines, `J01` pour les antibactériens systémiques.
+- `GET /api/v1/reference/medications/search` : la recherche est désormais multi-termes et insensible aux accents (`paracétamol`, `paracetamol sirop` fonctionnent). Champs interrogés : désignation, DCI, numéro AMM, titulaire, code ATC.
+- Nouveau paramètre `atc_only=true` sur `medications/search` : ne retourne que les produits dont le code ATC vérifié est renseigné.
+- L'export CSV `medications/export?format=csv` inclut désormais `atc_code`, `atc_label`, `atc_match_status`, `marketing_authorization_holder`, `origin_country` et `public_price` (14 colonnes, contre 8 auparavant).
+- Nouvel endpoint `GET /api/v1/payments/{uuid}/proof-document` : retourne une URL signée temporaire pour télécharger le justificatif de paiement rattaché à un paiement dont le prestataire est bénéficiaire.
+
 ## 2026-10-07 - Référentiel médicaments : classification ATC
 
 - Les produits du référentiel `GET /api/v1/reference/medications/*` portent désormais `atc_code`, `atc_label` et `atc_match_status` lorsqu'une classification est disponible (source déterministe : fichier officiel `CIS_MITM` de l'ANSM, règles curées pour les produits vitaminés).
