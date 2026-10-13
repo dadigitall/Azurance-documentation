@@ -32,7 +32,6 @@ components:
       type: object
       required:
       - policyholder_id
-      - coverage_type_code
       - service_date
       - amount_claimed
       - items
@@ -77,7 +76,9 @@ components:
           description: Référence de consentement fort.
         coverage_type_code:
           type: string
-          description: Code de garantie visée.
+          description: 'Garantie par défaut appliquée aux lignes dépourvues de
+            `coverage_type_code` propre. Pour une facture multi-couvertures, chaque
+            ligne porte son propre code et ce champ peut être omis.'
         provider_reference:
           type: string
           description: Référence externe du prestataire (idempotence pharmacie).
@@ -672,6 +673,30 @@ components:
           type: number
         unit_price:
           type: number
+        coverage_type_code:
+          type: string
+          description: 'Code de garantie de la ligne (référentiel `GET /api/v1/reference/coverage-types`).
+            Optionnel si toute la facture relève de la même couverture — la ligne
+            hérite alors du code au niveau de la requête. Vérifié contre le plan
+            de l''assuré : une ligne non couverte rejette l''ensemble de la facture
+            (`ITEMS_NOT_ELIGIBLE`).'
+        prior_authorization_uid:
+          type: string
+          format: uuid
+          description: 'Préautorisation approuvée couvrant cette ligne. Requise si
+            la couverture de la ligne impose une PA — sinon la ligne passe
+            `PENDING_AUTHORIZATION` et le claim est bloqué en `UNDER_REVIEW`.'
+        medical_act_uid:
+          type: string
+          format: uuid
+        medical_act_code:
+          type: string
+          description: 'Code acte (CCAM/ICHI). Vérifié de cohérence avec la couverture
+            de la ligne : un acte labo ne peut pas être facturé sous `CONSULTATION_GP`.'
+        medical_act_category:
+          type: string
+        medical_act_chapter:
+          type: string
         prescription_uid:
           type: string
           format: uuid
@@ -2638,7 +2663,6 @@ paths:
               required:
               - covered_person_type
               - covered_person_uid
-              - coverage_type_code
               - service_date
               - consent_ref
               - items
@@ -2662,6 +2686,9 @@ paths:
                   type: string
                 coverage_type_code:
                   type: string
+                  description: 'Garantie par défaut des lignes sans code propre.
+                    Omettre si chaque item porte son `coverage_type_code` (prestation
+                    multi-couvertures).'
                 service_date:
                   type: string
                   format: date

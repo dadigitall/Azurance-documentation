@@ -2148,8 +2148,16 @@ components:
           type: string
           format: uuid
           nullable: true
-          description: 'Renseigné une fois qu''un claim a consommé cette préautorisation
-            (`status: CONSUMED`).'
+          description: 'Claim lié : consommé par un claim (`status: CONSUMED`) ou
+            claim de rattachement explicite en PA de rattrapage.'
+        claim_item_uids:
+          type: array
+          nullable: true
+          items:
+            type: string
+            format: uuid
+          description: 'Lignes de facture (`claim_items.uid`) explicitement autorisées
+            par cette PA, le cas échéant.'
         validation_request_uid:
           type: string
           format: uuid
@@ -3080,16 +3088,133 @@ paths:
                 $ref: '#/components/schemas/AuthError'
     post:
       operationId: createApiV1Prior-authorizations
-      summary: Créer prior-authorizations
+      summary: Émettre une préautorisation
+      description: 'Crée une préautorisation à décider. Deux usages : émettre une
+        PA autonome (avant la facturation), ou répondre à un claim bloqué en
+        `UNDER_REVIEW` en ciblant les lignes de facture en attente via
+        `claim_item_uids` — la PA n''autorise jamais une facture entière, seulement
+        les lignes explicitement citées.'
       parameters:
       - $ref: '#/components/parameters/RequestId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - provider_uuid
+              - subscription_uid
+              - covered_person_type
+              - covered_person_uid
+              - coverage_type_code
+              - estimated_amount
+              - consent_ref
+              - items
+              properties:
+                provider_uuid:
+                  type: string
+                  format: uuid
+                claim_item_uids:
+                  type: array
+                  items:
+                    type: string
+                    format: uuid
+                  description: 'UUIDs des lignes de facture (`claim_items.uid`) que
+                    cette PA autorise — pour le rattrapage d''un claim bloqué. Les
+                    lignes doivent être `PENDING_AUTHORIZATION` sur la même
+                    couverture, et `estimated_amount` doit couvrir leur total.
+                    Omettre pour une PA autonome (flux normal).'
+                subscription_uid:
+                  type: string
+                covered_person_type:
+                  type: string
+                  enum:
+                  - policyholder
+                  - beneficiary
+                covered_person_uid:
+                  type: string
+                coverage_type_code:
+                  type: string
+                service_date_from:
+                  type: string
+                  format: date
+                service_date_to:
+                  type: string
+                  format: date
+                estimated_amount:
+                  type: number
+                  minimum: 0.01
+                currency:
+                  type: string
+                  default: XOF
+                priority:
+                  type: string
+                  enum:
+                  - URGENT
+                  - STANDARD
+                  - DEFERRED
+                reason:
+                  type: string
+                provider_reference:
+                  type: string
+                consent_ref:
+                  type: string
+                  format: uuid
+                items:
+                  type: array
+                  minItems: 1
+                  items:
+                    type: object
+                    required:
+                    - description
+                    - quantity
+                    - unit_price
+                    properties:
+                      description:
+                        type: string
+                      quantity:
+                        type: integer
+                        minimum: 1
+                      unit_price:
+                        type: number
+                documents:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      document_type:
+                        type: string
+                        enum:
+                        - PROFORMA
+                        - QUOTE
+                        - INVOICE
+                        - PRESCRIPTION
+                        - MEDICAL_REPORT
+                        - LAB_RESULT
+                        - OTHER
+                      media_uid:
+                        type: string
+                      file_name:
+                        type: string
       responses:
-        '200':
-          description: Succès
+        '201':
+          description: Préautorisation créée en `PENDING_REVIEW`
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/PriorAuthorization'
         '401':
           description: Clé API absente ou invalide
         '403':
           description: Scope `insurer.prior_authorizations.manage` manquant
+        '422':
+          description: 'Validation refusée : `CLAIM_ITEM_NOT_FOUND`,
+            `CLAIM_PENDING_PA_MISMATCH` (ligne inexistante/non en attente/mauvaise
+            couverture) ou `CLAIM_PENDING_PA_AMOUNT_TOO_LOW`.'
   /api/v1/prior-authorizations/{uid}:
     get:
       operationId: getPriorAuthorization

@@ -6,6 +6,14 @@ icon: "list"
 
 Suivez les changements de contrat public, les nouvelles pages et les corrections importantes.
 
+## 2026-10-13 - Facturation multi-couvertures et préautorisations par ligne
+
+- **Couverture par ligne de facture** : chaque `items[]` d'un claim ou d'une service execution porte son `coverage_type_code` ; le code au niveau de la requête devient la valeur par défaut des lignes sans code. Vérification ligne par ligne contre le plan de l'assuré (`ITEMS_NOT_ELIGIBLE`), taux appliqué par ligne, éligibilité groupée par couverture.
+- **Réconciliation exécution ↔ facture** : quand `service_execution_uid` est fourni, chaque ligne facturée doit correspondre à un item de l'exécution (`EXECUTION_MISMATCH`).
+- **Référentiel couvertures** : nouveaux endpoints `GET /api/v1/reference/coverage-types` et `/{code}` (provider-api).
+- **Préautorisation par ligne** : `items[].prior_authorization_uid` ; une ligne à PA obligatoire sans PA passe `PENDING_AUTHORIZATION` et bloque l'approbation du claim (`CLAIM_PENDING_PRIOR_AUTHORIZATIONS`).
+- **PA de rattrapage assureur** : `POST /api/v1/prior-authorizations` (insurer-bff) avec `claim_item_uids` — la PA autorise les lignes citées et se rattache automatiquement à l'approbation ; le claim repasse `SUBMITTED` quand toutes les lignes sont résolues.
+
 ## 2026-10-13 - Synchronisation automatique BFF ↔ documentation
 
 - Ajout OpenAPI provider-api-bff: GET /api/v1/reference/coverage-types

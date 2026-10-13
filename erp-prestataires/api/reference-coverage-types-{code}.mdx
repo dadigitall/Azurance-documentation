@@ -1,26 +1,22 @@
 ---
-title: "Consulter coverage types"
-description: "Consulter coverage types via l'API."
+title: "Consulter une couverture"
+description: "Détail d'un code de garantie du référentiel global."
 openapi: "/openapi/provider-api.openapi.yml GET /api/v1/reference/coverage-types/{code}"
 ---
 
-Cet endpoint consulter coverage types.
-
-## Scope requis
-
-`N/A`
+Retourne le détail d'un code de garantie du référentiel global.
 
 ## Paramètres de chemin
 
 | Paramètre | Type | Requis | Description |
 | --- | --- | --- | --- |
-| `code` | string | oui | Identifiant de code. |
+| `code` | string | oui | Code de garantie (ex. `HOSP_STANDARD`). |
 
 ## Exemple de requête
 
 ```bash
 curl --request GET \
-  --url "https://provider-api-sandbox.elenami.com/api/v1/reference/coverage-types/{code}" \
+  --url "https://provider-api-sandbox.elenami.com/api/v1/reference/coverage-types/HOSP_STANDARD" \
   --header "X-Api-Key: $AZURANCE_PROVIDER_API_KEY"
 ```
 
@@ -28,7 +24,12 @@ curl --request GET \
 
 ```json
 {
-  "data": {}
+  "data": {
+    "coverage_code": "HOSP_STANDARD",
+    "coverage_name": "Hospitalisation standard",
+    "main_category": "HOSPITALISATION",
+    "requires_authorization": true
+  }
 }
 ```
 
@@ -37,4 +38,4 @@ curl --request GET \
 | Code | Description |
 | --- | --- |
 | 401 | Clé API manquante ou invalide. |
-| 404 | Ressource introuvable. |
+| 404 | Code de couverture inconnu. |

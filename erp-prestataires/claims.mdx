@@ -16,11 +16,14 @@ Le champ `provider_reference` doit aussi être unique par prestataire pour évit
 
 ## Soumettre un claim
 
+La soumission se fait en deux étapes : le brouillon (`POST /api/v1/claims/draft`) fige la facture et son hash d'intégrité, puis `POST /api/v1/claims/{draftUid}/submit` la transmet avec la preuve de consentement.
+
 ```http
-POST /api/v1/claims
+POST /api/v1/claims/draft
+POST /api/v1/claims/{draftUid}/submit
 ```
 
-### Body
+### Body du brouillon
 
 ```json
 {
@@ -63,7 +66,7 @@ POST /api/v1/claims
 | `covered_person_type` | Non | `policyholder` ou `beneficiary`. Obligatoire si le flux utilise `covered_person`. |
 | `covered_person_uid` | Non | UUID public de la personne couverte. |
 | `consent_ref` | Non | Référence de consentement fort N2/N3. Obligatoire pour les données/actions soumises à consentement. |
-| `coverage_type_code` | Oui | Garantie demandée. |
+| `coverage_type_code` | Non* | Garantie par défaut pour les lignes sans code propre. Obligatoire si au moins une ligne ne porte pas son propre `coverage_type_code`. |
 | `service_date` | Oui | Date de prestation. |
 | `amount_claimed` | Oui | Montant total réclamé. |
 | `items` | Oui | Lignes facturées. |
@@ -71,8 +74,33 @@ POST /api/v1/claims
 | `precheck_eligibility_uuid` | Non | UUID de la pré-vérification ERP, conservé en trace. |
 | `documents` | Selon règle | Références de médias déjà uploadés ou documents joints. Certaines garanties imposent des pièces obligatoires. |
 
+### Lignes de facture — couverture par item
+
+Chaque ligne de `items[]` peut porter sa propre couverture. Le code au niveau de la requête sert de valeur par défaut :
+
+| Champ item | Description |
+| --- | --- |
+| `coverage_type_code` | Code de garantie de la ligne (référentiel `GET /api/v1/reference/coverage-types`). Hérite du code global si omis. |
+| `prior_authorization_uid` | PA approuvée couvrant cette ligne — requise si la couverture de la ligne impose une PA. |
+| `medical_act_code`, `medical_act_category`, `medical_act_chapter` | Acte codé (CCAM/ICHI) — sa cohérence avec la couverture de la ligne est vérifiée. |
+
+La résolution est faite **ligne par ligne** : l'éligibilité est vérifiée par couverture, le taux appliqué est celui de la couverture de chaque ligne, et une seule ligne non couverte par le plan de l'assuré rejette l'ensemble de la facture (`422 ITEMS_NOT_ELIGIBLE` avec les lignes fautives nommées). Quand `service_execution_uid` est fourni, chaque ligne facturée doit correspondre à un item de l'exécution (même couverture, même montant — `422 EXECUTION_MISMATCH` sinon).
+
+```json
+{
+  "items": [
+    { "description": "Consultation médecin", "quantity": 1, "unit_price": 15000, "coverage_type_code": "CONSULTATION_GP" },
+    { "description": "NFS", "quantity": 1, "unit_price": 8500, "coverage_type_code": "LAB_ANALYSIS" },
+    { "description": "Hospitalisation 2 jours", "quantity": 1, "unit_price": 50000, "coverage_type_code": "HOSP_STANDARD", "prior_authorization_uid": "pa-sandbox-001" }
+  ]
+}
+```
+
+Une ligne sous couverture à **PA obligatoire sans PA** passe `PENDING_AUTHORIZATION` : le claim est créé en `UNDER_REVIEW` et l'approbation assureur est bloquée (`422 CLAIM_PENDING_PRIOR_AUTHORIZATIONS`) tant que la ligne n'est pas couverte par une PA approuvée — émise par l'assureur ou demandée par le prestataire via `POST /api/v1/prior-authorizations` avec `claim_item_uids`.
+
 ```ts
-const response = await fetch("https://provider-api.elenami.com/api/v1/claims", {
+// 1. Créer le brouillon (figure la facture, renvoie draft_uid)
+const draft = await fetch("https://provider-api.elenami.com/api/v1/claims/draft", {
   method: "POST",
   headers: {
     Accept: "application/json",
@@ -80,9 +108,21 @@ const response = await fetch("https://provider-api.elenami.com/api/v1/claims", {
     "X-Api-Key": process.env.AZURANCE_PROVIDER_API_KEY!
   },
   body: JSON.stringify(claimRequest)
-})
+}).then(r => r.json())
 
-const claim = await response.json()
+// 2. Soumettre avec la preuve de consentement
+const claim = await fetch(`https://provider-api.elenami.com/api/v1/claims/${draft.data.draft_uid}/submit`, {
+  method: "POST",
+  headers: {
+    Accept: "application/json",
+    "Content-Type": "application/json",
+    "X-Api-Key": process.env.AZURANCE_PROVIDER_API_KEY!
+  },
+  body: JSON.stringify({
+    consent_ref: "40000000-0000-4000-8000-000000000001",
+    consent_snapshot: { method: "OTP", assurance_level: "N2" }
+  })
+}).then(r => r.json())
 ```
 
 ### Réponse acceptée

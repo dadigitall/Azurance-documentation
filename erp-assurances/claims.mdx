@@ -59,6 +59,12 @@ Réponse:
 }
 ```
 
+### Lignes en attente de préautorisation
+
+Quand une ligne de facture relève d'une couverture à PA obligatoire sans PA fournie par le prestataire, elle reste `PENDING_AUTHORIZATION` et **bloque l'approbation du claim** : la transition vers `APPROVED` est refusée (`422 CLAIM_PENDING_PRIOR_AUTHORIZATIONS`, les lignes fautives sont nommées).
+
+Pour débloquer, émettre une PA ciblant les lignes via `POST /api/v1/prior-authorizations` avec `claim_item_uids` (UUIDs des lignes, exposés dans `items[].uid` du claim), puis l'approuver via `POST /prior-authorizations/{uid}/decision`. La PA se rattache automatiquement aux lignes citées — jamais à la facture entière — et le claim repasse `SUBMITTED` quand toutes ses lignes sont résolues. Une PA peut couvrir un sous-ensemble de lignes : il faut alors une PA par groupe de lignes en attente.
+
 ## Documents
 
 ```http

@@ -1,21 +1,21 @@
 ---
-title: "Lister coverage types"
-description: "Lister coverage types via l'API."
+title: "Référentiel des couvertures"
+description: "Lister les codes de garantie disponibles pour coder les lignes de facture."
 openapi: "/openapi/provider-api.openapi.yml GET /api/v1/reference/coverage-types"
 ---
 
-Cet endpoint lister coverage types.
+Référentiel **global** des couvertures : mêmes codes pour tous les assureurs — ce sont ces codes qui construisent les garanties des plans. À utiliser pour renseigner `coverage_type_code` (au niveau du claim ou de chaque ligne `items[]`).
 
-## Scope requis
-
-`N/A`
+<Note>
+Le référentiel ne dit pas si la couverture est souscrite par un assuré donné — c'est la vérification d'éligibilité (`POST /api/v1/eligibility/check`) qui l'indique. Un code non couvert par le plan est rejeté à la soumission, ligne par ligne.
+</Note>
 
 ## Paramètres de requête
 
 | Paramètre | Type | Requis | Description |
 | --- | --- | --- | --- |
-| `category` | string | non | Filtre category. |
-| `per_page` | string | non | Filtre per page. |
+| `category` | string | non | Filtre sur la catégorie métier (ex. `CONSULTATION`, `HOSPITALISATION`). |
+| `per_page` | string | non | Taille de page. |
 
 ## Exemple de requête
 
@@ -29,7 +29,20 @@ curl --request GET \
 
 ```json
 {
-  "data": {}
+  "data": [
+    {
+      "coverage_code": "CONSULTATION_GP",
+      "coverage_name": "Consultation médecin généraliste",
+      "main_category": "CONSULTATION",
+      "requires_authorization": false
+    },
+    {
+      "coverage_code": "HOSP_STANDARD",
+      "coverage_name": "Hospitalisation standard",
+      "main_category": "HOSPITALISATION",
+      "requires_authorization": true
+    }
+  ]
 }
 ```
 
@@ -38,4 +51,3 @@ curl --request GET \
 | Code | Description |
 | --- | --- |
 | 401 | Clé API manquante ou invalide. |
-| 404 | Ressource introuvable. |

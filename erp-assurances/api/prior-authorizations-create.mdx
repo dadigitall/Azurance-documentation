@@ -1,20 +1,52 @@
 ---
-title: "Créer prior authorizations"
-description: "Créer prior authorizations via l'API."
+title: "Émettre une préautorisation"
+description: "Créer une préautorisation autonome ou en rattrapage d'un claim bloqué."
 openapi: "/openapi/insurer-api.openapi.yml POST /api/v1/prior-authorizations"
 ---
 
-Cet endpoint créer prior authorizations.
+Crée une préautorisation en `PENDING_REVIEW`, ensuite tranchée via `POST /api/v1/prior-authorizations/{uid}/decision`.
+
+## Deux usages
+
+| Usage | `claim_item_uids` | Cas |
+| --- | --- | --- |
+| **PA autonome** | Omis | Flux normal : la PA précède la facturation, le prestataire la consomme au claim. |
+| **PA de rattrapage** | `[uid ligne…]` | Un claim est bloqué `UNDER_REVIEW` : la PA cible les lignes en attente, puis se rattache automatiquement à l'approbation. |
+
+Une PA n'autorise jamais une facture entière — seulement les lignes explicitement citées. `claim_item_uids` référence les `uid` des lignes exposées dans le détail du claim (`items[].uid`).
 
 ## Scope requis
 
 `insurer.prior_authorizations.manage`
 
+## Corps de la requête
+
+| Champ | Requis | Description |
+| --- | --- | --- |
+| `provider_uuid` | Oui | Prestataire concerné. |
+| `claim_item_uids` | Non | UUIDs des lignes de facture en `PENDING_AUTHORIZATION` à autoriser (rattrapage). Toutes sur le même claim, même couverture. |
+| `subscription_uid` | Oui | Souscription de l'assuré. |
+| `covered_person_type` | Oui | `policyholder` ou `beneficiary`. |
+| `covered_person_uid` | Oui | Personne couverte. |
+| `coverage_type_code` | Oui | Garantie visée — doit correspondre à la couverture des lignes citées. |
+| `estimated_amount` | Oui | Montant estimé — doit couvrir le total des lignes citées le cas échéant. |
+| `consent_ref` | Oui | Référence de consentement. |
+| `items` | Oui | Prestations estimées (description, quantité, prix unitaire). |
+| `service_date_from`, `service_date_to` | Non | Fenêtre de dates couverte. |
+| `priority` | Non | `URGENT`, `STANDARD`, `DEFERRED`. |
+| `reason`, `provider_reference`, `documents` | Non | Motif, référence externe, pièces jointes. |
+
 ## Réponse
 
 ```json
 {
-  "data": {}
+  "data": {
+    "uuid": "pa-sandbox-001",
+    "status": "PENDING_REVIEW",
+    "coverage_type_code": "HOSP_STANDARD",
+    "estimated_amount": 30000,
+    "claim_item_uids": ["5a2c8b1e-4f7d-4c3a-9e1b-2d8f6a0c1e2f"]
+  }
 }
 ```
 
@@ -24,4 +56,4 @@ Cet endpoint créer prior authorizations.
 | --- | --- |
 | 401 | Clé API manquante ou invalide. |
 | 403 | Scope `insurer.prior_authorizations.manage` manquant. |
-| 404 | Ressource introuvable. |
+| 422 | `CLAIM_ITEM_NOT_FOUND`, `CLAIM_PENDING_PA_MISMATCH` (ligne inexistante, déjà résolue, ou autre couverture) ou `CLAIM_PENDING_PA_AMOUNT_TOO_LOW`. |
