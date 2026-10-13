@@ -83,6 +83,18 @@ Chaque ligne de `items[]` peut porter sa propre couverture. Le code au niveau de
 | `coverage_type_code` | Code de garantie de la ligne (référentiel `GET /api/v1/reference/coverage-types`). Hérite du code global si omis. |
 | `prior_authorization_uid` | PA approuvée couvrant cette ligne — requise si la couverture de la ligne impose une PA. |
 | `medical_act_code`, `medical_act_category`, `medical_act_chapter` | Acte codé (CCAM/ICHI) — sa cohérence avec la couverture de la ligne est vérifiée. |
+| `prescription_line_uid` | Ligne de prescription exécutée. La ligne doit exister et appartenir au `prescription_uid` déclaré (`422 PRESCRIPTION_LINE_NOT_FOUND` / `PRESCRIPTION_LINE_MISMATCH`). |
+
+### Type de prestation par ligne (`item_type`)
+
+La nature de chaque ligne est **dérivée**, jamais déclarée librement :
+
+1. `prescription_line_uid` résolu → le `line_type` de la ligne de prescription (`medication`, `lab_test`, `imaging`, `procedure`, `session`, `equipment`…)
+2. sinon champs `medical_act_*` renseignés → `medical_act`
+3. sinon métadonnées médicament (`medication_product_uid`, `medication_code`…) → `medication`
+4. sinon → `service`
+
+Le type dérivé doit être **cohérent avec la couverture de la ligne** : une ligne `lab_test` sous couverture `PHARMACY_DRUG` (ou `medication` sous `LAB_ANALYSIS`, `equipment` sous `LAB_ANALYSIS`…) est rejetée `422 ITEM_COVERAGE_INCOMPATIBLE`. Le `item_type` est exposé dans la réponse `items[].item_type` de chaque claim.
 
 La résolution est faite **ligne par ligne** : l'éligibilité est vérifiée par couverture, le taux appliqué est celui de la couverture de chaque ligne, et une seule ligne non couverte par le plan de l'assuré rejette l'ensemble de la facture (`422 ITEMS_NOT_ELIGIBLE` avec les lignes fautives nommées). Quand `service_execution_uid` est fourni, chaque ligne facturée doit correspondre à un item de l'exécution (même couverture, même montant — `422 EXECUTION_MISMATCH` sinon).
 

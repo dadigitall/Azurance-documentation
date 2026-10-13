@@ -703,6 +703,11 @@ components:
         prescription_line_uid:
           type: string
           format: uuid
+          description: 'Ligne de prescription exécutée (pharmacie, analyse, séance,
+            équipement). Vérifiée : la ligne doit exister (`PRESCRIPTION_LINE_NOT_FOUND`)
+            et appartenir au `prescription_uid` déclaré (`PRESCRIPTION_LINE_MISMATCH`).
+            Son `line_type` détermine le `item_type` de la ligne — une ligne labo ne
+            peut pas être facturée sous une couverture pharmacie.'
         prescribed_medication_code:
           type: string
         medication_code:

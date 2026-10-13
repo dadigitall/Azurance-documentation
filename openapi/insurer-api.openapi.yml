@@ -163,6 +163,27 @@ components:
       properties:
         id:
           type: integer
+        uid:
+          type: string
+          format: uuid
+          description: 'Identifiant stable de la ligne — c''est cette valeur qu''une
+            pré-autorisation de rattrapage référence dans `claim_item_uids`.'
+        item_type:
+          type: string
+          nullable: true
+          enum:
+          - medication
+          - lab_test
+          - imaging
+          - procedure
+          - session
+          - referral
+          - equipment
+          - medical_act
+          - service
+          description: 'Nature de la ligne, dérivée de la ligne de prescription
+            (line_type) lorsqu''elle est référencée, sinon des champs acte/produit
+            déclarés, sinon `service`.'
         description:
           type: string
         quantity:
@@ -171,6 +192,32 @@ components:
           type: number
         amount:
           type: number
+        coverage_type_code:
+          type: string
+          nullable: true
+          description: Code de garantie résolu pour cette ligne.
+        decision:
+          type: string
+          nullable: true
+          description: 'Décision par ligne (PENDING_AUTHORIZATION tant qu''une PA
+            requise n''est pas rattachée).'
+        prior_authorization_uid:
+          type: string
+          format: uuid
+          nullable: true
+        medical_act_uid:
+          type: string
+          format: uuid
+          nullable: true
+        medical_act_code:
+          type: string
+          nullable: true
+        medical_act_category:
+          type: string
+          nullable: true
+        medical_act_chapter:
+          type: string
+          nullable: true
         prescription_uid:
           type: string
           nullable: true
@@ -194,6 +241,12 @@ components:
           nullable: true
         batch_number:
           type: string
+          nullable: true
+        reimbursement_rate:
+          type: number
+          nullable: true
+        reimbursement_amount:
+          type: number
           nullable: true
         metadata:
           type: object

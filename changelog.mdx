@@ -6,6 +6,13 @@ icon: "list"
 
 Suivez les changements de contrat public, les nouvelles pages et les corrections importantes.
 
+## 2026-10-21 - Type de prestation par ligne et validation des lignes de prescription
+
+- **`item_type` sur les lignes de facture** : la nature de chaque `items[]` est dérivée automatiquement — `line_type` de la ligne de prescription référencée, sinon champs acte (`medical_act`), sinon métadonnées médicament (`medication`), sinon `service`. Exposée dans `items[].item_type` des réponses claim (provider et insurer).
+- **`uid` exposé par ligne** : `items[].uid` est l'identifiant stable qu'une PA de rattrapage cible via `claim_item_uids`.
+- **Validation des lignes de prescription** : `prescription_line_uid` doit exister et appartenir au `prescription_uid` déclaré (`PRESCRIPTION_LINE_NOT_FOUND`, `PRESCRIPTION_LINE_MISMATCH`).
+- **Cohérence type ↔ couverture** : une ligne `lab_test` sous couverture `PHARMACY_DRUG` (et incompatibilités équivalentes) est rejetée `ITEM_COVERAGE_INCOMPATIBLE`.
+
 ## 2026-10-13 - Facturation multi-couvertures et préautorisations par ligne
 
 - **Couverture par ligne de facture** : chaque `items[]` d'un claim ou d'une service execution porte son `coverage_type_code` ; le code au niveau de la requête devient la valeur par défaut des lignes sans code. Vérification ligne par ligne contre le plan de l'assuré (`ITEMS_NOT_ELIGIBLE`), taux appliqué par ligne, éligibilité groupée par couverture.
