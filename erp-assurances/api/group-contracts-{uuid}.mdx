@@ -1,0 +1,40 @@
+---
+title: "Consulter group contracts"
+description: "Consulter group contracts via l'API."
+openapi: "/openapi/insurer-api.openapi.yml GET /api/v1/group-contracts/{uuid}"
+---
+
+Cet endpoint consulter group contracts.
+
+## Scope requis
+
+`N/A`
+
+## Paramètres de chemin
+
+| Paramètre | Type | Requis | Description |
+| --- | --- | --- | --- |
+| `uuid` | string | oui | Identifiant de uuid. |
+
+## Exemple de requête
+
+```bash
+curl --request GET \
+  --url "https://insurer-api-sandbox.elenami.com/api/v1/group-contracts/{uuid}" \
+  --header "X-Api-Key: $AZURANCE_INSURER_API_KEY"
+```
+
+## Réponse
+
+```json
+{
+  "data": {}
+}
+```
+
+## Erreurs
+
+| Code | Description |
+| --- | --- |
+| 401 | Clé API manquante ou invalide. |
+| 404 | Ressource introuvable. |

@@ -510,8 +510,8 @@ components:
           - CLAIM_SUBMISSION
           default: PRECHECK
           description: '`PRECHECK` (par défaut) : résultat mis en cache 5 minutes
-            pour une simulation avant soumission. `CLAIM_SUBMISSION`
-            : vérification liée à une soumission réelle de claim, jamais mise en cache.'
+            pour une simulation avant soumission. `CLAIM_SUBMISSION` : vérification
+            liée à une soumission réelle de claim, jamais mise en cache.'
     EligibilityBatchCheckRequest:
       type: object
       required:
@@ -826,11 +826,15 @@ components:
           format: date-time
     CreatePayableInvoiceRequest:
       type: object
-      description: |
-        Corps de la requête de création d'un bordereau de paiement.
+      description: 'Corps de la requête de création d''un bordereau de paiement.
+
         Tous les claims listés dans `claim_uuids` doivent être en statut
+
         `APPROVED` avec un `amount_approved > 0` et appartenir au tenant
+
         assureur. Un claim déjà inclus dans un autre bordereau est rejeté.
+
+        '
       required:
       - beneficiary_type
       - beneficiary_uuid
@@ -845,9 +849,11 @@ components:
           enum:
           - PROVIDER
           - INSURED
-          description: |
-            Type de bénéficiaire du paiement. Si `PROVIDER`, `provider_uuid`
+          description: 'Type de bénéficiaire du paiement. Si `PROVIDER`, `provider_uuid`
+
             doit correspondre au prestataire des claims.
+
+            '
         beneficiary_uuid:
           type: string
           maxLength: 100
@@ -890,9 +896,12 @@ components:
         claim_references:
           type: array
           nullable: true
-          description: |
-            Références externes optionnelles associées à chaque claim (n° facture
+          description: 'Références externes optionnelles associées à chaque claim
+            (n° facture
+
             prestataire, ligne de facture, identifiant patient).
+
+            '
           items:
             $ref: '#/components/schemas/ClaimReference'
         metadata:
@@ -1291,10 +1300,9 @@ components:
           format: date-time
     WebhookDelivery:
       type: object
-      description: Représente une tentative de livraison d'un événement webhook
-        à une URL d'abonnement. Les livraisons sont créées automatiquement quand
-        un événement est émis et qu'un abonnement actif correspond au type
-        d'événement.
+      description: Représente une tentative de livraison d'un événement webhook à
+        une URL d'abonnement. Les livraisons sont créées automatiquement quand un
+        événement est émis et qu'un abonnement actif correspond au type d'événement.
       properties:
         uuid:
           type: string
@@ -1312,8 +1320,8 @@ components:
           - DELIVERED
           - FAILED
           description: Statut de la livraison. `PENDING` indique une livraison en
-            attente ou programmée pour retry. `DELIVERED` indique une livraison
-            réussie. `FAILED` indique une livraison définitivement échouée.
+            attente ou programmée pour retry. `DELIVERED` indique une livraison réussie.
+            `FAILED` indique une livraison définitivement échouée.
         attempts:
           type: integer
           description: Nombre de tentatives de livraison effectuées.
@@ -1358,8 +1366,8 @@ components:
           format: uri
           maxLength: 1000
           description: HTTPS obligatoire en production (HTTP accepté en sandbox),
-            pas d'identifiants dans l'URL, pas d'hôte `localhost`/`.local`/IP
-            privée ou réservée (protection SSRF).
+            pas d'identifiants dans l'URL, pas d'hôte `localhost`/`.local`/IP privée
+            ou réservée (protection SSRF).
         secret:
           type: string
           minLength: 16
@@ -3070,6 +3078,18 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AuthError'
+    post:
+      operationId: createApiV1Prior-authorizations
+      summary: Créer prior-authorizations
+      parameters:
+      - $ref: '#/components/parameters/RequestId'
+      responses:
+        '200':
+          description: Succès
+        '401':
+          description: Clé API absente ou invalide
+        '403':
+          description: Scope `insurer.prior_authorizations.manage` manquant
   /api/v1/prior-authorizations/{uid}:
     get:
       operationId: getPriorAuthorization
@@ -6144,26 +6164,20 @@ paths:
     post:
       operationId: createPayableInvoice
       summary: Créer un bordereau de paiement
-      description: |
-        Crée un bordereau de paiement à partir d'un ou plusieurs claims
-        approuvés. Azurance vérifie chaque claim (statut `APPROVED`,
-        `amount_approved > 0`, devise) et crée une ligne de bordereau par
-        claim.
-
-        Règles :
-        - Chaque claim doit être en statut `APPROVED` avec un
-          `amount_approved` strictement positif.
-        - Un claim déjà inclus dans un autre bordereau est rejeté.
-        - Si `beneficiary_type` vaut `PROVIDER`, le `provider_uuid` doit
-          correspondre au prestataire des claims.
-        - L'idempotence est assurée par `Idempotency-Key` (header) ou
-          `idempotency_key` (body).
+      description: "Crée un bordereau de paiement à partir d'un ou plusieurs claims\n\
+        approuvés. Azurance vérifie chaque claim (statut `APPROVED`,\n`amount_approved\
+        \ > 0`, devise) et crée une ligne de bordereau par\nclaim.\n\nRègles :\n-\
+        \ Chaque claim doit être en statut `APPROVED` avec un\n  `amount_approved`\
+        \ strictement positif.\n- Un claim déjà inclus dans un autre bordereau est\
+        \ rejeté.\n- Si `beneficiary_type` vaut `PROVIDER`, le `provider_uuid` doit\n\
+        \  correspondre au prestataire des claims.\n- L'idempotence est assurée par\
+        \ `Idempotency-Key` (header) ou\n  `idempotency_key` (body).\n"
       parameters:
       - $ref: '#/components/parameters/RequestId'
       - in: header
         name: Idempotency-Key
-        description: Clé d'idempotence (recommandée). Peut aussi être passée via
-          `idempotency_key` dans le body.
+        description: Clé d'idempotence (recommandée). Peut aussi être passée via `idempotency_key`
+          dans le body.
         required: false
         schema:
           type: string
@@ -6187,7 +6201,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/AuthError'
         '422':
-          description: Validation métier échouée (claim non approuvé, tenant mismatch, claim déjà facturé, etc.)
+          description: Validation métier échouée (claim non approuvé, tenant mismatch,
+            claim déjà facturé, etc.)
           content:
             application/json:
               schema:
@@ -6276,7 +6291,8 @@ paths:
           maximum: 100
       responses:
         '200':
-          description: Lignes de la facture (curseur, `meta.next_cursor` comme la liste)
+          description: Lignes de la facture (curseur, `meta.next_cursor` comme la
+            liste)
           content:
             application/json:
               schema:
@@ -7506,9 +7522,9 @@ paths:
     get:
       operationId: listWebhookDeliveries
       summary: Lister les livraisons d'un abonnement webhook
-      description: Retourne l'historique paginé des tentatives de livraison des
-        événements webhook pour l'abonnement spécifié. Les livraisons sont triées
-        par date de création décroissante.
+      description: Retourne l'historique paginé des tentatives de livraison des événements
+        webhook pour l'abonnement spécifié. Les livraisons sont triées par date de
+        création décroissante.
       parameters:
       - $ref: '#/components/parameters/RequestId'
       - in: path
@@ -7562,10 +7578,9 @@ paths:
     post:
       operationId: retryWebhookDelivery
       summary: Relancer manuellement une livraison webhook échouée
-      description: Reprogramme la livraison d'un événement webhook précédemment
-        marqué comme échoué (statut `FAILED`). La livraison conserve le même
-        identifiant d'événement — l'intégrateur doit toujours dédupliquer via
-        l'en-tête `X-Azurance-Event-Id`.
+      description: Reprogramme la livraison d'un événement webhook précédemment marqué
+        comme échoué (statut `FAILED`). La livraison conserve le même identifiant
+        d'événement — l'intégrateur doit toujours dédupliquer via l'en-tête `X-Azurance-Event-Id`.
       parameters:
       - $ref: '#/components/parameters/RequestId'
       - in: path
@@ -8334,11 +8349,15 @@ paths:
     get:
       operationId: downloadClaimDocument
       summary: Télécharger le binaire d'un document de claim
-      description: |
-        Télécharge le contenu binaire d'un document attaché à un claim.
-        L'assureur ne peut télécharger que les documents des claims qui
+      description: 'Télécharge le contenu binaire d''un document attaché à un claim.
+
+        L''assureur ne peut télécharger que les documents des claims qui
+
         appartiennent à son tenant (vérification `insurer_tenant_uid`).
+
         La réponse est un flux binaire, pas du JSON.
+
+        '
       parameters:
       - $ref: '#/components/parameters/RequestId'
       - in: path
@@ -8365,9 +8384,8 @@ paths:
               examples:
                 pdf:
                   summary: Facture PDF
-                  value: |
-                    (flux binaire — Content-Type: application/pdf,
-                     Content-Disposition: attachment; filename="facture.pdf")
+                  value: "(flux binaire — Content-Type: application/pdf,\n Content-Disposition:\
+                    \ attachment; filename=\"facture.pdf\")\n"
             application/pdf:
               schema:
                 type: string
@@ -8386,3 +8404,177 @@ paths:
           description: Scope `insurer.claims.view` manquant
         '404':
           description: Claim ou document introuvable pour ce tenant.
+  /api/v1/affiliation-requests:
+    get:
+      operationId: listApiV1Affiliation-requests
+      summary: Lister affiliation-requests
+      parameters:
+      - $ref: '#/components/parameters/RequestId'
+      responses:
+        '200':
+          description: Succès
+        '401':
+          description: Clé API absente ou invalide
+    post:
+      operationId: createApiV1Affiliation-requests
+      summary: Créer affiliation-requests
+      parameters:
+      - $ref: '#/components/parameters/RequestId'
+      responses:
+        '200':
+          description: Succès
+        '401':
+          description: Clé API absente ou invalide
+  /api/v1/affiliation-requests/{uuid}:
+    get:
+      operationId: getApiV1Affiliation-requests
+      summary: Consulter affiliation-requests
+      parameters:
+      - $ref: '#/components/parameters/RequestId'
+      - in: path
+        name: uuid
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Succès
+        '401':
+          description: Clé API absente ou invalide
+  /api/v1/affiliation-requests/{uuid}/approve:
+    post:
+      operationId: createApiV1Affiliation-requestsApprove
+      summary: Créer approve
+      parameters:
+      - $ref: '#/components/parameters/RequestId'
+      - in: path
+        name: uuid
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Succès
+        '401':
+          description: Clé API absente ou invalide
+  /api/v1/affiliation-requests/{uuid}/reject:
+    post:
+      operationId: createApiV1Affiliation-requestsReject
+      summary: Créer reject
+      parameters:
+      - $ref: '#/components/parameters/RequestId'
+      - in: path
+        name: uuid
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Succès
+        '401':
+          description: Clé API absente ou invalide
+  /api/v1/enterprises:
+    get:
+      operationId: listApiV1Enterprises
+      summary: Lister enterprises
+      parameters:
+      - $ref: '#/components/parameters/RequestId'
+      responses:
+        '200':
+          description: Succès
+        '401':
+          description: Clé API absente ou invalide
+    post:
+      operationId: createApiV1Enterprises
+      summary: Créer enterprises
+      parameters:
+      - $ref: '#/components/parameters/RequestId'
+      responses:
+        '200':
+          description: Succès
+        '401':
+          description: Clé API absente ou invalide
+  /api/v1/enterprises/{uid}/invitations:
+    post:
+      operationId: createApiV1EnterprisesInvitations
+      summary: Créer invitations
+      parameters:
+      - $ref: '#/components/parameters/RequestId'
+      - in: path
+        name: uid
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Succès
+        '401':
+          description: Clé API absente ou invalide
+  /api/v1/group-contracts:
+    get:
+      operationId: listApiV1Group-contracts
+      summary: Lister group-contracts
+      parameters:
+      - $ref: '#/components/parameters/RequestId'
+      responses:
+        '200':
+          description: Succès
+        '401':
+          description: Clé API absente ou invalide
+    post:
+      operationId: createApiV1Group-contracts
+      summary: Créer group-contracts
+      parameters:
+      - $ref: '#/components/parameters/RequestId'
+      responses:
+        '200':
+          description: Succès
+        '401':
+          description: Clé API absente ou invalide
+  /api/v1/group-contracts/{uuid}:
+    get:
+      operationId: getApiV1Group-contracts
+      summary: Consulter group-contracts
+      parameters:
+      - $ref: '#/components/parameters/RequestId'
+      - in: path
+        name: uuid
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Succès
+        '401':
+          description: Clé API absente ou invalide
+    patch:
+      operationId: updateApiV1Group-contracts
+      summary: Mettre à jour group-contracts
+      parameters:
+      - $ref: '#/components/parameters/RequestId'
+      - in: path
+        name: uuid
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Succès
+        '401':
+          description: Clé API absente ou invalide
+  /api/v1/group-contracts/{uuid}/status:
+    patch:
+      operationId: updateApiV1Group-contractsStatus
+      summary: Mettre à jour status
+      parameters:
+      - $ref: '#/components/parameters/RequestId'
+      - in: path
+        name: uuid
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Succès
+        '401':
+          description: Clé API absente ou invalide

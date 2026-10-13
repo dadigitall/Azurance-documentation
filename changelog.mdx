@@ -6,6 +6,57 @@ icon: "list"
 
 Suivez les changements de contrat public, les nouvelles pages et les corrections importantes.
 
+## 2026-10-13 - Synchronisation automatique BFF ↔ documentation
+
+- Ajout OpenAPI provider-api-bff: GET /api/v1/reference/coverage-types
+- Ajout OpenAPI provider-api-bff: GET /api/v1/reference/coverage-types/{code}
+- [DRY-RUN] Création page MDX provider-api-bff: GET /api/v1/reference/coverage-types
+- [DRY-RUN] Création page MDX provider-api-bff: GET /api/v1/reference/coverage-types/{code}
+- Création page MDX provider-api-bff: erp-prestataires/api/reference-coverage-types (GET /api/v1/reference/coverage-types)
+- Création page MDX provider-api-bff: erp-prestataires/api/reference-coverage-types-{code} (GET /api/v1/reference/coverage-types/{code})
+- Ajout OpenAPI insurer-bff: GET /api/v1/affiliation-requests
+- Ajout OpenAPI insurer-bff: POST /api/v1/affiliation-requests
+- Ajout OpenAPI insurer-bff: GET /api/v1/affiliation-requests/{uuid}
+- Ajout OpenAPI insurer-bff: POST /api/v1/affiliation-requests/{uuid}/approve
+- Ajout OpenAPI insurer-bff: POST /api/v1/affiliation-requests/{uuid}/reject
+- Ajout OpenAPI insurer-bff: GET /api/v1/enterprises
+- Ajout OpenAPI insurer-bff: POST /api/v1/enterprises
+- Ajout OpenAPI insurer-bff: POST /api/v1/enterprises/{uid}/invitations
+- Ajout OpenAPI insurer-bff: GET /api/v1/group-contracts
+- Ajout OpenAPI insurer-bff: POST /api/v1/group-contracts
+- Ajout OpenAPI insurer-bff: GET /api/v1/group-contracts/{uuid}
+- Ajout OpenAPI insurer-bff: PATCH /api/v1/group-contracts/{uuid}
+- Ajout OpenAPI insurer-bff: PATCH /api/v1/group-contracts/{uuid}/status
+- Ajout OpenAPI insurer-bff: POST /api/v1/prior-authorizations
+- [DRY-RUN] Création page MDX insurer-bff: GET /api/v1/affiliation-requests
+- [DRY-RUN] Création page MDX insurer-bff: GET /api/v1/affiliation-requests/{uuid}
+- [DRY-RUN] Création page MDX insurer-bff: GET /api/v1/enterprises
+- [DRY-RUN] Création page MDX insurer-bff: GET /api/v1/group-contracts
+- [DRY-RUN] Création page MDX insurer-bff: GET /api/v1/group-contracts/{uuid}
+- [DRY-RUN] Création page MDX insurer-bff: PATCH /api/v1/group-contracts/{uuid}
+- [DRY-RUN] Création page MDX insurer-bff: PATCH /api/v1/group-contracts/{uuid}/status
+- [DRY-RUN] Création page MDX insurer-bff: POST /api/v1/affiliation-requests
+- [DRY-RUN] Création page MDX insurer-bff: POST /api/v1/affiliation-requests/{uuid}/approve
+- [DRY-RUN] Création page MDX insurer-bff: POST /api/v1/affiliation-requests/{uuid}/reject
+- [DRY-RUN] Création page MDX insurer-bff: POST /api/v1/enterprises
+- [DRY-RUN] Création page MDX insurer-bff: POST /api/v1/enterprises/{uid}/invitations
+- [DRY-RUN] Création page MDX insurer-bff: POST /api/v1/group-contracts
+- [DRY-RUN] Création page MDX insurer-bff: POST /api/v1/prior-authorizations
+- Création page MDX insurer-bff: erp-assurances/api/affiliation-requests (GET /api/v1/affiliation-requests)
+- Création page MDX insurer-bff: erp-assurances/api/affiliation-requests-create (POST /api/v1/affiliation-requests)
+- Création page MDX insurer-bff: erp-assurances/api/affiliation-requests-{uuid} (GET /api/v1/affiliation-requests/{uuid})
+- Création page MDX insurer-bff: erp-assurances/api/affiliation-requests-approve-create (POST /api/v1/affiliation-requests/{uuid}/approve)
+- Création page MDX insurer-bff: erp-assurances/api/affiliation-requests-reject-create (POST /api/v1/affiliation-requests/{uuid}/reject)
+- Création page MDX insurer-bff: erp-assurances/api/enterprises (GET /api/v1/enterprises)
+- Création page MDX insurer-bff: erp-assurances/api/enterprises-create (POST /api/v1/enterprises)
+- Création page MDX insurer-bff: erp-assurances/api/enterprises-invitations-create (POST /api/v1/enterprises/{uid}/invitations)
+- Création page MDX insurer-bff: erp-assurances/api/group-contracts (GET /api/v1/group-contracts)
+- Création page MDX insurer-bff: erp-assurances/api/group-contracts-create (POST /api/v1/group-contracts)
+- Création page MDX insurer-bff: erp-assurances/api/group-contracts-{uuid} (GET /api/v1/group-contracts/{uuid})
+- Création page MDX insurer-bff: erp-assurances/api/group-contracts-{uuid}-update (PATCH /api/v1/group-contracts/{uuid})
+- Création page MDX insurer-bff: erp-assurances/api/group-contracts-status-update (PATCH /api/v1/group-contracts/{uuid}/status)
+- Création page MDX insurer-bff: erp-assurances/api/prior-authorizations-create (POST /api/v1/prior-authorizations)
+
 ## 2026-10-08 - Référentiel médicaments : classe ATC et recherche améliorée
 
 - Nouvel endpoint `GET /api/v1/reference/medications/atc/{atcCode}` : liste les concepts médicaments (INN) d'une classe ATC — ex. `A11` pour toutes les vitamines, `J01` pour les antibactériens systémiques.

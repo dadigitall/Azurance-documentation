@@ -1,0 +1,32 @@
+---
+title: "Créer invitations"
+description: "Créer invitations via l'API."
+openapi: "/openapi/insurer-api.openapi.yml POST /api/v1/enterprises/{uid}/invitations"
+---
+
+Cet endpoint créer invitations.
+
+## Scope requis
+
+`N/A`
+
+## Paramètres de chemin
+
+| Paramètre | Type | Requis | Description |
+| --- | --- | --- | --- |
+| `uid` | string | oui | Identifiant de uid. |
+
+## Réponse
+
+```json
+{
+  "data": {}
+}
+```
+
+## Erreurs
+
+| Code | Description |
+| --- | --- |
+| 401 | Clé API manquante ou invalide. |
+| 404 | Ressource introuvable. |

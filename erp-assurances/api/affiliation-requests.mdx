@@ -1,0 +1,34 @@
+---
+title: "Lister affiliation requests"
+description: "Lister affiliation requests via l'API."
+openapi: "/openapi/insurer-api.openapi.yml GET /api/v1/affiliation-requests"
+---
+
+Cet endpoint lister affiliation requests.
+
+## Scope requis
+
+`N/A`
+
+## Exemple de requête
+
+```bash
+curl --request GET \
+  --url "https://insurer-api-sandbox.elenami.com/api/v1/affiliation-requests" \
+  --header "X-Api-Key: $AZURANCE_INSURER_API_KEY"
+```
+
+## Réponse
+
+```json
+{
+  "data": {}
+}
+```
+
+## Erreurs
+
+| Code | Description |
+| --- | --- |
+| 401 | Clé API manquante ou invalide. |
+| 404 | Ressource introuvable. |

@@ -264,7 +264,9 @@
                   "erp-prestataires/api/webhooks-deliveries-retry"
                 ],
                 "expanded": true
-              }
+              },
+              "erp-prestataires/api/reference-coverage-types",
+              "erp-prestataires/api/reference-coverage-types-{code}"
             ]
           }
         ]
@@ -481,7 +483,21 @@
                   "erp-assurances/api/notifications-preferences-update"
                 ],
                 "expanded": true
-              }
+              },
+              "erp-assurances/api/affiliation-requests",
+              "erp-assurances/api/affiliation-requests-create",
+              "erp-assurances/api/affiliation-requests-{uuid}",
+              "erp-assurances/api/affiliation-requests-approve-create",
+              "erp-assurances/api/affiliation-requests-reject-create",
+              "erp-assurances/api/enterprises",
+              "erp-assurances/api/enterprises-create",
+              "erp-assurances/api/enterprises-invitations-create",
+              "erp-assurances/api/group-contracts",
+              "erp-assurances/api/group-contracts-create",
+              "erp-assurances/api/group-contracts-{uuid}",
+              "erp-assurances/api/group-contracts-{uuid}-update",
+              "erp-assurances/api/group-contracts-status-update",
+              "erp-assurances/api/prior-authorizations-create"
             ]
           }
         ]

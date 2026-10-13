@@ -1,0 +1,34 @@
+---
+title: "Lister group contracts"
+description: "Lister group contracts via l'API."
+openapi: "/openapi/insurer-api.openapi.yml GET /api/v1/group-contracts"
+---
+
+Cet endpoint lister group contracts.
+
+## Scope requis
+
+`N/A`
+
+## Exemple de requête
+
+```bash
+curl --request GET \
+  --url "https://insurer-api-sandbox.elenami.com/api/v1/group-contracts" \
+  --header "X-Api-Key: $AZURANCE_INSURER_API_KEY"
+```
+
+## Réponse
+
+```json
+{
+  "data": {}
+}
+```
+
+## Erreurs
+
+| Code | Description |
+| --- | --- |
+| 401 | Clé API manquante ou invalide. |
+| 404 | Ressource introuvable. |

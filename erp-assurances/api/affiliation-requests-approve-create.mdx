@@ -1,0 +1,32 @@
+---
+title: "Créer approve"
+description: "Créer approve via l'API."
+openapi: "/openapi/insurer-api.openapi.yml POST /api/v1/affiliation-requests/{uuid}/approve"
+---
+
+Cet endpoint créer approve.
+
+## Scope requis
+
+`N/A`
+
+## Paramètres de chemin
+
+| Paramètre | Type | Requis | Description |
+| --- | --- | --- | --- |
+| `uuid` | string | oui | Identifiant de uuid. |
+
+## Réponse
+
+```json
+{
+  "data": {}
+}
+```
+
+## Erreurs
+
+| Code | Description |
+| --- | --- |
+| 401 | Clé API manquante ou invalide. |
+| 404 | Ressource introuvable. |

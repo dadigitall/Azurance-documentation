@@ -1,0 +1,32 @@
+---
+title: "Créer reject"
+description: "Créer reject via l'API."
+openapi: "/openapi/insurer-api.openapi.yml POST /api/v1/affiliation-requests/{uuid}/reject"
+---
+
+Cet endpoint créer reject.
+
+## Scope requis
+
+`N/A`
+
+## Paramètres de chemin
+
+| Paramètre | Type | Requis | Description |
+| --- | --- | --- | --- |
+| `uuid` | string | oui | Identifiant de uuid. |
+
+## Réponse
+
+```json
+{
+  "data": {}
+}
+```
+
+## Erreurs
+
+| Code | Description |
+| --- | --- |
+| 401 | Clé API manquante ou invalide. |
+| 404 | Ressource introuvable. |

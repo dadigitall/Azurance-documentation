@@ -1,0 +1,32 @@
+---
+title: "Mettre à jour group contracts"
+description: "Mettre à jour group contracts via l'API."
+openapi: "/openapi/insurer-api.openapi.yml PATCH /api/v1/group-contracts/{uuid}"
+---
+
+Cet endpoint mettre à jour group contracts.
+
+## Scope requis
+
+`N/A`
+
+## Paramètres de chemin
+
+| Paramètre | Type | Requis | Description |
+| --- | --- | --- | --- |
+| `uuid` | string | oui | Identifiant de uuid. |
+
+## Réponse
+
+```json
+{
+  "data": {}
+}
+```
+
+## Erreurs
+
+| Code | Description |
+| --- | --- |
+| 401 | Clé API manquante ou invalide. |
+| 404 | Ressource introuvable. |

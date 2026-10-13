@@ -1,0 +1,40 @@
+---
+title: "Consulter coverage types"
+description: "Consulter coverage types via l'API."
+openapi: "/openapi/provider-api.openapi.yml GET /api/v1/reference/coverage-types/{code}"
+---
+
+Cet endpoint consulter coverage types.
+
+## Scope requis
+
+`N/A`
+
+## Paramètres de chemin
+
+| Paramètre | Type | Requis | Description |
+| --- | --- | --- | --- |
+| `code` | string | oui | Identifiant de code. |
+
+## Exemple de requête
+
+```bash
+curl --request GET \
+  --url "https://provider-api-sandbox.elenami.com/api/v1/reference/coverage-types/{code}" \
+  --header "X-Api-Key: $AZURANCE_PROVIDER_API_KEY"
+```
+
+## Réponse
+
+```json
+{
+  "data": {}
+}
+```
+
+## Erreurs
+
+| Code | Description |
+| --- | --- |
+| 401 | Clé API manquante ou invalide. |
+| 404 | Ressource introuvable. |

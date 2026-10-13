@@ -1,0 +1,27 @@
+---
+title: "Créer prior authorizations"
+description: "Créer prior authorizations via l'API."
+openapi: "/openapi/insurer-api.openapi.yml POST /api/v1/prior-authorizations"
+---
+
+Cet endpoint créer prior authorizations.
+
+## Scope requis
+
+`insurer.prior_authorizations.manage`
+
+## Réponse
+
+```json
+{
+  "data": {}
+}
+```
+
+## Erreurs
+
+| Code | Description |
+| --- | --- |
+| 401 | Clé API manquante ou invalide. |
+| 403 | Scope `insurer.prior_authorizations.manage` manquant. |
+| 404 | Ressource introuvable. |
