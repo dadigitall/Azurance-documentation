@@ -384,31 +384,34 @@
               {
                 "group": "Entreprises",
                 "pages": [
-                  "erp-assurances/api/enterprises",
-                  "erp-assurances/api/enterprises-create",
-                  "erp-assurances/api/enterprises-invitations-create"
-                ],
-                "expanded": false
-              },
-              {
-                "group": "Contrats groupe",
-                "pages": [
-                  "erp-assurances/api/group-contracts",
-                  "erp-assurances/api/group-contracts-create",
-                  "erp-assurances/api/group-contracts-{uuid}",
-                  "erp-assurances/api/group-contracts-{uuid}-update",
-                  "erp-assurances/api/group-contracts-status-update"
-                ],
-                "expanded": false
-              },
-              {
-                "group": "Demandes d'affiliation",
-                "pages": [
-                  "erp-assurances/api/affiliation-requests",
-                  "erp-assurances/api/affiliation-requests-create",
-                  "erp-assurances/api/affiliation-requests-{uuid}",
-                  "erp-assurances/api/affiliation-requests-approve-create",
-                  "erp-assurances/api/affiliation-requests-reject-create"
+                  {
+                    "group": "Organisations",
+                    "pages": [
+                      "erp-assurances/api/enterprises",
+                      "erp-assurances/api/enterprises-create",
+                      "erp-assurances/api/enterprises-invitations-create"
+                    ]
+                  },
+                  {
+                    "group": "Contrats groupe",
+                    "pages": [
+                      "erp-assurances/api/group-contracts",
+                      "erp-assurances/api/group-contracts-create",
+                      "erp-assurances/api/group-contracts-{uuid}",
+                      "erp-assurances/api/group-contracts-{uuid}-update",
+                      "erp-assurances/api/group-contracts-status-update"
+                    ]
+                  },
+                  {
+                    "group": "Demandes d'affiliation",
+                    "pages": [
+                      "erp-assurances/api/affiliation-requests",
+                      "erp-assurances/api/affiliation-requests-create",
+                      "erp-assurances/api/affiliation-requests-{uuid}",
+                      "erp-assurances/api/affiliation-requests-approve-create",
+                      "erp-assurances/api/affiliation-requests-reject-create"
+                    ]
+                  }
                 ],
                 "expanded": false
               },
