@@ -43,6 +43,7 @@ python3 .devin/skills/audit-bff-docs/audit_bff_docs.py --dto
 4. **Validité YAML/JSON** : les fichiers OpenAPI doivent parser, `docs.json` doit être du JSON valide.
 5. **Blocs JSON MDX** : tous les blocs ```json dans les pages MDX doivent être du JSON valide.
 6. **Scopes BFF ↔ OpenAPI** : les scopes documentés dans OpenAPI doivent correspondre à ceux du `ApiKeyGuard`.
+7. **Routes sans mapping de scope** : chaque route du BFF doit être couverte par une règle `path.includes()` du guard — sinon l'endpoint retourne `403` même avec une clé valide. Le parser comprend les conditions composées (AND/OR sur `path` et `method`), les ternaires `method === 'GET' ? ['view'] : ['manage']` et `[...].includes(method) ? [...] : [...]`. Seuls `GET /auth/verify` et `GET /auth/encryption-key` sont légitimement sans scope.
 
 ## BFFs supportés
 

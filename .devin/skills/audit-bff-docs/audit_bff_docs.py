@@ -51,6 +51,17 @@ BFF_CONFIG = {
 
 HTTP_METHODS = ["get", "post", "put", "patch", "delete"]
 
+# Parser de scopes robuste partagé avec sync-bff-docs.
+SYNC_SKILL_DIR = Path(__file__).resolve().parent.parent / "sync-bff-docs"
+if str(SYNC_SKILL_DIR) not in sys.path:
+    sys.path.insert(0, str(SYNC_SKILL_DIR))
+try:
+    from sync_bff_docs import UNSCOPED_ENDPOINTS, extract_bff_scopes, resolve_scope
+
+    HAS_SCOPE_CHECK = True
+except Exception:
+    HAS_SCOPE_CHECK = False
+
 
 # ─── Extraction des routes BFF ───────────────────────────────────────────────
 
@@ -143,28 +154,6 @@ def validate_mdx_json_blocks(mdx_dir: Path) -> list[tuple[str, str]]:
             except json.JSONDecodeError as e:
                 errors.append((str(f.relative_to(DOCS_ROOT)), f"bloc {i}: {e}"))
     return errors
-
-
-# ─── Extraction des scopes BFF ───────────────────────────────────────────────
-
-def extract_bff_scopes(src_dir: Path) -> dict[str, str]:
-    """Extrait les mappings de scopes du ApiKeyGuard.
-    Retourne {path_pattern: scope}
-    """
-    guard_file = src_dir / "common" / "guards" / "api-key.guard.ts"
-    if not guard_file.exists():
-        return {}
-
-    content = guard_file.read_text()
-    scopes = {}
-    # Cherche les patterns return ['scope']
-    for m in re.finditer(
-        r"if \(path\.includes\('([^']+)'\).*?\n\s+return \['([^']+)'\];",
-        content,
-        re.S,
-    ):
-        scopes[m.group(1)] = m.group(2)
-    return scopes
 
 
 # ─── Rapport ─────────────────────────────────────────────────────────────────
@@ -280,12 +269,24 @@ def audit_bff(bff_name: str, config: dict, check_dto: bool = False, check_json: 
         else:
             print(f"\n  ✅ Tous les blocs JSON des MDX sont valides")
 
-    # ── 8. Scopes BFF
-    scopes = extract_bff_scopes(src)
-    if scopes:
-        print(f"\n  Scopes BFF configurés ({len(scopes)}):")
-        for pattern, scope in sorted(scopes.items()):
-            print(f"     {pattern:40s} → {scope}")
+    # ── 8. Scopes BFF — routes sans mapping → 403 en prod
+    if HAS_SCOPE_CHECK:
+        scope_rules = extract_bff_scopes(src)
+        unscoped = [
+            (m, p)
+            for m, p, _ in bff_routes
+            if (m, p) not in UNSCOPED_ENDPOINTS
+            and resolve_scope(m, p, scope_rules) is None
+        ]
+        if unscoped:
+            print(f"\n  🚨 Routes SANS mapping de scope ({len(unscoped)}) — 403 en prod:")
+            for method, path in sorted(unscoped):
+                print(f"     {method:6s} {path}  → ajouter une règle dans le ApiKeyGuard + scope dans auth-service")
+            all_ok = False
+        else:
+            print(f"\n  ✅ Toutes les routes BFF ont un mapping de scope")
+    else:
+        print(f"\n  ⚠️  Vérification des scopes indisponible (module sync-bff-docs introuvable)")
 
     # ── 9. DTOs (optionnel)
     if check_dto:
