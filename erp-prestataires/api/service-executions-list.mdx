@@ -28,20 +28,26 @@ La réponse contient une liste paginée des prestations enregistrées. Chaque en
   "data": [
     {
       "uuid": "se_sandbox_001",
-      "execution_number": "SE-2025-001234",
       "status": "completed",
-      "covered_person_type": "policyholder",
-      "covered_person_uid": "mbr_sandbox_001",
-      "contract_uid": "sub_sandbox_001",
-      "subscription_uid": "sub_sandbox_001",
-      "policy_number": "NSIA-POL-2025-001",
-      "provider_uid": "prov_sandbox_001",
-      "coverage_type_code": "AMBULATORY",
-      "service_date": "2025-01-15",
-      "executed_at": "2025-01-15T10:30:00Z",
-      "total_amount": 50000,
-      "currency": "XOF",
-      "item_count": 2
+      "covered_person_type": "beneficiary",
+      "covered_person_uid": "ben_sandbox_001",
+      "contract_uid": "ctr_sandbox_001",
+      "coverage_type_code": "PHARMACY_DRUG",
+      "coverage_codes": ["PHARMACY_DRUG"],
+      "service_date": "2026-01-15",
+      "provider_reference": "ERP-DISP-2026-0001",
+      "consent_ref": "40000000-0000-4000-8000-000000000001",
+      "items": [
+        {
+          "description": "Amoxicilline 500mg x12",
+          "quantity": 12,
+          "unit_price": 2920,
+          "item_type": "medication",
+          "reference_status": "VERIFIED",
+          "prescription_line_uid": "50000000-0000-4000-8000-000000000003"
+        }
+      ],
+      "created_at": "2026-01-15T10:32:00Z"
     }
   ],
   "meta": {

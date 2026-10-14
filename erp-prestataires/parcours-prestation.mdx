@@ -182,15 +182,20 @@ Idempotency-Key: erp-dispensation-2026-0001
   "items": [
     {
       "description": "Dispensation Amoxicilline 500mg",
-      "quantity": 1,
-      "unit_price": 3500,
+      "quantity": 12,
+      "unit_price": 2920,
       "prescription_uid": "50000000-0000-4000-8000-000000000001",
       "prescription_line_uid": "50000000-0000-4000-8000-000000000002",
       "prescribed_medication_code": "AMOX-500-BRAND",
+      "medication_product_uid": "60000000-0000-4000-8000-000000000001",
       "medication_code": "AMOX-500-GENERIC",
+      "presentation_uid": "AMOX500-BT12",
       "prescribed_quantity": 12,
       "dispensed_quantity": 10,
-      "substitution_reason": "Générique équivalent disponible, accord patient."
+      "substitution_reason": "Générique équivalent disponible, accord patient.",
+      "batch_number": "LOT-2026-A134",
+      "erp_product_code": "PH-AMOX-500",
+      "erp_product_name": "Amoxicilline 500mg boîte de 12"
     }
   ]
 }
@@ -199,10 +204,11 @@ Idempotency-Key: erp-dispensation-2026-0001
 Règles pharmacie v1:
 
 - ordonnance obligatoire;
-- `prescription_line_uid` recommandé si l'ordonnance est structurée;
+- `prescription_line_uid` recommandé si l'ordonnance est structurée — la ligne doit exister et appartenir à l'ordonnance (`422 PRESCRIPTION_LINE_NOT_FOUND` / `PRESCRIPTION_LINE_MISMATCH`);
 - `substitution_reason` obligatoire si le médicament délivré diffère du médicament prescrit;
 - `dispensed_quantity` doit être inférieure ou égale à `prescribed_quantity`;
-- pas de blocage v1 sur un référentiel médicament couvert/non couvert.
+- `medication_product_uid` rejeté (`422`) si le produit est inconnu ou inactif — les codes nomenclature inconnus passent en warning sans bloquer;
+- `erp_product_code`/`erp_product_name` conservent le snapshot produit interne de l'ERP pour la traçabilité.
 
 ## 6. Soumettre le claim
 

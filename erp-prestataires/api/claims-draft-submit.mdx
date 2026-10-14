@@ -6,6 +6,8 @@ openapi: "/openapi/provider-api.openapi.yml POST /api/v1/claims/{claimId}/submit
 
 Cet endpoint soumet un brouillon de claim : il effectue le check final d'éligibilité, calcule les plafonds applicables, réserve les montants et fait passer le claim en statut `submitted`. Le `consent_ref` est requis pour valider le consentement fort associé. Aucun claim n'est soumis si le check final est refusé.
 
+La validation référentielle est **revérifiée à la soumission** : un plan peut être devenu strict (règles par acte) après la création du brouillon — les lignes dont un acte est resté `UNKNOWN` bloquent alors la soumission.
+
 ## Scope requis
 
 `claims.create`
@@ -14,7 +16,7 @@ Cet endpoint soumet un brouillon de claim : il effectue le check final d'éligib
 
 | Paramètre | Type | Requis | Description |
 | --- | --- | --- | --- |
-| `claimId` | string | oui | Identifiant du claim en brouillon. |
+| `claimId` | string | oui | Identifiant du claim en brouillon (`draft_uid`). |
 
 ## Champs du body
 
@@ -26,11 +28,11 @@ Cet endpoint soumet un brouillon de claim : il effectue le check final d'éligib
 
 ```bash
 curl --request POST \
-  --url "https://provider-api-sandbox.elenami.com/api/v1/claims/claim_sandbox_draft_001/submit" \
+  --url "https://provider-api-sandbox.elenami.com/api/v1/claims/8f4b2c1d-0000-4000-8000-000000000001/submit" \
   --header "X-Api-Key: $AZURANCE_PROVIDER_API_KEY" \
   --header "Content-Type: application/json" \
   --data '{
-    "consent_ref": "a1b2c3d4-0000-4000-8000-000000000001"
+    "consent_ref": "40000000-0000-4000-8000-000000000001"
   }'
 ```
 
@@ -39,15 +41,40 @@ curl --request POST \
 ```json
 {
   "data": {
-    "uuid": "claim_sandbox_draft_001",
+    "uuid": "8f4b2c1d-0000-4000-8000-000000000001",
     "claim_number": "CLM-2026-001234",
     "status": "submitted",
-    "amount_claimed": 50000,
+    "amount_claimed": 58500,
     "amount_approved": null,
     "currency": "XOF"
   }
 }
 ```
+
+## Erreur de soumission
+
+Un `422` retourne `data.error_code` et, selon le cas, `data.errors` par champ de ligne :
+
+```json
+{
+  "message": "Le plan de l'assuré applique des règles par acte.",
+  "data": {
+    "error_code": "UNKNOWN_REFERENCE_CODE",
+    "reason": "Le plan de l'assuré applique des règles par acte — chaque ligne déclarant un acte doit référencer un code du référentiel.",
+    "errors": {
+      "items.1.medical_act_code": ["UNKNOWN_REFERENCE_CODE"]
+    }
+  }
+}
+```
+
+| error_code | Cause |
+| --- | --- |
+| `UNKNOWN_REFERENCE_CODE` | Plan à règles par acte et lignes dont l'acte n'a pas été résolu dans le référentiel. |
+| `ITEM_COVERAGE_MISSING` / `ITEMS_NOT_ELIGIBLE` | Ligne sans couverture résolue, ou ligne non couverte par le plan de l'assuré. |
+| `EXECUTION_MISMATCH` | Une ligne facturée ne correspond pas à l'exécution `service_execution_uid` référencée. |
+| `PRIOR_AUTHORIZATION_NOT_FOUND` / `INVALID` / `MISMATCH` / `COVERAGE_MISMATCH` / `AMOUNT_EXCEEDED` | PA inexistante, inadaptée ou dépassée. |
+| `CLAIM_PENDING_PRIOR_AUTHORIZATIONS` | Une ligne exigeant une PA est encore `PENDING_AUTHORIZATION` — demander une PA via `POST /api/v1/prior-authorizations` avec `claim_item_uids`. |
 
 ## Workflow
 
@@ -63,5 +90,5 @@ curl --request POST \
 | 401 | Clé API manquante ou invalide. |
 | 403 | Scope `claims.create` manquant. |
 | 404 | Claim introuvable ou n'est pas un brouillon. |
-| 422 | Check final refusé, claim non soumis. |
+| 422 | Check final refusé — voir `data.error_code` ci-dessus. |
 | 503 | Service interne indisponible, réessayer avec backoff sur `5xx`. |

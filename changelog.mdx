@@ -6,6 +6,14 @@ icon: "list"
 
 Suivez les changements de contrat public, les nouvelles pages et les corrections importantes.
 
+## 2026-10-21 - Validation référentielle des identifiants cliniques
+
+- **`reference_status` par ligne** : chaque `items[]` de claim et de service execution expose `VERIFIED` (identifiant résolu dans les référentiels), `UNKNOWN` (identifiant introuvable — détail dans `metadata.unknown_references`) ou `NONE` (aucun déclaré).
+- **Rejet des uid inexistants** : `medical_act_uid`, `medication_product_uid` inconnus ou inactifs → `422` (`MEDICAL_ACT_NOT_FOUND`/`INACTIVE`, `MEDICATION_PRODUCT_NOT_FOUND`/`INACTIVE`, `MEDICAL_ACT_MISMATCH` si uid et code divergent).
+- **Codes inconnus → warnings** : `medical_act_code`, `medication_code`, `prescribed_medication_code`, `presentation_uid` non résolus produisent `warnings: ["items.{i}.{champ}:UNKNOWN_REFERENCE_CODE"]` à la création du brouillon — non bloquant, sauf actes sous un plan à règles par acte (rejet `UNKNOWN_REFERENCE_CODE`, revérifié à la soumission).
+- **Enrichissement canonique** : un `medical_act_code` résolu remplit automatiquement `medical_act_uid`, `medical_act_category` et `medical_act_chapter` — les règles du plan s'appliquent sur la valeur vérifiée.
+- **Exemples enrichis** : les exemples de requête et de réponse des endpoints `claims` et `service-executions` (provider-api) montrent désormais des factures multi-couvertures réalistes avec lignes de prescription, produits et actes.
+
 ## 2026-10-21 - Type de prestation par ligne et validation des lignes de prescription
 
 - **`item_type` sur les lignes de facture** : la nature de chaque `items[]` est dérivée automatiquement — `line_type` de la ligne de prescription référencée, sinon champs acte (`medical_act`), sinon métadonnées médicament (`medication`), sinon `service`. Exposée dans `items[].item_type` des réponses claim (provider et insurer).

@@ -184,6 +184,18 @@ components:
           description: 'Nature de la ligne, dérivée de la ligne de prescription
             (line_type) lorsqu''elle est référencée, sinon des champs acte/produit
             déclarés, sinon `service`.'
+        reference_status:
+          type: string
+          nullable: true
+          enum:
+          - VERIFIED
+          - UNKNOWN
+          - NONE
+          description: 'Statut de validation référentielle de la ligne : `VERIFIED`
+            si au moins un identifiant clinique déclaré a été résolu dans les
+            référentiels, `UNKNOWN` si un identifiant n''a pas pu être vérifié
+            (détail dans `metadata.unknown_references`), `NONE` si aucun
+            identifiant n''était déclaré.'
         description:
           type: string
         quantity:

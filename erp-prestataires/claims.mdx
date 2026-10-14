@@ -96,6 +96,20 @@ La nature de chaque ligne est **dérivée**, jamais déclarée librement :
 
 Le type dérivé doit être **cohérent avec la couverture de la ligne** : une ligne `lab_test` sous couverture `PHARMACY_DRUG` (ou `medication` sous `LAB_ANALYSIS`, `equipment` sous `LAB_ANALYSIS`…) est rejetée `422 ITEM_COVERAGE_INCOMPATIBLE`. Le `item_type` est exposé dans la réponse `items[].item_type` de chaque claim.
 
+### Identifiants référentiels par ligne (`reference_status`)
+
+Chaque ligne peut déclarer des identifiants cliniques qui sont **vérifiés contre les référentiels Azurance** à la création du brouillon :
+
+| Identifiant | Comportement |
+| --- | --- |
+| `medical_act_uid`, `medication_product_uid` | Rejet `422` si inconnu ou inactif (`*_NOT_FOUND` / `*_INACTIVE`). `medical_act_uid` + `medical_act_code` divergents → `MEDICAL_ACT_MISMATCH`. |
+| `prescription_line_uid` | Rejet `422` si inexistante ou rattachée à une autre ordonnance (`PRESCRIPTION_LINE_NOT_FOUND` / `PRESCRIPTION_LINE_MISMATCH`). |
+| `medical_act_code`, `medication_code`, `prescribed_medication_code`, `presentation_uid`, code de la ligne de prescription | Inconnu du référentiel → **warning** non bloquant. Exception : un `medical_act_code` non résolu est rejeté si le plan de l'assuré applique des règles par acte (exclusions/taux ciblés). |
+
+La réponse du brouillon porte `warnings` (liste `items.{index}.{champ}:UNKNOWN_REFERENCE_CODE`) et chaque ligne expose `reference_status` : `VERIFIED` (au moins un identifiant résolu), `UNKNOWN` (un identifiant introuvable — détail dans `metadata.unknown_references`), `NONE` (rien déclaré). Quand un `medical_act_code` résout, les champs `medical_act_uid`/`category`/`chapter` canoniques sont **enrichis automatiquement** — les exclusions et taux du plan s'appliquent sur la valeur vérifiée, pas sur la déclaration.
+
+La vérification est **rejouée à la soumission** : si le plan est devenu strict entre-temps, un acte encore `UNKNOWN` rejette le submit avec `422 UNKNOWN_REFERENCE_CODE`.
+
 La résolution est faite **ligne par ligne** : l'éligibilité est vérifiée par couverture, le taux appliqué est celui de la couverture de chaque ligne, et une seule ligne non couverte par le plan de l'assuré rejette l'ensemble de la facture (`422 ITEMS_NOT_ELIGIBLE` avec les lignes fautives nommées). Quand `service_execution_uid` est fourni, chaque ligne facturée doit correspondre à un item de l'exécution (même couverture, même montant — `422 EXECUTION_MISMATCH` sinon).
 
 ```json

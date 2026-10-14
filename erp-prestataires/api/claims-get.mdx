@@ -33,44 +33,70 @@ Si le claim n'existe pas ou n'est pas visible par le prestataire, l'API retourne
 {
   "data": {
     "uuid": "claim_sandbox_001",
-    "claim_number": "CLM-2025-001234",
+    "claim_number": "CLM-2026-001234",
     "status": "approved",
     "service_execution_uid": "se_sandbox_001",
     "covered_person_type": "policyholder",
     "covered_person_uid": "mbr_sandbox_001",
-      "contract_uid": "sub_sandbox_001",
-      "subscription_uid": "sub_sandbox_001",
-    "policy_number": "NSIA-POL-2025-001",
-    "provider_uid": "prov_sandbox_001",
-    "insurer_uid": "ins_sandbox_001",
-    "coverage_type_code": "AMBULATORY",
-    "service_date": "2025-01-15",
-    "submitted_at": "2025-01-15T10:30:00Z",
-    "processed_at": "2025-01-16T09:00:00Z",
-    "amount_claimed": 50000,
-    "amount_approved": 45000,
+    "contract_uid": "ctr_sandbox_001",
+    "policy_number": "NSIA-POL-2026-001",
+    "coverage_type_code": null,
+    "coverage_codes": ["CONSULTATION_GP", "PHARMACY_DRUG"],
+    "service_date": "2026-01-15",
+    "submitted_at": "2026-01-15T10:30:00Z",
+    "reviewed_at": "2026-01-16T09:00:00Z",
+    "amount_claimed": 58500,
+    "amount_approved": 48000,
     "amount_paid": null,
     "currency": "XOF",
     "rejection_reason": null,
+    "items": [
+      {
+        "uid": "itm_sandbox_001",
+        "item_type": "medical_act",
+        "reference_status": "VERIFIED",
+        "description": "Consultation médecin généraliste",
+        "quantity": 1,
+        "unit_price": 15000,
+        "amount": 15000,
+        "coverage_type_code": "CONSULTATION_GP",
+        "medical_act_uid": "70000000-0000-4000-8000-000000000001",
+        "medical_act_code": "DEQP003",
+        "reimbursement_rate": 80,
+        "reimbursement_amount": 12000,
+        "decision": "approved"
+      },
+      {
+        "uid": "itm_sandbox_002",
+        "item_type": "medication",
+        "reference_status": "VERIFIED",
+        "description": "Amoxicilline 500mg x12",
+        "quantity": 12,
+        "unit_price": 2920,
+        "amount": 35040,
+        "coverage_type_code": "PHARMACY_DRUG",
+        "prescription_line_uid": "50000000-0000-4000-8000-000000000003",
+        "medication_product_uid": "60000000-0000-4000-8000-000000000001",
+        "reimbursement_rate": 100,
+        "reimbursement_amount": 35040,
+        "decision": "approved"
+      }
+    ],
     "documents": [
       {
         "uid": "doc_sandbox_001",
         "document_type": "prescription",
         "media_uid": "media_sandbox_001",
-        "file_name": "ordonance_scan.pdf",
-        "uploaded_at": "2025-01-15T10:30:00Z"
+        "file_name": "ordonnance_scan.pdf",
+        "uploaded_at": "2026-01-15T10:30:00Z"
       }
     ],
     "consent_snapshot": {
-      "consent_ref": "cref_sandbox_001",
-      "assured_at": "2025-01-15T10:32:00Z"
-    },
-    "audit": {
-      "created_by": "prov_sandbox_001",
-      "created_at": "2025-01-15T10:30:00Z",
-      "updated_by": "ins_sandbox_001",
-      "updated_at": "2025-01-16T09:00:00Z"
+      "consent_ref": "40000000-0000-4000-8000-000000000001",
+      "assured_at": "2026-01-15T10:32:00Z"
     }
   }
 }
 ```
+
+Chaque ligne expose `uid` (à référencer dans `claim_item_uids` d'une PA de rattrapage), `item_type` (nature dérivée) et `reference_status` (`VERIFIED`/`UNKNOWN`/`NONE`). Les identifiants inconnus restants sont détaillés dans `items[].metadata.unknown_references`.

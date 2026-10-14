@@ -6,9 +6,18 @@ openapi: "/openapi/provider-api.openapi.yml POST /api/v1/service-executions"
 
 Cet endpoint enregistre une prestation réellement effectuée par le prestataire. Contrairement au précheck d'éligibilité, cet endpoint atteste que l'acte a eu lieu et sert de base au claim ultérieur.
 
+Chaque item passe la même résolution référentielle qu'un claim : les uid inexistants sont rejetés, les codes inconnus des référentiels sont marqués `UNKNOWN` sans bloquer la création.
+
 ## Scope requis
 
 `service_executions.create`
+
+## En-têtes
+
+| Header | Requis | Description |
+| --- | --- | --- |
+| `X-Api-Key` | oui | Clé API prestataire. |
+| `Idempotency-Key` | oui* | Obligatoire dès qu'une ligne relève d'une couverture à ledger (pharmacie, labo, séances, équipements) si `provider_reference` est absent. |
 
 ## Champs du body
 
@@ -18,18 +27,67 @@ Cet endpoint enregistre une prestation réellement effectuée par le prestataire
 | `subscription_uid` | uuid | non | **Déprécié** — alias de `contract_uid`. |
 | `covered_person_type` | string | oui | `policyholder` ou `beneficiary`. |
 | `covered_person_uid` | string | oui | Identifiant de la personne couverte. |
-| `coverage_type_code` | string | oui | Code du type de couverture. |
+| `coverage_type_code` | string | non* | Garantie par défaut des lignes sans code propre. Omettre si chaque item porte son `coverage_type_code`. |
 | `service_date` | date | oui | Date de la prestation. |
-| `provider_reference` | string | non | Référence interne du prestataire. |
+| `provider_reference` | string | recommandé | Référence ERP unique par prestataire — anti-doublon. |
 | `consent_ref` | string (uuid) | oui | Référence de consentement validée. |
-| `items` | array | oui | Lignes de prestation (médicaments, actes). |
+| `items` | array | oui | Lignes de prestation (médicaments, actes, analyses). |
+| `metadata` | object | non | Métadonnées libres. |
 
-## Workflow
+## Champs d'une ligne `items[]`
 
-1. Résoudre la personne couverte via `POST /api/v1/covered-persons/resolve`.
-2. Obtenir un consentement via `POST /api/v1/consent-requests` puis `POST /api/v1/consent-requests/{uid}/verify`.
-3. Enregistrer la prestation via cet endpoint avec le `consent_ref`.
-4. Soumettre le claim via `POST /api/v1/claims` en référençant le `service_execution_uid` retourné.
+| Champ | Type | Description |
+| --- | --- | --- |
+| `description` | string | Libellé de la ligne (requis). |
+| `quantity` | number | Quantité (requis, ≥ 0.01). |
+| `unit_price` | number | Prix unitaire (requis). |
+| `coverage_type_code` | string | Code de garantie de la ligne ; hérite du code global si omis. |
+| `prescription_uid` + `prescription_line_uid` | uuid | Ligne d'ordonnance exécutée. La ligne doit exister et appartenir à l'ordonnance déclarée — sinon `422 PRESCRIPTION_LINE_NOT_FOUND` / `PRESCRIPTION_LINE_MISMATCH`. Son `line_type` détermine le `item_type` de la ligne. |
+| `medical_act_uid` | uuid | Acte du référentiel — rejeté si inconnu/inactif, ou incohérent avec `medical_act_code`. |
+| `medical_act_code` | string | Code acte (CCAM/ICHI). Inconnu → ligne marquée `reference_status=UNKNOWN` (non bloquant ici). |
+| `medical_act_category`, `medical_act_chapter` | string | Axes déclarés — remplacés par les valeurs canoniques quand l'acte est résolu. |
+| `medication_product_uid` | uuid | Produit Azurance — rejeté si inconnu ou inactif (`MEDICATION_PRODUCT_NOT_FOUND`/`INACTIVE`). |
+| `medication_code`, `prescribed_medication_code`, `presentation_uid` | string | Codes nomenclature — inconnus → `UNKNOWN` (non bloquant). |
+| `erp_product_code`, `erp_product_name`, `erp_mapping_confidence` | string/number | Snapshot du produit ERP et confiance de mapping (0–1). |
+| `prescribed_quantity`, `dispensed_quantity` | number | Quantité prescrite vs délivrée (`dispensed` ≤ `prescribed`). |
+| `substitution_reason` | string | Obligatoire si le produit délivré diffère du prescrit. |
+| `batch_number` | string | Numéro de lot. |
+| `metadata` | object | Métadonnées libres de ligne. |
+
+## Exemple de requête — dispensation pharmacie
+
+```bash
+curl --request POST \
+  --url "https://provider-api-sandbox.elenami.com/api/v1/service-executions" \
+  --header "X-Api-Key: $AZURANCE_PROVIDER_API_KEY" \
+  --header "Content-Type: application/json" \
+  --header "Idempotency-Key: 550e8400-e29b-41d4-a716-446655440000" \
+  --data '{
+    "contract_uid": "ctr_sandbox_001",
+    "covered_person_type": "beneficiary",
+    "covered_person_uid": "ben_sandbox_001",
+    "coverage_type_code": "PHARMACY_DRUG",
+    "service_date": "2026-01-15",
+    "provider_reference": "ERP-DISP-2026-0001",
+    "consent_ref": "40000000-0000-4000-8000-000000000001",
+    "items": [
+      {
+        "description": "Amoxicilline 500mg x12",
+        "quantity": 12,
+        "unit_price": 2920,
+        "prescription_uid": "50000000-0000-4000-8000-000000000001",
+        "prescription_line_uid": "50000000-0000-4000-8000-000000000003",
+        "prescribed_medication_code": "AMOX-500-BRAND",
+        "medication_product_uid": "60000000-0000-4000-8000-000000000001",
+        "medication_code": "AMOX500",
+        "prescribed_quantity": 12,
+        "dispensed_quantity": 10,
+        "substitution_reason": "Générique équivalent, accord patient.",
+        "batch_number": "LOT-2026-A134"
+      }
+    ]
+  }'
+```
 
 ## Exemple de réponse
 
@@ -37,40 +95,48 @@ Cet endpoint enregistre une prestation réellement effectuée par le prestataire
 {
   "data": {
     "uuid": "se_sandbox_001",
-    "execution_number": "SE-2025-001234",
+    "contract_uid": "ctr_sandbox_001",
+    "covered_person_type": "beneficiary",
+    "covered_person_uid": "ben_sandbox_001",
+    "coverage_type_code": "PHARMACY_DRUG",
+    "coverage_codes": ["PHARMACY_DRUG"],
+    "service_date": "2026-01-15",
+    "provider_reference": "ERP-DISP-2026-0001",
+    "consent_ref": "40000000-0000-4000-8000-000000000001",
     "status": "completed",
-    "covered_person_type": "policyholder",
-    "covered_person_uid": "mbr_sandbox_001",
-    "contract_uid": "sub_sandbox_001",
-    "policy_number": "NSIA-POL-2025-001",
-    "provider_uid": "prov_sandbox_001",
-    "coverage_type_code": "AMBULATORY",
-    "service_date": "2025-01-15",
-    "executed_at": "2025-01-15T10:30:00Z",
-    "total_amount": 50000,
-    "currency": "XOF",
     "items": [
       {
-        "uid": "sei_sandbox_001",
-        "service_code": "CS-001",
-        "service_name": "Consultation générale",
-        "quantity": 1,
-        "unit_price": 15000,
-        "total_price": 15000
-      },
-      {
-        "uid": "sei_sandbox_002",
-        "service_code": "CS-002",
-        "service_name": "Analyse sanguine",
-        "quantity": 1,
-        "unit_price": 35000,
-        "total_price": 35000
+        "description": "Amoxicilline 500mg x12",
+        "quantity": 12,
+        "unit_price": 2920,
+        "coverage_type_code": "PHARMACY_DRUG",
+        "item_type": "medication",
+        "reference_status": "VERIFIED",
+        "prescription_uid": "50000000-0000-4000-8000-000000000001",
+        "prescription_line_uid": "50000000-0000-4000-8000-000000000003",
+        "medication_product_uid": "60000000-0000-4000-8000-000000000001",
+        "dispensed_quantity": 10
       }
     ],
-    "consent_snapshot": {
-      "consent_ref": "cref_sandbox_001",
-      "assured_at": "2025-01-15T10:32:00Z"
-    }
+    "created_at": "2026-01-15T10:32:00Z"
   }
 }
 ```
+
+`item_type` est **dérivé** (jamais déclaré) : `line_type` de la ligne de prescription si référencée, sinon `medical_act`/`medication` selon les champs renseignés, sinon `service`. `reference_status` vaut `VERIFIED` si un identifiant a été résolu dans les référentiels, `UNKNOWN` si un identifiant est resté introuvable, `NONE` si aucun n'était déclaré.
+
+## Workflow
+
+1. Résoudre la personne couverte via `POST /api/v1/covered-persons/resolve`.
+2. Obtenir un consentement via `POST /api/v1/consent-requests` puis `POST /api/v1/consent-requests/{uid}/verify`.
+3. Enregistrer la prestation via cet endpoint avec le `consent_ref`.
+4. Soumettre le claim via `POST /api/v1/claims/draft` puis `/submit` en référençant le `uuid` retourné dans `service_execution_uid`.
+
+## Erreurs
+
+| Code | Description |
+| --- | --- |
+| 401 | Clé API manquante ou invalide. |
+| 403 | Scope `service_executions.create` manquant ou consentement invalide. |
+| 422 | Lignes invalides (`errors` par champ `items.{index}.{champ}`) ou `LEDGER_IDEMPOTENCY_REQUIRED`. |
+| 503 | Service interne indisponible — réessayer avec backoff. |

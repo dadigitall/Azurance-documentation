@@ -689,17 +689,31 @@ components:
         medical_act_uid:
           type: string
           format: uuid
+          description: 'Acte du référentiel (`GET /api/v1/reference/medical-acts`).
+            Prioritaire sur `medical_act_code` quand les deux sont fournis. Rejeté
+            si inconnu ou inactif (`422 MEDICAL_ACT_NOT_FOUND` / `MEDICAL_ACT_INACTIVE`),
+            ou si uid et code pointent vers des actes différents (`MEDICAL_ACT_MISMATCH`).'
         medical_act_code:
           type: string
-          description: 'Code acte (CCAM/ICHI). Vérifié de cohérence avec la couverture
-            de la ligne : un acte labo ne peut pas être facturé sous `CONSULTATION_GP`.'
+          description: 'Code acte (CCAM/ICHI, ex. `DEQP003`). Résolu contre le référentiel
+            : inconnu → warning `UNKNOWN_REFERENCE_CODE` à la création du brouillon,
+            rejeté à la soumission si le plan de l''assuré exige des règles par acte.
+            Quand il résout, `medical_act_uid`, `medical_act_category` et
+            `medical_act_chapter` canoniques sont enrichis automatiquement. La
+            cohérence avec la couverture de la ligne est vérifiée : un acte labo ne
+            peut pas être facturé sous `CONSULTATION_GP`.'
         medical_act_category:
           type: string
+          description: 'Catégorie d''acte déclarée (surgery, imaging, biology...).
+            Ignorée si l''acte est résolu — la valeur canonique du référentiel est
+            retenue.'
         medical_act_chapter:
           type: string
+          description: 'Chapitre d''acte déclaré. Même règle que `medical_act_category`.'
         prescription_uid:
           type: string
           format: uuid
+          description: 'Ordonnance de référence. Requise avec `prescription_line_uid`.'
         prescription_line_uid:
           type: string
           format: uuid
@@ -710,15 +724,21 @@ components:
             peut pas être facturée sous une couverture pharmacie.'
         prescribed_medication_code:
           type: string
+          description: Code du médicament prescrit (snapshot nomenclature prescripteur).
         medication_code:
           type: string
+          description: 'Code du médicament délivré. Code de nomenclature produit —
+            inconnu du référentiel → warning `UNKNOWN_REFERENCE_CODE`, jamais bloquant.'
         medication_product_uid:
           type: string
           format: uuid
-          description: Produit Azurance retenu par l'ERP après recherche/résolution.
+          description: 'Produit Azurance retenu par l''ERP après recherche/résolution
+            (`GET /api/v1/medications`). Rejeté si inconnu ou inactif
+            (`422 MEDICATION_PRODUCT_NOT_FOUND` / `MEDICATION_PRODUCT_INACTIVE`).'
         presentation_uid:
           type: string
-          description: Présentation Azurance retenue si applicable.
+          description: 'Présentation Azurance retenue si applicable (code nomenclature
+            `source_presentation_key`/`source_cip`). Inconnue du référentiel → warning.'
         erp_product_code:
           type: string
           description: Code produit interne ERP, conservé comme snapshot de dispensation.
@@ -730,8 +750,20 @@ components:
           minimum: 0
           maximum: 1
           description: Confiance déclarée par l'ERP pour le rapprochement ponctuel.
+        prescribed_quantity:
+          type: number
+          description: Quantité prescrite sur la ligne d'ordonnance.
         dispensed_quantity:
           type: number
+          description: 'Quantité réellement délivrée. Doit être ≤ `prescribed_quantity`
+            en dispensation pharmacie.'
+        substitution_reason:
+          type: string
+          description: 'Obligatoire si le médicament délivré diffère du prescrit
+            (générique, rupture...).'
+        batch_number:
+          type: string
+          description: Numéro de lot du produit délivré.
         metadata:
           type: object
 paths:
@@ -2416,19 +2448,39 @@ paths:
             example:
               contract_uid: ctr_sandbox_001
               policyholder_id: mbr_sandbox_001
-              coverage_type_code: OUTPATIENT_PHARMACY
               service_date: '2026-01-15'
-              amount_claimed: 50000
+              amount_claimed: 58500
               currency: XOF
               covered_person_type: policyholder
               covered_person_uid: mbr_sandbox_001
+              provider_reference: ERP-CLAIM-2026-0001
               items:
-              - description: Consultation générale
+              - description: Consultation médecin généraliste
                 quantity: 1
-                unit_price: 50000
+                unit_price: 15000
+                coverage_type_code: CONSULTATION_GP
+                medical_act_code: DEQP003
+              - description: NFS (numération formule sanguine)
+                quantity: 1
+                unit_price: 8500
+                coverage_type_code: LAB_ANALYSIS
+                prescription_uid: 50000000-0000-4000-8000-000000000001
+                prescription_line_uid: 50000000-0000-4000-8000-000000000002
+              - description: Amoxicilline 500mg x12
+                quantity: 12
+                unit_price: 2920
+                coverage_type_code: PHARMACY_DRUG
+                prescription_uid: 50000000-0000-4000-8000-000000000001
+                prescription_line_uid: 50000000-0000-4000-8000-000000000003
+                medication_product_uid: 60000000-0000-4000-8000-000000000001
+                medication_code: AMOX500
+                prescribed_quantity: 12
+                dispensed_quantity: 12
       responses:
         '201':
-          description: Brouillon de claim créé
+          description: Brouillon de claim créé. `claim_hash` fige le contenu de
+            la facture ; `warnings` liste les identifiants cliniques déclarés mais
+            inconnus des référentiels (non bloquant sauf plan strict par acte).
           content:
             application/json:
               schema:
@@ -2437,59 +2489,62 @@ paths:
                   data:
                     type: object
                     properties:
-                      uuid:
+                      draft_uid:
                         type: string
                         format: uuid
                       claim_number:
                         type: string
+                      claim_hash:
+                        type: string
+                        description: Hash d'intégrité de la facture, validé à la soumission.
                       status:
                         type: string
                         example: draft
-                      contract_uid:
-                        type: string
-                        format: uuid
-                        description: Identifiant du contrat de couverture.
-                      subscription_id:
-                        type: string
-                        deprecated: true
-                        description: Alias legacy de contract_uid.
-                      policyholder_id:
-                        type: string
-                      coverage_type_code:
-                        type: string
-                      service_date:
-                        type: string
-                        format: date
                       amount_claimed:
                         type: number
                       currency:
                         type: string
-                      items:
-                        type: array
-                        items:
-                          type: object
+                      service_date:
+                        type: string
+                        format: date
+                      coverage_type_code:
+                        type: string
+                        nullable: true
+                        description: Code de garantie si toutes les lignes partagent
+                          la même couverture, null sinon.
+                      items_count:
+                        type: integer
+                  warnings:
+                    type: array
+                    nullable: true
+                    items:
+                      type: string
+                    description: 'Identifiants inconnus des référentiels, format
+                      `items.{index}.{champ}:CODE`. Ex: `items.1.medical_act_code:UNKNOWN_REFERENCE_CODE`.'
               example:
                 data:
-                  uuid: claim_sandbox_draft_001
+                  draft_uid: 8f4b2c1d-0000-4000-8000-000000000001
                   claim_number: CLM-2026-001234
+                  claim_hash: 9f2c4b8e1a7d3f5b6c0e2a4d8f1b3c5e7a9d1f3b5c7e9a1d3f5b7c9e1a3d5f7b9c
                   status: draft
-                  contract_uid: sub_sandbox_001
-                  subscription_id: sub_sandbox_001
-                  policyholder_id: mbr_sandbox_001
-                  coverage_type_code: OUTPATIENT_PHARMACY
-                  service_date: '2026-01-15'
-                  amount_claimed: 50000
+                  amount_claimed: 58500
                   currency: XOF
-                  items:
-                  - description: Consultation générale
-                    quantity: 1
-                    unit_price: 50000
+                  service_date: '2026-01-15'
+                  coverage_type_code: null
+                  items_count: 3
+                warnings: null
         '401':
           description: API key absente ou invalide
         '403':
           description: Scope `claims.create` manquant
+        '409':
+          description: 'provider_reference déjà utilisée (`PROVIDER_REFERENCE_CONFLICT`)'
         '422':
-          description: Validation du body échouée
+          description: 'Lignes invalides : chaque entrée de `errors` pointe un champ
+            de ligne (`items.{index}.{champ}`) avec ses codes d''erreur —
+            `PRESCRIPTION_LINE_NOT_FOUND`, `PRESCRIPTION_LINE_MISMATCH`,
+            `MEDICAL_ACT_NOT_FOUND`, `MEDICATION_PRODUCT_NOT_FOUND`,
+            `ITEM_COVERAGE_INCOMPATIBLE`, `UNKNOWN_REFERENCE_CODE` (plan strict).'
   /api/v1/claims/{claimId}/draft:
     get:
       operationId: getClaimDraft
@@ -2640,7 +2695,7 @@ paths:
                   uuid: claim_sandbox_draft_001
                   claim_number: CLM-2026-001234
                   status: submitted
-                  amount_claimed: 50000
+                  amount_claimed: 58500
                   amount_approved: null
                   currency: XOF
         '401':
@@ -2648,15 +2703,69 @@ paths:
         '403':
           description: Scope `claims.create` manquant
         '404':
-          description: Claim introuvable ou n'est pas un brouillon
+          description: Claim introuvable
         '422':
-          description: Check final refusé, claim non soumis
+          description: 'Check final refusé, claim non soumis. `data.error_code`
+            identifie la cause : `UNKNOWN_REFERENCE_CODE` (plan à règles par acte
+            et lignes encore non résolues), `ITEM_COVERAGE_MISSING`,
+            `ITEMS_NOT_ELIGIBLE`, `EXECUTION_MISMATCH`,
+            `PRIOR_AUTHORIZATION_NOT_FOUND|INVALID|MISMATCH|COVERAGE_MISMATCH|AMOUNT_EXCEEDED`,
+            `CLAIM_PENDING_PRIOR_AUTHORIZATIONS`, consentement invalide.'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      error_code:
+                        type: string
+                      reason:
+                        type: string
+                      errors:
+                        type: object
+                        additionalProperties:
+                          type: array
+                          items:
+                            type: string
+              example:
+                message: Le plan de l'assuré applique des règles par acte.
+                data:
+                  error_code: UNKNOWN_REFERENCE_CODE
+                  reason: Le plan de l'assuré applique des règles par acte — chaque
+                    ligne déclarant un acte doit référencer un code du référentiel.
+                  errors:
+                    items.1.medical_act_code:
+                    - UNKNOWN_REFERENCE_CODE
         '503':
           description: Service interne indisponible
   /api/v1/service-executions:
     post:
       operationId: recordServiceExecution
       summary: Enregistrer une prestation réellement effectuée par l'ERP
+      description: 'Atteste qu''une prestation a eu lieu — sert de base au claim.
+        Chaque item passe la même validation référentielle qu''un claim : uid
+        produit/acte inconnus → `422`, codes inconnus → ligne marquée `UNKNOWN`.
+        Une `Idempotency-Key` ou `provider_reference` est obligatoire dès qu''une
+        ligne relève d''une couverture à ledger (pharmacie, labo, séances,
+        équipements).'
+      x-codeSamples:
+      - lang: curl
+        source: "curl --request POST \\\n  --url \"https://provider-api-sandbox.elenami.com/api/v1/service-executions\"\
+          \ \\\n  --header \"X-Api-Key: $AZURANCE_PROVIDER_API_KEY\" \\\n  --header\
+          \ \"Content-Type: application/json\" \\\n  --header \"Idempotency-Key:\
+          \ $(uuidgen)\" \\\n  --data '{\"contract_uid\":\"ctr_sandbox_001\",\"covered_person_type\"\
+          :\"beneficiary\",\"covered_person_uid\":\"ben_sandbox_001\",\"coverage_type_code\"\
+          :\"PHARMACY_DRUG\",\"service_date\":\"2026-01-15\",\"provider_reference\"\
+          :\"ERP-DISP-2026-0001\",\"consent_ref\":\"40000000-0000-4000-8000-000000000001\"\
+          ,\"items\":[{\"description\":\"Amoxicilline 500mg x12\",\"quantity\":12\
+          ,\"unit_price\":2920,\"prescription_uid\":\"50000000-0000-4000-8000-000000000001\"\
+          ,\"prescription_line_uid\":\"50000000-0000-4000-8000-000000000003\"\
+          ,\"medication_product_uid\":\"60000000-0000-4000-8000-000000000001\"\
+          ,\"prescribed_quantity\":12,\"dispensed_quantity\":12}]}'\n"
       parameters:
       - $ref: '#/components/parameters/RequestId'
       requestBody:
@@ -2699,6 +2808,8 @@ paths:
                   format: date
                 provider_reference:
                   type: string
+                  description: 'Référence ERP unique par prestataire — anti-doublon
+                    (`409`/`200` avec la prestation existante si rejouée).'
                 consent_ref:
                   type: string
                   format: uuid
@@ -2706,11 +2817,110 @@ paths:
                   type: array
                   items:
                     $ref: '#/components/schemas/MedicationReferenceLine'
+            example:
+              contract_uid: ctr_sandbox_001
+              covered_person_type: beneficiary
+              covered_person_uid: ben_sandbox_001
+              coverage_type_code: PHARMACY_DRUG
+              service_date: '2026-01-15'
+              provider_reference: ERP-DISP-2026-0001
+              consent_ref: 40000000-0000-4000-8000-000000000001
+              items:
+              - description: Amoxicilline 500mg x12
+                quantity: 12
+                unit_price: 2920
+                prescription_uid: 50000000-0000-4000-8000-000000000001
+                prescription_line_uid: 50000000-0000-4000-8000-000000000003
+                prescribed_medication_code: AMOX-500-BRAND
+                medication_product_uid: 60000000-0000-4000-8000-000000000001
+                medication_code: AMOX500
+                prescribed_quantity: 12
+                dispensed_quantity: 10
+                substitution_reason: Générique équivalent, accord patient.
+                batch_number: LOT-2026-A134
       responses:
         '201':
-          description: Prestation enregistrée
+          description: Prestation enregistrée. Chaque item est renvoyé enrichi
+            (`item_type` dérivé de la prescription, `reference_status` =
+            `VERIFIED`/`UNKNOWN`/`NONE`).
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      uuid:
+                        type: string
+                        format: uuid
+                      contract_uid:
+                        type: string
+                        format: uuid
+                      covered_person_type:
+                        type: string
+                      covered_person_uid:
+                        type: string
+                      coverage_type_code:
+                        type: string
+                        nullable: true
+                      coverage_codes:
+                        type: array
+                        items:
+                          type: string
+                      service_date:
+                        type: string
+                        format: date
+                      provider_reference:
+                        type: string
+                      consent_ref:
+                        type: string
+                        format: uuid
+                      status:
+                        type: string
+                        example: completed
+                      items:
+                        type: array
+                        items:
+                          type: object
+                      created_at:
+                        type: string
+                        format: date-time
+              example:
+                data:
+                  uuid: se_sandbox_001
+                  contract_uid: ctr_sandbox_001
+                  covered_person_type: beneficiary
+                  covered_person_uid: ben_sandbox_001
+                  coverage_type_code: PHARMACY_DRUG
+                  coverage_codes:
+                  - PHARMACY_DRUG
+                  service_date: '2026-01-15'
+                  provider_reference: ERP-DISP-2026-0001
+                  consent_ref: 40000000-0000-4000-8000-000000000001
+                  status: completed
+                  items:
+                  - description: Amoxicilline 500mg x12
+                    quantity: 12
+                    unit_price: 2920
+                    coverage_type_code: PHARMACY_DRUG
+                    item_type: medication
+                    reference_status: VERIFIED
+                    prescription_uid: 50000000-0000-4000-8000-000000000001
+                    prescription_line_uid: 50000000-0000-4000-8000-000000000003
+                    medication_product_uid: 60000000-0000-4000-8000-000000000001
+                    dispensed_quantity: 10
+                  created_at: '2026-01-15T10:32:00Z'
+        '401':
+          description: API key absente ou invalide
         '403':
-          description: Consentement ou scope invalide
+          description: Consentement ou scope `service_executions.create` invalide
+        '422':
+          description: 'Lignes invalides (`errors` par champ `items.{index}.{champ}`)
+            ou `LEDGER_IDEMPOTENCY_REQUIRED` si une couverture à ledger est envoyée
+            sans `Idempotency-Key` ni `provider_reference`.'
+        '503':
+          description: Service interne indisponible
     get:
       operationId: listServiceExecutions
       summary: Lister les prestations réellement effectuées par le prestataire
