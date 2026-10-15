@@ -4,13 +4,19 @@ description: "Détail d'un code de garantie du référentiel global."
 openapi: "/openapi/provider-api.openapi.yml GET /api/v1/reference/coverage-types/{code}"
 ---
 
-Retourne le détail d'un code de garantie du référentiel global.
+Retourne le détail d'un code de garantie. Le code est d'abord cherché dans le catalogue global ; avec `insurer_tenant_uids`, la recherche inclut les codes propres à ces assureurs (réservés aux assureurs de votre réseau).
 
 ## Paramètres de chemin
 
 | Paramètre | Type | Requis | Description |
 | --- | --- | --- | --- |
 | `code` | string | oui | Code de garantie (ex. `HOSP_STANDARD`). |
+
+## Paramètres de requête
+
+| Paramètre | Type | Requis | Description |
+| --- | --- | --- | --- |
+| `insurer_tenant_uids` | string | non | Tenants assureur séparés par des virgules, pour chercher aussi dans leurs codes propres. |
 
 ## Exemple de requête
 
@@ -35,7 +41,8 @@ curl --request GET \
 
 ## Erreurs
 
-| Code | Description |
-| --- | --- |
-| 401 | Clé API manquante ou invalide. |
-| 404 | Code de couverture inconnu. |
+| Code | `error_code` | Description |
+| --- | --- | --- |
+| 401 | — | Clé API manquante ou invalide. |
+| 403 | `INSURER_TENANT_FORBIDDEN` | Un tenant demandé n'est pas relié à votre réseau. |
+| 404 | `COVERAGE_TYPE_NOT_FOUND` | Code introuvable dans le catalogue global ni chez les assureurs demandés. |

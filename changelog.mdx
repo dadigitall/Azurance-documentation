@@ -6,6 +6,13 @@ icon: "list"
 
 Suivez les changements de contrat public, les nouvelles pages et les corrections importantes.
 
+## 2026-10-21 - Catalogue des couvertures accessible aux clés prestataire
+
+- **`GET /api/v1/reference/coverage-types` (et `/{code}`) fonctionne désormais avec une clé prestataire** : le catalogue global (socle partagé par tous les assureurs) est retourné sans contexte assureur — le tenant prestataire n'était pas reconnu par le service amont et provoquait un `503` trompeur.
+- **Nouveau paramètre `insurer_tenant_uids`** : liste de tenants assureur séparés par des virgules pour inclure les codes propres à ces assureurs — limité aux assureurs reliés à votre réseau (`403 INSURER_TENANT_FORBIDDEN` sinon).
+- **Prestations** : `POST /api/v1/service-executions` résout automatiquement l'assureur du contrat (`contract_uid`) pour valider les codes de couverture — les clés prestataire n'ont plus besoin de contexte tenant.
+- **Erreurs amont distinguées** : un rejet de contexte d'un service interne renvoie `502` avec `error_code=UPSTREAM_REJECTED` et `upstream_status`, au lieu d'un `503` générique. Les vraies indisponibilités restent `503`.
+
 ## 2026-10-21 - Validation référentielle des identifiants cliniques
 
 - **`reference_status` par ligne** : chaque `items[]` de claim et de service execution expose `VERIFIED` (identifiant résolu dans les référentiels), `UNKNOWN` (identifiant introuvable — détail dans `metadata.unknown_references`) ou `NONE` (aucun déclaré).

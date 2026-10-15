@@ -34,6 +34,10 @@ Chaque item passe la même résolution référentielle qu'un claim : les uid ine
 | `items` | array | oui | Lignes de prestation (médicaments, actes, analyses). |
 | `metadata` | object | non | Métadonnées libres. |
 
+<Note>
+L'assureur est déduit automatiquement du `contract_uid` — les codes `coverage_type_code` sont validés contre le catalogue de cet assureur. Aucun champ de contexte assureur n'est à envoyer.
+</Note>
+
 ## Champs d'une ligne `items[]`
 
 | Champ | Type | Description |
@@ -139,4 +143,5 @@ curl --request POST \
 | 401 | Clé API manquante ou invalide. |
 | 403 | Scope `service_executions.create` manquant ou consentement invalide. |
 | 422 | Lignes invalides (`errors` par champ `items.{index}.{champ}`) ou `LEDGER_IDEMPOTENCY_REQUIRED`. |
+| 502 | `UPSTREAM_REJECTED` — un service interne a rejeté le contexte de la requête (`upstream_status` porte le code amont). À signaler, ne pas réessayer tel quel. |
 | 503 | Service interne indisponible — réessayer avec backoff. |

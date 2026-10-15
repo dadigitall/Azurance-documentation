@@ -4374,6 +4374,11 @@ paths:
     get:
       operationId: listApiV1ReferenceCoverage-types
       summary: Lister coverage-types
+      description: >-
+        Retourne le catalogue global des codes de garantie partagé par tous
+        les assureurs de la plateforme. Le paramètre optionnel
+        `insurer_tenant_uids` inclut en plus les codes propres à des assureurs
+        précis — limité aux assureurs reliés au réseau du prestataire.
       parameters:
       - $ref: '#/components/parameters/RequestId'
       - in: query
@@ -4386,11 +4391,24 @@ paths:
         required: false
         schema:
           type: string
+      - in: query
+        name: insurer_tenant_uids
+        required: false
+        description: >-
+          Liste de tenants assureur séparés par des virgules (ou paramètre
+          répété). Restreint aux assureurs reliés au réseau du prestataire ;
+          tout tenant non autorisé est rejeté.
+        schema:
+          type: string
       responses:
         '200':
           description: Succès
         '401':
           description: Clé API absente ou invalide
+        '403':
+          description: Tenant assureur demandé hors du réseau du prestataire
+        '502':
+          description: 'Catalogue indisponible auprès du service amont (error_code `COVERAGE_TYPES_UNAVAILABLE`)'
   /api/v1/reference/coverage-types/{code}:
     get:
       operationId: getApiV1ReferenceCoverage-types
@@ -4402,8 +4420,20 @@ paths:
         required: true
         schema:
           type: string
+      - in: query
+        name: insurer_tenant_uids
+        required: false
+        description: >-
+          Tenants assureur dans lesquels chercher le code, en plus du
+          catalogue global.
+        schema:
+          type: string
       responses:
         '200':
           description: Succès
         '401':
           description: Clé API absente ou invalide
+        '403':
+          description: Tenant assureur demandé hors du réseau du prestataire
+        '404':
+          description: 'Code introuvable (error_code `COVERAGE_TYPE_NOT_FOUND`)'

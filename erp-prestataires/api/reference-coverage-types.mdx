@@ -10,12 +10,17 @@ Référentiel **global** des couvertures : mêmes codes pour tous les assureurs 
 Le référentiel ne dit pas si la couverture est souscrite par un assuré donné — c'est la vérification d'éligibilité (`POST /api/v1/eligibility/check`) qui l'indique. Un code non couvert par le plan est rejeté à la soumission, ligne par ligne.
 </Note>
 
+<Note>
+Aucun contexte assureur n'est requis : l'endpoint retourne le socle partagé par la plateforme. Pour inclure aussi les codes propres à un assureur précis (codes customs), passer `insurer_tenant_uids` — limité aux assureurs reliés à votre réseau.
+</Note>
+
 ## Paramètres de requête
 
 | Paramètre | Type | Requis | Description |
 | --- | --- | --- | --- |
 | `category` | string | non | Filtre sur la catégorie métier (ex. `CONSULTATION`, `HOSPITALISATION`). |
 | `per_page` | string | non | Taille de page. |
+| `insurer_tenant_uids` | string | non | Tenants assureur séparés par des virgules (ou paramètre répété). Ajoute les codes propres à ces assureurs — doivent appartenir à votre réseau de soins. |
 
 ## Exemple de requête
 
@@ -48,6 +53,9 @@ curl --request GET \
 
 ## Erreurs
 
-| Code | Description |
-| --- | --- |
-| 401 | Clé API manquante ou invalide. |
+| Code | `error_code` | Description |
+| --- | --- | --- |
+| 401 | — | Clé API manquante ou invalide. |
+| 403 | `INSURER_TENANT_FORBIDDEN` | Un tenant demandé dans `insurer_tenant_uids` n'est pas relié à votre réseau. |
+| 403 | `INSURER_RELATIONSHIPS_EMPTY` | Le prestataire n'a aucune relation assureur active. |
+| 502 | `COVERAGE_TYPES_UNAVAILABLE` | Catalogue indisponible auprès du service amont. |
