@@ -773,10 +773,13 @@ components:
           description: 'Ordre interne — **uniquement sur `POST /service-executions`** :
             alternative à `prescription_uid` + `prescription_line_uid` quand le
             prestataire se prescrit à lui-même (hôpital avec labo/pharmacie
-            interne). Une ordonnance interne est matérialisée automatiquement ;
-            la ligne est flaguée `metadata.internal_order: true` pour la
-            visibilité assureur. Mutuellement exclusif avec les champs
-            prescription. Ignoré sur les claims (qui référencent la SE).'
+            interne). Réservé aux types prescripteurs (HOSPITAL, CLINIC,
+            SPECIALIST) — les pharmacies et laboratoires standalone sont rejetés
+            `403 INTERNAL_ORDER_NOT_ALLOWED`. Une ordonnance interne est
+            matérialisée automatiquement ; la ligne est flaguée
+            `metadata.internal_order: true` pour la visibilité assureur.
+            Mutuellement exclusif avec les champs prescription. Ignoré sur les
+            claims (qui référencent la SE).'
           properties:
             code:
               type: string

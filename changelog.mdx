@@ -11,6 +11,7 @@ Suivez les changements de contrat public, les nouvelles pages et les corrections
 - **`items[].internal_order`** : nouvelle alternative à `prescription_uid`/`prescription_line_uid` pour les lignes à ledger (pharmacie, analyses, séances, équipements) quand le prestataire se prescrit à lui-même — hôpital avec laboratoire, pharmacie ou unité de kiné intégrée. Une vraie ordonnance interne est matérialisée automatiquement (encounter + ordonnance + lignes, atomique et idempotente).
 - **Champs minimaux** : `code` + `prescriber_name` obligatoires ; `encounter_uid` optionnel pour rattacher à un séjour existant (sinon encounter créé), `line_type` et quantité dérivés de la couverture.
 - **Flag d'audit `metadata.internal_order: true`** : calculé côté plateforme (prescripteur = exécutant), exposé sur les lignes de prestation et de claim — les auto-prescriptions restent visibles par l'assureur, sans blocage.
+- **Réservé aux prestataires prescripteurs** : `HOSPITAL`, `CLINIC` et `SPECIALIST` peuvent émettre un ordre interne ; `PHARMACY` et `LABORATORY` standalone sont rejetés `403 INTERNAL_ORDER_NOT_ALLOWED` — le contrôle s'applique à toute ordonnance interne détectée, quel que soit le chemin de création.
 - **Règles** : mutuellement exclusif avec les références d'ordonnance externe ; rejeté (`422`) sur les couvertures sans ledger ou sans `prescriber_name`.
 
 ## 2026-10-21 - Catalogue des couvertures accessible aux clés prestataire

@@ -165,6 +165,7 @@ Le type de ligne d'ordonnance (`medication`, `lab_test`, `session`, `equipment`)
 
 Règles :
 
+- **Réservé aux prestataires prescripteurs** : hôpitaux (`HOSPITAL`), cliniques (`CLINIC`) et spécialistes (`SPECIALIST`). Les exécutants purs — pharmacies (`PHARMACY`) et laboratoires (`LABORATORY`) standalone — sont rejetés `403 INTERNAL_ORDER_NOT_ALLOWED` et doivent référencer une ordonnance externe. Le contrôle s'applique à toute ordonnance interne détectée, y compris créée via les endpoints cliniques.
 - `internal_order` est **mutuellement exclusif** avec `prescription_uid`/`prescription_line_uid` sur la même ligne (`422`).
 - Il n'est accepté que sur les couvertures à ledger — `422` sinon.
 - La ligne créée est flaguée `metadata.internal_order: true`, calculé côté plateforme (prescripteur = exécutant) — **visible par l'assureur** sur la prestation et le claim. Ce flag est dérivé, jamais déclaré.
@@ -182,7 +183,7 @@ Règles :
 | Code | Description |
 | --- | --- |
 | 401 | Clé API manquante ou invalide. |
-| 403 | Scope `service_executions.create` manquant ou consentement invalide. |
+| 403 | Scope `service_executions.create` manquant, consentement invalide, ou `INTERNAL_ORDER_NOT_ALLOWED` (type prestataire non prescripteur). |
 | 422 | Lignes invalides (`errors` par champ `items.{index}.{champ}`) ou `LEDGER_IDEMPOTENCY_REQUIRED`. |
 | 502 | `UPSTREAM_REJECTED` — un service interne a rejeté le contexte de la requête (`upstream_status` porte le code amont). À signaler, ne pas réessayer tel quel. |
 | 503 | Service interne indisponible — réessayer avec backoff. |
