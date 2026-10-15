@@ -6,6 +6,11 @@ icon: "list"
 
 Suivez les changements de contrat public, les nouvelles pages et les corrections importantes.
 
+## 2026-10-21 - File de revue des codes inconnus des référentiels
+
+- Les identifiants déclarés inconnus des référentiels (`UNKNOWN_REFERENCE_CODE` sur les lignes de prestations et de claims) alimentent désormais une **file de revue interne** : chaque code manquant est comptabilisé (domaine, occurrences, dernier contexte) pour permettre aux administrateurs d'enrichir les référentiels — sans bloquer ni la prescription ni la déclaration.
+- Aucun changement de contrat public : les lignes continuent d'exposer `reference_status: UNKNOWN` et `metadata.unknown_references` comme avant.
+
 ## 2026-10-21 - Ordres internes (`internal_order`) sur les prestations
 
 - **`items[].internal_order`** : nouvelle alternative à `prescription_uid`/`prescription_line_uid` pour les lignes à ledger (pharmacie, analyses, séances, équipements) quand le prestataire se prescrit à lui-même — hôpital avec laboratoire, pharmacie ou unité de kiné intégrée. Une vraie ordonnance interne est matérialisée automatiquement (encounter + ordonnance + lignes, atomique et idempotente).
