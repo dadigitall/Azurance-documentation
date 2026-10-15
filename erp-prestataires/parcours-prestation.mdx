@@ -203,7 +203,7 @@ Idempotency-Key: erp-dispensation-2026-0001
 
 Règles pharmacie v1:
 
-- ordonnance obligatoire;
+- ordonnance obligatoire — externe via `prescription_uid` + `prescription_line_uid`, ou **interne** via `internal_order` quand le prestataire se prescrit à lui-même (hôpital avec pharmacie/labo intégré, voir [créer une prestation](/erp-prestataires/api/service-executions-create#ordre-interne-internal_order));
 - `prescription_line_uid` recommandé si l'ordonnance est structurée — la ligne doit exister et appartenir à l'ordonnance (`422 PRESCRIPTION_LINE_NOT_FOUND` / `PRESCRIPTION_LINE_MISMATCH`);
 - `substitution_reason` obligatoire si le médicament délivré diffère du médicament prescrit;
 - `dispensed_quantity` doit être inférieure ou égale à `prescribed_quantity`;

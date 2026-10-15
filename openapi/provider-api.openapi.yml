@@ -764,6 +764,50 @@ components:
         batch_number:
           type: string
           description: Numéro de lot du produit délivré.
+        sessions_performed:
+          type: integer
+          minimum: 1
+          description: 'Séances réalisées — obligatoire pour `KINE_SESSION`.'
+        internal_order:
+          type: object
+          description: 'Ordre interne — **uniquement sur `POST /service-executions`** :
+            alternative à `prescription_uid` + `prescription_line_uid` quand le
+            prestataire se prescrit à lui-même (hôpital avec labo/pharmacie
+            interne). Une ordonnance interne est matérialisée automatiquement ;
+            la ligne est flaguée `metadata.internal_order: true` pour la
+            visibilité assureur. Mutuellement exclusif avec les champs
+            prescription. Ignoré sur les claims (qui référencent la SE).'
+          properties:
+            code:
+              type: string
+              description: 'Code de l''examen/produit prescrit en interne
+                (NABM/LOINC pour une analyse, code acte ou produit sinon).'
+            prescriber_name:
+              type: string
+              description: Médecin prescripteur interne (obligatoire).
+            prescriber_registration_number:
+              type: string
+              description: Numéro d''ordre professionnel du prescripteur.
+            indication:
+              type: string
+              description: Motif clinique de l''ordre.
+            encounter_uid:
+              type: string
+              format: uuid
+              description: 'Encounter auquel rattacher l''ordonnance interne
+                (ex. séjour en cours). Sinon un encounter est créé automatiquement.'
+            chief_complaint:
+              type: string
+              description: Motif du passage, utilisé si un encounter est créé.
+            session_count:
+              type: integer
+              description: Nombre de séances prescrites (kiné).
+            medication_name:
+              type: string
+              description: Nom du médicament prescrit (ordre interne pharmacie).
+          required:
+          - code
+          - prescriber_name
         metadata:
           type: object
 paths:

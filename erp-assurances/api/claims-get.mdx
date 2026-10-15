@@ -44,7 +44,7 @@ Pour récupérer le contexte médical lié aux prescriptions du claim, utilisez 
 | `rejection_reason` | string | Motif de rejet, présent si `REJECTED`. |
 | `reviewed_by` | string | Opérateur ayant pris la décision. |
 | `documents` | array | Pièces justificatives rattachées. |
-| `items` | array | Lignes de prestation du claim. |
+| `items` | array | Lignes de prestation du claim. `items[].metadata.internal_order: true` signale une ligne prescrite en interne par le prestataire exécutant (ordonnance interne — hôpital avec labo/pharmacie intégré). Flag dérivé par la plateforme, utile pour l'audit. |
 | `latest_history` | object | Dernier changement de statut. |
 
 ## Cas d'usage

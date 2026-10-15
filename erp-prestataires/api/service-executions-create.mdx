@@ -47,6 +47,8 @@ L'assureur est déduit automatiquement du `contract_uid` — les codes `coverage
 | `unit_price` | number | Prix unitaire (requis). |
 | `coverage_type_code` | string | Code de garantie de la ligne ; hérite du code global si omis. |
 | `prescription_uid` + `prescription_line_uid` | uuid | Ligne d'ordonnance exécutée. La ligne doit exister et appartenir à l'ordonnance déclarée — sinon `422 PRESCRIPTION_LINE_NOT_FOUND` / `PRESCRIPTION_LINE_MISMATCH`. Son `line_type` détermine le `item_type` de la ligne. |
+| `internal_order` | object | **Ordre interne** — alternative aux champs prescription quand le prestataire se prescrit à lui-même (hôpital avec labo/pharmacie interne). Voir la section dédiée ci-dessous. Mutuellement exclusif avec `prescription_uid`/`prescription_line_uid`. |
+| `sessions_performed` | integer | Séances réalisées — obligatoire pour `KINE_SESSION`. |
 | `medical_act_uid` | uuid | Acte du référentiel — rejeté si inconnu/inactif, ou incohérent avec `medical_act_code`. |
 | `medical_act_code` | string | Code acte (CCAM/ICHI). Inconnu → ligne marquée `reference_status=UNKNOWN` (non bloquant ici). |
 | `medical_act_category`, `medical_act_chapter` | string | Axes déclarés — remplacés par les valeurs canoniques quand l'acte est résolu. |
@@ -128,6 +130,45 @@ curl --request POST \
 ```
 
 `item_type` est **dérivé** (jamais déclaré) : `line_type` de la ligne de prescription si référencée, sinon `medical_act`/`medication` selon les champs renseignés, sinon `service`. `reference_status` vaut `VERIFIED` si un identifiant a été résolu dans les référentiels, `UNKNOWN` si un identifiant est resté introuvable, `NONE` si aucun n'était déclaré.
+
+## Ordre interne (`internal_order`)
+
+Pour les couvertures à ledger (pharmacie, analyses, séances, équipements), chaque ligne exige une ligne d'ordonnance — mais un hôpital disposant d'un laboratoire ou d'une pharmacie interne n'a pas d'ordonnance externe à référencer. `internal_order` résout ce cas : la plateforme matérialise une **vraie ordonnance interne** (encounter + ordonnance + lignes, en une opération atomique) avant d'enregistrer la prestation.
+
+```json
+{
+  "description": "NFS",
+  "quantity": 1,
+  "unit_price": 8500,
+  "coverage_type_code": "LAB_ANALYSIS",
+  "internal_order": {
+    "code": "NABM-1010",
+    "prescriber_name": "Dr A. Sall",
+    "prescriber_registration_number": "ORD-1234",
+    "indication": "Suspicion paludisme"
+  }
+}
+```
+
+| Champ | Requis | Description |
+| --- | --- | --- |
+| `code` | oui | Code de l'examen/produit prescrit (NABM/LOINC pour une analyse, code acte ou produit sinon). |
+| `prescriber_name` | oui | Médecin prescripteur interne. |
+| `prescriber_registration_number` | non | Numéro d'ordre professionnel. |
+| `indication` | non | Motif clinique. |
+| `encounter_uid` | non | Encounter auquel rattacher l'ordonnance (séjour en cours). Sinon un encounter est créé automatiquement. |
+| `chief_complaint` | non | Motif du passage, si encounter créé. |
+| `session_count` | non | Séances prescrites (kiné). |
+| `medication_name` | non | Nom du médicament (ordre interne pharmacie). |
+
+Le type de ligne d'ordonnance (`medication`, `lab_test`, `session`, `equipment`) est dérivé de la couverture ; la quantité reprend celle de la ligne facturée. Les lignes partageant le même prescripteur sont groupées dans une même ordonnance interne.
+
+Règles :
+
+- `internal_order` est **mutuellement exclusif** avec `prescription_uid`/`prescription_line_uid` sur la même ligne (`422`).
+- Il n'est accepté que sur les couvertures à ledger — `422` sinon.
+- La ligne créée est flaguée `metadata.internal_order: true`, calculé côté plateforme (prescripteur = exécutant) — **visible par l'assureur** sur la prestation et le claim. Ce flag est dérivé, jamais déclaré.
+- La création de l'ordonnance interne est **idempotente** (référence externe propre à la prestation) : rejouer la même requête ne duplique ni encounter ni ordonnance.
 
 ## Workflow
 
