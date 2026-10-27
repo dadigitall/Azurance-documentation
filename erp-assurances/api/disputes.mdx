@@ -1,0 +1,67 @@
+---
+title: "Lister les litiges"
+description: "Liste les litiges où l'assureur est partie."
+openapi: "/openapi/insurer-api.openapi.yml GET /api/v1/disputes"
+---
+
+Cet endpoint liste les litiges déclarés où le tenant assureur authentifié est partie : qu'il en soit l'initiateur ou la partie adverse (litige ouvert par un assuré ou un prestataire contre lui). Il permet de suivre l'état d'instruction des différends auprès de l'ASA.
+
+## Scope requis
+
+`insurer.disputes.view`
+
+## Paramètres de requête
+
+| Paramètre | Type | Description |
+| --- | --- | --- |
+| `stage` | string | Filtre par étape : `instruction`, `mediation`, `arbitrage`, `resolved`. |
+| `page` | integer | Numéro de page (défaut : 1). |
+| `per_page` | integer | Éléments par page (défaut : 50, max : 200). |
+
+## Réponse
+
+Réponse paginée contenant un tableau `disputes`. Les champs `provider` et `insurer` sont des noms d'affichage ; `opened_by_type` indique l'acteur qui a ouvert le litige.
+
+```json
+{
+  "disputes": [
+    {
+      "id": "LIT-2026-0042",
+      "parties": "Clinique du Plateau / NSIA Assurance CI",
+      "provider": "Clinique du Plateau",
+      "insurer": "NSIA Assurance CI",
+      "subject": "Facture FAC-SANDBOX-088 impayée depuis 60 jours",
+      "amount": "50 000",
+      "opened_at": "27 Oct",
+      "stage": "instruction",
+      "sla": 30,
+      "priority": "high",
+      "mediator": null,
+      "category": "delai_paiement",
+      "opened_by_type": "provider",
+      "opened_by_name": "Clinique du Plateau",
+      "counterparty_type": "insurer",
+      "counterparty_name": "NSIA Assurance CI"
+    }
+  ],
+  "total": 1,
+  "per_page": 50,
+  "current_page": 1,
+  "last_page": 1
+}
+```
+
+## Exemple de requête
+
+```bash
+curl --request GET \
+  --url "https://insurer-api-sandbox.elenami.com/api/v1/disputes?stage=instruction" \
+  --header "X-Api-Key: $AZURANCE_INSURER_API_KEY"
+```
+
+## Erreurs
+
+| Code | Description |
+| --- | --- |
+| 401 | Clé API manquante ou invalide. |
+| 403 | Scope `insurer.disputes.view` manquant. |

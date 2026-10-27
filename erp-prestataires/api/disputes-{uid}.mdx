@@ -1,0 +1,53 @@
+---
+title: "Consulter un litige"
+description: "Détail d'un litige où le prestataire est partie."
+openapi: "/openapi/provider-api.openapi.yml GET /api/v1/disputes/{uid}"
+---
+
+Cet endpoint retourne le détail d'un litige, y compris sa description complète, sa référence de prestation éventuelle (`subject_ref`) et les décisions d'arbitrage rendues par l'ASA. Le prestataire doit être partie au litige — sinon l'endpoint répond `404`.
+
+## Scope requis
+
+`disputes.view`
+
+## Paramètre de chemin
+
+| Paramètre | Type | Description |
+| --- | --- | --- |
+| `uid` | string | Identifiant du litige (`LIT-YYYY-NNNN`). |
+
+## Réponse
+
+```json
+{
+  "dispute": {
+    "id": "LIT-2026-0042",
+    "parties": "Clinique du Plateau / NSIA Assurance CI",
+    "provider": "Clinique du Plateau",
+    "insurer": "NSIA Assurance CI",
+    "subject": "Facture FAC-SANDBOX-088 impayée depuis 60 jours",
+    "description": "La facture transmise le 28 août n'a toujours pas été honorée alors que le délai contractuel est de 30 jours.",
+    "amount": "50 000",
+    "opened_at": "27 Oct",
+    "stage": "arbitrage",
+    "sla": 12,
+    "priority": "high",
+    "mediator": "Marc Bamba",
+    "category": "delai_paiement",
+    "opened_by_type": "provider",
+    "opened_by_name": "Clinique du Plateau",
+    "counterparty_type": "insurer",
+    "counterparty_name": "NSIA Assurance CI",
+    "subject_ref": "clm_sandbox_88f3",
+    "decisions": []
+  }
+}
+```
+
+## Erreurs
+
+| Code | Description |
+| --- | --- |
+| 401 | Clé API manquante ou invalide. |
+| 403 | Scope `disputes.view` manquant. |
+| 404 | Litige introuvable ou le prestataire n'y est pas partie. |

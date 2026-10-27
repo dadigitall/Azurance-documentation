@@ -272,6 +272,15 @@
                   "erp-prestataires/api/webhooks-deliveries-retry"
                 ],
                 "expanded": true
+              },
+              {
+                "group": "Litiges",
+                "pages": [
+                  "erp-prestataires/api/disputes",
+                  "erp-prestataires/api/disputes-{uid}",
+                  "erp-prestataires/api/disputes-create"
+                ],
+                "expanded": true
               }
             ]
           }
@@ -522,6 +531,15 @@
                   "erp-assurances/api/notifications-mark-read",
                   "erp-assurances/api/notifications-preferences-get",
                   "erp-assurances/api/notifications-preferences-update"
+                ],
+                "expanded": true
+              },
+              {
+                "group": "Litiges",
+                "pages": [
+                  "erp-assurances/api/disputes",
+                  "erp-assurances/api/disputes-{uid}",
+                  "erp-assurances/api/disputes-create"
                 ],
                 "expanded": true
               }

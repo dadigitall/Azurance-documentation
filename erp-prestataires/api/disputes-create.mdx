@@ -1,0 +1,88 @@
+---
+title: "Déclarer un litige"
+description: "Ouvre un litige à l'initiative du prestataire."
+openapi: "/openapi/provider-api.openapi.yml POST /api/v1/disputes"
+---
+
+Cet endpoint permet au prestataire de déclarer un litige — contre une compagnie d'assurance (facture impayée, refus de prise en charge) ou tout autre acteur. L'identité du prestataire (`opened_by_type = provider`, `provider_uuid`) est **dérivée de la clé API** : elle ne doit jamais être transmise dans le body.
+
+## Scope requis
+
+`disputes.create`
+
+## Champs du body
+
+| Champ | Type | Requis | Description |
+| --- | --- | --- | --- |
+| `subject` | string | oui | Objet du litige (max 255 car.). |
+| `description` | string | non | Détail du différend. |
+| `amount` | number | non | Montant contesté en XOF (défaut : 0). |
+| `category` | string | non | `refus_pec`, `tarification`, `delai_paiement`, `hors_contrat`, `autre`. |
+| `priority` | string | non | `low`, `normal`, `high` (défaut : `normal`). |
+| `counterparty_type` | string | non | Partie adverse : `insured`, `provider`, `insurer`. |
+| `counterparty_uid` | string | non | UID de la partie adverse si connu. |
+| `counterparty_name` | string | non | Nom de la partie adverse (affichage). |
+| `insurer_tenant_uid` | string | non | Tenant UID de l'assureur concerné (obtenu via le flux covered-persons / claims). |
+| `insurer_name` | string | non | Nom de l'assureur (affichage). |
+| `insured_uid` | string | non | Identité de l'assuré concerné, si applicable. |
+| `subject_ref` | string | non | Référence de la prestation litigieuse : uuid d'un claim ou d'une exécution de service. |
+
+## Comportement
+
+- `opened_by_type` est fixé à `provider` et `stage` à `instruction` côté serveur.
+- Un identifiant métier `LIT-YYYY-NNNN` est généré et retourné dans `dispute.id`.
+- Les litiges créés sont visibles dans la liste `GET /api/v1/disputes` et instruits par l'ASA.
+
+## Exemple de requête
+
+```bash
+curl --request POST \
+  --url "https://provider-api-sandbox.elenami.com/api/v1/disputes" \
+  --header "Content-Type: application/json" \
+  --header "X-Api-Key: $AZURANCE_PROVIDER_API_KEY" \
+  --header "X-Request-Id: req_sandbox_20261027_001" \
+  --data '{
+    "subject": "Facture FAC-SANDBOX-088 impayée depuis 60 jours",
+    "description": "La facture transmise le 28 août n'a toujours pas été honorée alors que le délai contractuel est de 30 jours.",
+    "amount": 50000,
+    "category": "delai_paiement",
+    "priority": "high",
+    "counterparty_type": "insurer",
+    "counterparty_name": "NSIA Assurance CI",
+    "insurer_name": "NSIA Assurance CI",
+    "subject_ref": "clm_sandbox_88f3"
+  }'
+```
+
+## Réponse `201`
+
+```json
+{
+  "dispute": {
+    "id": "LIT-2026-0042",
+    "parties": "Clinique du Plateau / NSIA Assurance CI",
+    "provider": "Clinique du Plateau",
+    "insurer": "NSIA Assurance CI",
+    "subject": "Facture FAC-SANDBOX-088 impayée depuis 60 jours",
+    "amount": "50 000",
+    "opened_at": "27 Oct",
+    "stage": "instruction",
+    "sla": 30,
+    "priority": "high",
+    "mediator": null,
+    "category": "delai_paiement",
+    "opened_by_type": "provider",
+    "opened_by_name": "Clinique du Plateau",
+    "counterparty_type": "insurer",
+    "counterparty_name": "NSIA Assurance CI"
+  }
+}
+```
+
+## Erreurs
+
+| Code | Description |
+| --- | --- |
+| 401 | Clé API manquante ou invalide. |
+| 403 | Scope `disputes.create` manquant. |
+| 422 | Payload invalide (`subject` absent, `category` hors enum, `counterparty_type` hors enum). |

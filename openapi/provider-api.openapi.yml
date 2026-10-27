@@ -76,9 +76,9 @@ components:
           description: Référence de consentement fort.
         coverage_type_code:
           type: string
-          description: 'Garantie par défaut appliquée aux lignes dépourvues de
-            `coverage_type_code` propre. Pour une facture multi-couvertures, chaque
-            ligne porte son propre code et ce champ peut être omis.'
+          description: Garantie par défaut appliquée aux lignes dépourvues de `coverage_type_code`
+            propre. Pour une facture multi-couvertures, chaque ligne porte son propre
+            code et ce champ peut être omis.
         provider_reference:
           type: string
           description: Référence externe du prestataire (idempotence pharmacie).
@@ -677,68 +677,66 @@ components:
           type: string
           description: 'Code de garantie de la ligne (référentiel `GET /api/v1/reference/coverage-types`).
             Optionnel si toute la facture relève de la même couverture — la ligne
-            hérite alors du code au niveau de la requête. Vérifié contre le plan
-            de l''assuré : une ligne non couverte rejette l''ensemble de la facture
-            (`ITEMS_NOT_ELIGIBLE`).'
+            hérite alors du code au niveau de la requête. Vérifié contre le plan de
+            l''assuré : une ligne non couverte rejette l''ensemble de la facture (`ITEMS_NOT_ELIGIBLE`).'
         prior_authorization_uid:
           type: string
           format: uuid
-          description: 'Préautorisation approuvée couvrant cette ligne. Requise si
-            la couverture de la ligne impose une PA — sinon la ligne passe
-            `PENDING_AUTHORIZATION` et le claim est bloqué en `UNDER_REVIEW`.'
+          description: Préautorisation approuvée couvrant cette ligne. Requise si
+            la couverture de la ligne impose une PA — sinon la ligne passe `PENDING_AUTHORIZATION`
+            et le claim est bloqué en `UNDER_REVIEW`.
         medical_act_uid:
           type: string
           format: uuid
-          description: 'Acte du référentiel (`GET /api/v1/reference/medical-acts`).
+          description: Acte du référentiel (`GET /api/v1/reference/medical-acts`).
             Prioritaire sur `medical_act_code` quand les deux sont fournis. Rejeté
             si inconnu ou inactif (`422 MEDICAL_ACT_NOT_FOUND` / `MEDICAL_ACT_INACTIVE`),
-            ou si uid et code pointent vers des actes différents (`MEDICAL_ACT_MISMATCH`).'
+            ou si uid et code pointent vers des actes différents (`MEDICAL_ACT_MISMATCH`).
         medical_act_code:
           type: string
           description: 'Code acte (CCAM/ICHI, ex. `DEQP003`). Résolu contre le référentiel
             : inconnu → warning `UNKNOWN_REFERENCE_CODE` à la création du brouillon,
             rejeté à la soumission si le plan de l''assuré exige des règles par acte.
-            Quand il résout, `medical_act_uid`, `medical_act_category` et
-            `medical_act_chapter` canoniques sont enrichis automatiquement. La
-            cohérence avec la couverture de la ligne est vérifiée : un acte labo ne
-            peut pas être facturé sous `CONSULTATION_GP`.'
+            Quand il résout, `medical_act_uid`, `medical_act_category` et `medical_act_chapter`
+            canoniques sont enrichis automatiquement. La cohérence avec la couverture
+            de la ligne est vérifiée : un acte labo ne peut pas être facturé sous
+            `CONSULTATION_GP`.'
         medical_act_category:
           type: string
-          description: 'Catégorie d''acte déclarée (surgery, imaging, biology...).
-            Ignorée si l''acte est résolu — la valeur canonique du référentiel est
-            retenue.'
+          description: Catégorie d'acte déclarée (surgery, imaging, biology...). Ignorée
+            si l'acte est résolu — la valeur canonique du référentiel est retenue.
         medical_act_chapter:
           type: string
-          description: 'Chapitre d''acte déclaré. Même règle que `medical_act_category`.'
+          description: Chapitre d'acte déclaré. Même règle que `medical_act_category`.
         prescription_uid:
           type: string
           format: uuid
-          description: 'Ordonnance de référence. Requise avec `prescription_line_uid`.'
+          description: Ordonnance de référence. Requise avec `prescription_line_uid`.
         prescription_line_uid:
           type: string
           format: uuid
           description: 'Ligne de prescription exécutée (pharmacie, analyse, séance,
             équipement). Vérifiée : la ligne doit exister (`PRESCRIPTION_LINE_NOT_FOUND`)
             et appartenir au `prescription_uid` déclaré (`PRESCRIPTION_LINE_MISMATCH`).
-            Son `line_type` détermine le `item_type` de la ligne — une ligne labo ne
-            peut pas être facturée sous une couverture pharmacie.'
+            Son `line_type` détermine le `item_type` de la ligne — une ligne labo
+            ne peut pas être facturée sous une couverture pharmacie.'
         prescribed_medication_code:
           type: string
           description: Code du médicament prescrit (snapshot nomenclature prescripteur).
         medication_code:
           type: string
-          description: 'Code du médicament délivré. Code de nomenclature produit —
-            inconnu du référentiel → warning `UNKNOWN_REFERENCE_CODE`, jamais bloquant.'
+          description: Code du médicament délivré. Code de nomenclature produit —
+            inconnu du référentiel → warning `UNKNOWN_REFERENCE_CODE`, jamais bloquant.
         medication_product_uid:
           type: string
           format: uuid
-          description: 'Produit Azurance retenu par l''ERP après recherche/résolution
-            (`GET /api/v1/medications`). Rejeté si inconnu ou inactif
-            (`422 MEDICATION_PRODUCT_NOT_FOUND` / `MEDICATION_PRODUCT_INACTIVE`).'
+          description: Produit Azurance retenu par l'ERP après recherche/résolution
+            (`GET /api/v1/medications`). Rejeté si inconnu ou inactif (`422 MEDICATION_PRODUCT_NOT_FOUND`
+            / `MEDICATION_PRODUCT_INACTIVE`).
         presentation_uid:
           type: string
-          description: 'Présentation Azurance retenue si applicable (code nomenclature
-            `source_presentation_key`/`source_cip`). Inconnue du référentiel → warning.'
+          description: Présentation Azurance retenue si applicable (code nomenclature
+            `source_presentation_key`/`source_cip`). Inconnue du référentiel → warning.
         erp_product_code:
           type: string
           description: Code produit interne ERP, conservé comme snapshot de dispensation.
@@ -755,36 +753,35 @@ components:
           description: Quantité prescrite sur la ligne d'ordonnance.
         dispensed_quantity:
           type: number
-          description: 'Quantité réellement délivrée. Doit être ≤ `prescribed_quantity`
-            en dispensation pharmacie.'
+          description: Quantité réellement délivrée. Doit être ≤ `prescribed_quantity`
+            en dispensation pharmacie.
         substitution_reason:
           type: string
-          description: 'Obligatoire si le médicament délivré diffère du prescrit
-            (générique, rupture...).'
+          description: Obligatoire si le médicament délivré diffère du prescrit (générique,
+            rupture...).
         batch_number:
           type: string
           description: Numéro de lot du produit délivré.
         sessions_performed:
           type: integer
           minimum: 1
-          description: 'Séances réalisées — obligatoire pour `KINE_SESSION`.'
+          description: Séances réalisées — obligatoire pour `KINE_SESSION`.
         internal_order:
           type: object
-          description: 'Ordre interne — **uniquement sur `POST /service-executions`** :
-            alternative à `prescription_uid` + `prescription_line_uid` quand le
-            prestataire se prescrit à lui-même (hôpital avec labo/pharmacie
-            interne). Réservé aux types prescripteurs (HOSPITAL, CLINIC,
-            SPECIALIST) — les pharmacies et laboratoires standalone sont rejetés
-            `403 INTERNAL_ORDER_NOT_ALLOWED`. Une ordonnance interne est
-            matérialisée automatiquement ; la ligne est flaguée
-            `metadata.internal_order: true` pour la visibilité assureur.
-            Mutuellement exclusif avec les champs prescription. Ignoré sur les
-            claims (qui référencent la SE).'
+          description: 'Ordre interne — **uniquement sur `POST /service-executions`**
+            : alternative à `prescription_uid` + `prescription_line_uid` quand le
+            prestataire se prescrit à lui-même (hôpital avec labo/pharmacie interne).
+            Réservé aux types prescripteurs (HOSPITAL, CLINIC, SPECIALIST) — les pharmacies
+            et laboratoires standalone sont rejetés `403 INTERNAL_ORDER_NOT_ALLOWED`.
+            Une ordonnance interne est matérialisée automatiquement ; la ligne est
+            flaguée `metadata.internal_order: true` pour la visibilité assureur. Mutuellement
+            exclusif avec les champs prescription. Ignoré sur les claims (qui référencent
+            la SE).'
           properties:
             code:
               type: string
-              description: 'Code de l''examen/produit prescrit en interne
-                (NABM/LOINC pour une analyse, code acte ou produit sinon).'
+              description: Code de l'examen/produit prescrit en interne (NABM/LOINC
+                pour une analyse, code acte ou produit sinon).
             prescriber_name:
               type: string
               description: Médecin prescripteur interne (obligatoire).
@@ -797,8 +794,8 @@ components:
             encounter_uid:
               type: string
               format: uuid
-              description: 'Encounter auquel rattacher l''ordonnance interne
-                (ex. séjour en cours). Sinon un encounter est créé automatiquement.'
+              description: Encounter auquel rattacher l'ordonnance interne (ex. séjour
+                en cours). Sinon un encounter est créé automatiquement.
             chief_complaint:
               type: string
               description: Motif du passage, utilisé si un encounter est créé.
@@ -2525,9 +2522,9 @@ paths:
                 dispensed_quantity: 12
       responses:
         '201':
-          description: Brouillon de claim créé. `claim_hash` fige le contenu de
-            la facture ; `warnings` liste les identifiants cliniques déclarés mais
-            inconnus des référentiels (non bloquant sauf plan strict par acte).
+          description: Brouillon de claim créé. `claim_hash` fige le contenu de la
+            facture ; `warnings` liste les identifiants cliniques déclarés mais inconnus
+            des référentiels (non bloquant sauf plan strict par acte).
           content:
             application/json:
               schema:
@@ -2566,8 +2563,8 @@ paths:
                     nullable: true
                     items:
                       type: string
-                    description: 'Identifiants inconnus des référentiels, format
-                      `items.{index}.{champ}:CODE`. Ex: `items.1.medical_act_code:UNKNOWN_REFERENCE_CODE`.'
+                    description: 'Identifiants inconnus des référentiels, format `items.{index}.{champ}:CODE`.
+                      Ex: `items.1.medical_act_code:UNKNOWN_REFERENCE_CODE`.'
               example:
                 data:
                   draft_uid: 8f4b2c1d-0000-4000-8000-000000000001
@@ -2585,12 +2582,11 @@ paths:
         '403':
           description: Scope `claims.create` manquant
         '409':
-          description: 'provider_reference déjà utilisée (`PROVIDER_REFERENCE_CONFLICT`)'
+          description: provider_reference déjà utilisée (`PROVIDER_REFERENCE_CONFLICT`)
         '422':
           description: 'Lignes invalides : chaque entrée de `errors` pointe un champ
-            de ligne (`items.{index}.{champ}`) avec ses codes d''erreur —
-            `PRESCRIPTION_LINE_NOT_FOUND`, `PRESCRIPTION_LINE_MISMATCH`,
-            `MEDICAL_ACT_NOT_FOUND`, `MEDICATION_PRODUCT_NOT_FOUND`,
+            de ligne (`items.{index}.{champ}`) avec ses codes d''erreur — `PRESCRIPTION_LINE_NOT_FOUND`,
+            `PRESCRIPTION_LINE_MISMATCH`, `MEDICAL_ACT_NOT_FOUND`, `MEDICATION_PRODUCT_NOT_FOUND`,
             `ITEM_COVERAGE_INCOMPATIBLE`, `UNKNOWN_REFERENCE_CODE` (plan strict).'
   /api/v1/claims/{claimId}/draft:
     get:
@@ -2752,10 +2748,9 @@ paths:
         '404':
           description: Claim introuvable
         '422':
-          description: 'Check final refusé, claim non soumis. `data.error_code`
-            identifie la cause : `UNKNOWN_REFERENCE_CODE` (plan à règles par acte
-            et lignes encore non résolues), `ITEM_COVERAGE_MISSING`,
-            `ITEMS_NOT_ELIGIBLE`, `EXECUTION_MISMATCH`,
+          description: 'Check final refusé, claim non soumis. `data.error_code` identifie
+            la cause : `UNKNOWN_REFERENCE_CODE` (plan à règles par acte et lignes
+            encore non résolues), `ITEM_COVERAGE_MISSING`, `ITEMS_NOT_ELIGIBLE`, `EXECUTION_MISMATCH`,
             `PRIOR_AUTHORIZATION_NOT_FOUND|INVALID|MISMATCH|COVERAGE_MISMATCH|AMOUNT_EXCEEDED`,
             `CLAIM_PENDING_PRIOR_AUTHORIZATIONS`, consentement invalide.'
           content:
@@ -2794,25 +2789,24 @@ paths:
       operationId: recordServiceExecution
       summary: Enregistrer une prestation réellement effectuée par l'ERP
       description: 'Atteste qu''une prestation a eu lieu — sert de base au claim.
-        Chaque item passe la même validation référentielle qu''un claim : uid
-        produit/acte inconnus → `422`, codes inconnus → ligne marquée `UNKNOWN`.
-        Une `Idempotency-Key` ou `provider_reference` est obligatoire dès qu''une
-        ligne relève d''une couverture à ledger (pharmacie, labo, séances,
-        équipements).'
+        Chaque item passe la même validation référentielle qu''un claim : uid produit/acte
+        inconnus → `422`, codes inconnus → ligne marquée `UNKNOWN`. Une `Idempotency-Key`
+        ou `provider_reference` est obligatoire dès qu''une ligne relève d''une couverture
+        à ledger (pharmacie, labo, séances, équipements).'
       x-codeSamples:
       - lang: curl
         source: "curl --request POST \\\n  --url \"https://provider-api-sandbox.elenami.com/api/v1/service-executions\"\
           \ \\\n  --header \"X-Api-Key: $AZURANCE_PROVIDER_API_KEY\" \\\n  --header\
-          \ \"Content-Type: application/json\" \\\n  --header \"Idempotency-Key:\
-          \ $(uuidgen)\" \\\n  --data '{\"contract_uid\":\"ctr_sandbox_001\",\"covered_person_type\"\
+          \ \"Content-Type: application/json\" \\\n  --header \"Idempotency-Key: $(uuidgen)\"\
+          \ \\\n  --data '{\"contract_uid\":\"ctr_sandbox_001\",\"covered_person_type\"\
           :\"beneficiary\",\"covered_person_uid\":\"ben_sandbox_001\",\"coverage_type_code\"\
           :\"PHARMACY_DRUG\",\"service_date\":\"2026-01-15\",\"provider_reference\"\
           :\"ERP-DISP-2026-0001\",\"consent_ref\":\"40000000-0000-4000-8000-000000000001\"\
-          ,\"items\":[{\"description\":\"Amoxicilline 500mg x12\",\"quantity\":12\
-          ,\"unit_price\":2920,\"prescription_uid\":\"50000000-0000-4000-8000-000000000001\"\
-          ,\"prescription_line_uid\":\"50000000-0000-4000-8000-000000000003\"\
-          ,\"medication_product_uid\":\"60000000-0000-4000-8000-000000000001\"\
-          ,\"prescribed_quantity\":12,\"dispensed_quantity\":12}]}'\n"
+          ,\"items\":[{\"description\":\"Amoxicilline 500mg x12\",\"quantity\":12,\"\
+          unit_price\":2920,\"prescription_uid\":\"50000000-0000-4000-8000-000000000001\"\
+          ,\"prescription_line_uid\":\"50000000-0000-4000-8000-000000000003\",\"medication_product_uid\"\
+          :\"60000000-0000-4000-8000-000000000001\",\"prescribed_quantity\":12,\"\
+          dispensed_quantity\":12}]}'\n"
       parameters:
       - $ref: '#/components/parameters/RequestId'
       requestBody:
@@ -2847,16 +2841,15 @@ paths:
                   type: string
                 coverage_type_code:
                   type: string
-                  description: 'Garantie par défaut des lignes sans code propre.
-                    Omettre si chaque item porte son `coverage_type_code` (prestation
-                    multi-couvertures).'
+                  description: Garantie par défaut des lignes sans code propre. Omettre
+                    si chaque item porte son `coverage_type_code` (prestation multi-couvertures).
                 service_date:
                   type: string
                   format: date
                 provider_reference:
                   type: string
-                  description: 'Référence ERP unique par prestataire — anti-doublon
-                    (`409`/`200` avec la prestation existante si rejouée).'
+                  description: Référence ERP unique par prestataire — anti-doublon
+                    (`409`/`200` avec la prestation existante si rejouée).
                 consent_ref:
                   type: string
                   format: uuid
@@ -2887,9 +2880,8 @@ paths:
                 batch_number: LOT-2026-A134
       responses:
         '201':
-          description: Prestation enregistrée. Chaque item est renvoyé enrichi
-            (`item_type` dérivé de la prescription, `reference_status` =
-            `VERIFIED`/`UNKNOWN`/`NONE`).
+          description: Prestation enregistrée. Chaque item est renvoyé enrichi (`item_type`
+            dérivé de la prescription, `reference_status` = `VERIFIED`/`UNKNOWN`/`NONE`).
           content:
             application/json:
               schema:
@@ -2963,9 +2955,9 @@ paths:
         '403':
           description: Consentement ou scope `service_executions.create` invalide
         '422':
-          description: 'Lignes invalides (`errors` par champ `items.{index}.{champ}`)
+          description: Lignes invalides (`errors` par champ `items.{index}.{champ}`)
             ou `LEDGER_IDEMPOTENCY_REQUIRED` si une couverture à ledger est envoyée
-            sans `Idempotency-Key` ni `provider_reference`.'
+            sans `Idempotency-Key` ni `provider_reference`.
         '503':
           description: Service interne indisponible
     get:
@@ -4421,11 +4413,10 @@ paths:
     get:
       operationId: listApiV1ReferenceCoverage-types
       summary: Lister coverage-types
-      description: >-
-        Retourne le catalogue global des codes de garantie partagé par tous
-        les assureurs de la plateforme. Le paramètre optionnel
-        `insurer_tenant_uids` inclut en plus les codes propres à des assureurs
-        précis — limité aux assureurs reliés au réseau du prestataire.
+      description: Retourne le catalogue global des codes de garantie partagé par
+        tous les assureurs de la plateforme. Le paramètre optionnel `insurer_tenant_uids`
+        inclut en plus les codes propres à des assureurs précis — limité aux assureurs
+        reliés au réseau du prestataire.
       parameters:
       - $ref: '#/components/parameters/RequestId'
       - in: query
@@ -4441,10 +4432,9 @@ paths:
       - in: query
         name: insurer_tenant_uids
         required: false
-        description: >-
-          Liste de tenants assureur séparés par des virgules (ou paramètre
-          répété). Restreint aux assureurs reliés au réseau du prestataire ;
-          tout tenant non autorisé est rejeté.
+        description: Liste de tenants assureur séparés par des virgules (ou paramètre
+          répété). Restreint aux assureurs reliés au réseau du prestataire ; tout
+          tenant non autorisé est rejeté.
         schema:
           type: string
       responses:
@@ -4455,7 +4445,8 @@ paths:
         '403':
           description: Tenant assureur demandé hors du réseau du prestataire
         '502':
-          description: 'Catalogue indisponible auprès du service amont (error_code `COVERAGE_TYPES_UNAVAILABLE`)'
+          description: Catalogue indisponible auprès du service amont (error_code
+            `COVERAGE_TYPES_UNAVAILABLE`)
   /api/v1/reference/coverage-types/{code}:
     get:
       operationId: getApiV1ReferenceCoverage-types
@@ -4470,9 +4461,8 @@ paths:
       - in: query
         name: insurer_tenant_uids
         required: false
-        description: >-
-          Tenants assureur dans lesquels chercher le code, en plus du
-          catalogue global.
+        description: Tenants assureur dans lesquels chercher le code, en plus du catalogue
+          global.
         schema:
           type: string
       responses:
@@ -4483,4 +4473,119 @@ paths:
         '403':
           description: Tenant assureur demandé hors du réseau du prestataire
         '404':
-          description: 'Code introuvable (error_code `COVERAGE_TYPE_NOT_FOUND`)'
+          description: Code introuvable (error_code `COVERAGE_TYPE_NOT_FOUND`)
+  /api/v1/disputes:
+    get:
+      operationId: listApiV1Disputes
+      summary: Lister disputes
+      parameters:
+      - $ref: '#/components/parameters/RequestId'
+      - in: query
+        name: stage
+        required: false
+        schema:
+          type: string
+      - in: query
+        name: page
+        required: false
+        schema:
+          type: string
+      - in: query
+        name: per_page
+        required: false
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Succès
+        '401':
+          description: Clé API absente ou invalide
+        '403':
+          description: Scope `disputes.view` manquant
+    post:
+      operationId: createApiV1Disputes
+      summary: Créer disputes
+      parameters:
+      - $ref: '#/components/parameters/RequestId'
+      responses:
+        '200':
+          description: Succès
+        '401':
+          description: Clé API absente ou invalide
+        '403':
+          description: Scope `disputes.create` manquant
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                subject:
+                  type: string
+                  maxLength: 255
+                description:
+                  type: string
+                amount:
+                  type: number
+                  minimum: 0
+                category:
+                  type: string
+                  enum:
+                  - refus_pec
+                  - tarification
+                  - delai_paiement
+                  - hors_contrat
+                  - autre
+                priority:
+                  type: string
+                  enum:
+                  - low
+                  - normal
+                  - high
+                counterparty_type:
+                  type: string
+                  enum:
+                  - insured
+                  - provider
+                  - insurer
+                counterparty_uid:
+                  type: string
+                  maxLength: 64
+                counterparty_name:
+                  type: string
+                  maxLength: 255
+                insurer_tenant_uid:
+                  type: string
+                  maxLength: 64
+                insurer_name:
+                  type: string
+                  maxLength: 255
+                insured_uid:
+                  type: string
+                  maxLength: 36
+                subject_ref:
+                  type: string
+                  maxLength: 64
+              required:
+              - subject
+            example:
+              subject: sandbox_subject_example
+  /api/v1/disputes/{uid}:
+    get:
+      operationId: getApiV1Disputes
+      summary: Consulter disputes
+      parameters:
+      - $ref: '#/components/parameters/RequestId'
+      - in: path
+        name: uid
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Succès
+        '401':
+          description: Clé API absente ou invalide
+        '403':
+          description: Scope `disputes.view` manquant
