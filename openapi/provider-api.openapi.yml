@@ -4504,30 +4504,21 @@ paths:
                   - low
                   - normal
                   - high
-                counterparty_type:
+                claim_uid:
                   type: string
-                  enum:
-                  - insured
-                  - provider
-                  - insurer
-                counterparty_uid:
-                  type: string
-                  maxLength: 64
-                counterparty_name:
-                  type: string
-                  maxLength: 255
+                  format: uuid
+                  description: 'Claim concerné — doit appartenir au prestataire
+                    (`422 CLAIM_NOT_FOUND` sinon). Assureur, assuré et
+                    contrepartie sont dérivés du claim.'
                 insurer_tenant_uid:
                   type: string
-                  maxLength: 64
-                insurer_name:
-                  type: string
-                  maxLength: 255
-                insured_uid:
+                  format: uuid
+                  description: Assureur concerné pour un litige sans claim —
+                    exposé dans les réponses claims/service-executions.
+                covered_person_uid:
                   type: string
                   maxLength: 36
-                subject_ref:
-                  type: string
-                  maxLength: 64
+                  description: Personne couverte concernée.
               required:
               - subject
             example:

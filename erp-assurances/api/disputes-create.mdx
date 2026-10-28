@@ -6,6 +6,8 @@ openapi: "/openapi/insurer-api.openapi.yml POST /api/v1/disputes"
 
 Cet endpoint permet à l'assureur de déclarer un litige — contre un prestataire (surfacturation, facture non conforme) ou tout autre acteur. Le tenant assureur (`opened_by_type = insurer`, `insurer_tenant_uid`) est **dérivé de la clé API** : il ne doit jamais être transmis dans le body.
 
+La **partie adverse n'est jamais déclarée** : elle est dérivée côté serveur — pour un assureur, c'est le prestataire du `claim_uid` référencé ou le `provider_uuid` fourni.
+
 ## Scope requis
 
 `insurer.disputes.manage`
@@ -19,17 +21,18 @@ Cet endpoint permet à l'assureur de déclarer un litige — contre un prestatai
 | `amount` | number | non | Montant contesté en XOF (défaut : 0). |
 | `category` | string | non | `refus_pec`, `tarification`, `delai_paiement`, `hors_contrat`, `autre`. |
 | `priority` | string | non | `low`, `normal`, `high` (défaut : `normal`). |
-| `counterparty_type` | string | non | Partie adverse : `insured`, `provider`, `insurer`. |
-| `counterparty_uid` | string | non | UID de la partie adverse si connu. |
-| `counterparty_name` | string | non | Nom de la partie adverse (affichage). |
-| `provider_uuid` | string | non | `providers.uuid` du prestataire concerné (via le module réseau). |
-| `provider_name` | string | non | Nom du prestataire (affichage). |
-| `insured_uid` | string | non | Identité de l'assuré concerné, si applicable. |
-| `subject_ref` | string | non | Référence de la prestation litigieuse : uuid d'un claim ou d'une exécution de service. |
+| `claim_uid` | uuid | recommandé | Claim concerné — doit appartenir à votre portefeuille (`422 CLAIM_NOT_FOUND` sinon). Prestataire et assuré sont dérivés du claim. |
+| `provider_uuid` | string | conditionnel | `providers.uuid` du prestataire concerné pour un litige **sans claim** — exposé dans les réponses `claims`. |
+| `insured_uid` | string | non | Assuré concerné (uid identité), si applicable. |
+
+<Note>
+Un litige n'a de réalité opposable que s'il est rattaché à une partie adverse : fournissez `claim_uid` (recommandé) ou `provider_uuid` — sinon le litige ne sera visible que de vous.
+</Note>
 
 ## Comportement
 
 - `opened_by_type` est fixé à `insurer` et `stage` à `instruction` côté serveur.
+- `provider_uuid`, l'assuré et la contrepartie sont dérivés du claim quand `claim_uid` est fourni.
 - Un identifiant métier `LIT-YYYY-NNNN` est généré et retourné dans `dispute.id`.
 - Les litiges créés sont visibles dans la liste `GET /api/v1/disputes` et instruits par l'ASA.
 
@@ -47,10 +50,7 @@ curl --request POST \
     "amount": 142000,
     "category": "tarification",
     "priority": "normal",
-    "counterparty_type": "provider",
-    "counterparty_name": "Clinique du Plateau",
-    "provider_name": "Clinique du Plateau",
-    "subject_ref": "clm_sandbox_88f3"
+    "claim_uid": "8f4b2c1d-0000-4000-8000-000000000001"
   }'
 ```
 
@@ -74,7 +74,8 @@ curl --request POST \
     "opened_by_type": "insurer",
     "opened_by_name": "NSIA Assurance CI",
     "counterparty_type": "provider",
-    "counterparty_name": "Clinique du Plateau"
+    "counterparty_name": "Clinique du Plateau",
+    "claim_uid": "8f4b2c1d-0000-4000-8000-000000000001"
   }
 }
 ```
@@ -85,4 +86,4 @@ curl --request POST \
 | --- | --- |
 | 401 | Clé API manquante ou invalide. |
 | 403 | Scope `insurer.disputes.manage` manquant. |
-| 422 | Payload invalide (`subject` absent, `category` hors enum, `counterparty_type` hors enum). |
+| 422 | Payload invalide (`subject` absent, `category`/`priority` hors enum) ou `CLAIM_NOT_FOUND` — `claim_uid` inexistant ou hors de votre portefeuille. |

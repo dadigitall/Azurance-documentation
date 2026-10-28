@@ -8835,30 +8835,20 @@ paths:
                   - low
                   - normal
                   - high
-                counterparty_type:
+                claim_uid:
                   type: string
-                  enum:
-                  - insured
-                  - provider
-                  - insurer
-                counterparty_uid:
-                  type: string
-                  maxLength: 64
-                counterparty_name:
-                  type: string
-                  maxLength: 255
+                  format: uuid
+                  description: 'Claim concerné — doit appartenir au portefeuille
+                    assureur (`422 CLAIM_NOT_FOUND` sinon). Prestataire, assuré
+                    et contrepartie sont dérivés du claim.'
                 provider_uuid:
                   type: string
                   maxLength: 100
-                provider_name:
-                  type: string
-                  maxLength: 255
+                  description: Prestataire concerné pour un litige sans claim.
                 insured_uid:
                   type: string
                   maxLength: 36
-                subject_ref:
-                  type: string
-                  maxLength: 64
+                  description: Assuré concerné (uid identité).
               required:
               - subject
             example:

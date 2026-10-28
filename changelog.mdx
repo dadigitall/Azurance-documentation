@@ -6,6 +6,12 @@ icon: "list"
 
 Suivez les changements de contrat public, les nouvelles pages et les corrections importantes.
 
+## 2026-10-28 - Litiges : contrat de dépôt simplifié (`claim_uid`)
+
+- **`POST /api/v1/disputes` (prestataire et assureur)** : `subject_ref` devient **`claim_uid`** — la référence ne peut être qu'un claim (`uuid`), validé contre le périmètre de l'appelant (`422 CLAIM_NOT_FOUND`).
+- **Champs retirés** : `counterparty_type`, `counterparty_uid`, `counterparty_name`, `insurer_name`, `provider_name` — la partie adverse est désormais **dérivée côté serveur** (assureur du claim pour un prestataire, prestataire du claim pour un assureur).
+- **Nouveaux champs** : `insurer_tenant_uid` (prestataire, litige hors claim) et `covered_person_uid` — les uid proviennent des réponses `claims`/`service-executions`/`covered-persons/resolve`, jamais fabriqués par le client.
+
 ## 2026-10-28 - Claims : facturation par référence aux prestations déclarées
 
 - **`POST /api/v1/claims/draft` devient strictement par référence** : le body ne contient plus que `service_execution_uids` (1 à 50 prestations déclarées) et les métadonnées de facture — `prior_authorization_uid`, `policyholder_id` (requis pour un bénéficiaire), `provider_reference`, `precheck_eligibility_uuid`, `currency`, `documents`, `notes`.
