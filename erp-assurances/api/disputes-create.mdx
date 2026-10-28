@@ -21,9 +21,8 @@ La **partie adverse n'est jamais déclarée** : elle est dérivée côté serveu
 | `amount` | number | non | Montant contesté en XOF (défaut : 0). |
 | `category` | string | non | `refus_pec`, `tarification`, `delai_paiement`, `hors_contrat`, `autre`. |
 | `priority` | string | non | `low`, `normal`, `high` (défaut : `normal`). |
-| `claim_uid` | uuid | recommandé | Claim concerné — doit appartenir à votre portefeuille (`422 CLAIM_NOT_FOUND` sinon). Prestataire et assuré sont dérivés du claim. |
+| `claim_uid` | uuid | recommandé | Claim concerné — doit appartenir à votre portefeuille (`422 CLAIM_NOT_FOUND` sinon). Le prestataire est dérivé du claim. |
 | `provider_uuid` | string | conditionnel | `providers.uuid` du prestataire concerné pour un litige **sans claim** — exposé dans les réponses `claims`. |
-| `insured_uid` | string | non | Assuré concerné (uid identité), si applicable. |
 
 <Note>
 Un litige n'a de réalité opposable que s'il est rattaché à une partie adverse : fournissez `claim_uid` (recommandé) ou `provider_uuid` — sinon le litige ne sera visible que de vous.
