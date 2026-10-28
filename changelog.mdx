@@ -6,6 +6,15 @@ icon: "list"
 
 Suivez les changements de contrat public, les nouvelles pages et les corrections importantes.
 
+## 2026-10-28 - Claims : facturation par référence aux prestations déclarées
+
+- **`POST /api/v1/claims/draft` devient strictement par référence** : le body ne contient plus que `service_execution_uids` (1 à 50 prestations déclarées) et les métadonnées de facture — `prior_authorization_uid`, `policyholder_id` (requis pour un bénéficiaire), `provider_reference`, `precheck_eligibility_uuid`, `currency`, `documents`, `notes`.
+- **Fin des champs métier en entrée** : `items`, `contract_uid`, `subscription_id`/`subscription_uid`, `covered_person_*`, `service_date`, `amount_claimed`, `coverage_type_code`, `consent_ref` et l'ancien `service_execution_uid` (singulier) sont désormais **interdits** (`422`) — contrat, assuré, lignes et montant sont sourcés automatiquement depuis les exécutions référencées.
+- **Factures multi-exécutions** : un claim peut regrouper plusieurs prestations (ex. hôpital : consultation + analyse + chirurgie) partageant le même contrat, la même personne couverte, le même assureur et le même prestataire.
+- **Cycle de vie des exécutions** : une exécution `recorded` ne peut être rattachée qu'à un seul claim (`409 EXECUTION_ALREADY_CLAIMED`) ; elle passe `claimed` à la soumission et redevient `recorded` si le brouillon est annulé.
+- **Nouvelles erreurs** : `EXECUTION_NOT_FOUND`, `EXECUTION_NOT_BILLABLE`, `EXECUTION_PROVIDER_MISMATCH`, `EXECUTION_SCOPE_MISMATCH`, `POLICYHOLDER_REQUIRED`, `EXECUTION_ALREADY_CLAIMED`.
+- **Migration** : déclarer d'abord chaque prestation via `POST /api/v1/service-executions`, puis créer le brouillon avec leurs `uuid` — sans renvoyer les lignes ni le montant.
+
 ## 2026-10-27 - Litiges (disputes) : dépôt direct par les acteurs
 
 - Nouveau groupe d'endpoints `/api/v1/disputes` sur les deux APIs : tout acteur peut désormais **déclarer un litige** et consulter ceux où il est partie (prestataire ↔ assureur, prestataire ↔ assuré, assureur ↔ assuré).

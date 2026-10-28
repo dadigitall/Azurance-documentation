@@ -4,7 +4,7 @@ description: "Soumet un brouillon : check final, réservation des plafonds et pa
 openapi: "/openapi/provider-api.openapi.yml POST /api/v1/claims/{claimId}/submit"
 ---
 
-Cet endpoint soumet un brouillon de claim : il effectue le check final d'éligibilité, calcule les plafonds applicables, réserve les montants et fait passer le claim en statut `submitted`. Le `consent_ref` est requis pour valider le consentement fort associé. Aucun claim n'est soumis si le check final est refusé.
+Cet endpoint soumet un brouillon de claim : il effectue le check final d'éligibilité, calcule les plafonds applicables, réserve les montants et fait passer le claim en statut `submitted`. Les exécutions de service rattachées passent en statut `claimed` — elles ne sont plus facturables. Le `consent_ref` est requis pour valider le consentement fort associé. Aucun claim n'est soumis si le check final est refusé.
 
 La validation référentielle est **revérifiée à la soumission** : un plan peut être devenu strict (règles par acte) après la création du brouillon — les lignes dont un acte est resté `UNKNOWN` bloquent alors la soumission.
 
@@ -72,7 +72,7 @@ Un `422` retourne `data.error_code` et, selon le cas, `data.errors` par champ de
 | --- | --- |
 | `UNKNOWN_REFERENCE_CODE` | Plan à règles par acte et lignes dont l'acte n'a pas été résolu dans le référentiel. |
 | `ITEM_COVERAGE_MISSING` / `ITEMS_NOT_ELIGIBLE` | Ligne sans couverture résolue, ou ligne non couverte par le plan de l'assuré. |
-| `EXECUTION_MISMATCH` | Une ligne facturée ne correspond pas à l'exécution `service_execution_uid` référencée. |
+| `EXECUTION_ALREADY_CLAIMED` | Une exécution rattachée a déjà été consommée par un autre claim entre le brouillon et la soumission. |
 | `PRIOR_AUTHORIZATION_NOT_FOUND` / `INVALID` / `MISMATCH` / `COVERAGE_MISMATCH` / `AMOUNT_EXCEEDED` | PA inexistante, inadaptée ou dépassée. |
 | `CLAIM_PENDING_PRIOR_AUTHORIZATIONS` | Une ligne exigeant une PA est encore `PENDING_AUTHORIZATION` — demander une PA via `POST /api/v1/prior-authorizations` avec `claim_item_uids`. |
 

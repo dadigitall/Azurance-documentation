@@ -31,76 +31,47 @@ components:
     SubmitClaimRequest:
       type: object
       required:
-      - policyholder_id
-      - service_date
-      - amount_claimed
-      - items
+      - service_execution_uids
+      description: 'Facturation par référence : le claim ne porte aucun champ métier.
+        Contrat, personne couverte, date, couvertures, lignes et montant sont sourcés
+        depuis les exécutions référencées — les champs `items`, `contract_uid`, `covered_person_*`,
+        `service_date`, `amount_claimed`, `coverage_type_code`, `consent_ref` et
+        `service_execution_uid` (singulier) sont rejetés `422` s''ils sont envoyés.'
       properties:
-        contract_uid:
-          type: string
-          format: uuid
-          description: Identifiant du contrat de couverture. Recommandé — un des champs
-            contract_uid/subscription_uid/subscription_id est requis.
-        subscription_id:
-          type: string
-          deprecated: true
-          description: Alias legacy de contract_uid (v1 sandbox).
-        subscription_uid:
-          type: string
-          format: uuid
-          deprecated: true
-          description: Alias legacy de contract_uid.
-        policyholder_id:
-          type: string
-          description: Identifiant du titulaire de police.
-        service_execution_uid:
-          type: string
-          format: uuid
-          description: Prestation enregistrée liée au claim.
+        service_execution_uids:
+          type: array
+          minItems: 1
+          maxItems: 50
+          items:
+            type: string
+            format: uuid
+          description: 'Prestations enregistrées à facturer. Toutes doivent être `recorded`,
+            appartenir au prestataire authentifié et partager contrat, personne couverte
+            et assureur — sinon `422` (`EXECUTION_NOT_FOUND`, `EXECUTION_NOT_BILLABLE`,
+            `EXECUTION_PROVIDER_MISMATCH`, `EXECUTION_SCOPE_MISMATCH`). Une exécution
+            déjà rattachée à un claim → `409 EXECUTION_ALREADY_CLAIMED`.'
         prior_authorization_uid:
           type: string
           format: uuid
-          description: Pré-autorisation consommée.
-        covered_person_type:
+          description: Pré-autorisation couvrant l'ensemble du claim — un claim est
+            entièrement sous PA ou sans PA, les claims mixtes ne sont pas supportés.
+        policyholder_id:
           type: string
-          enum:
-          - policyholder
-          - beneficiary
-          description: Type de personne couverte.
-        covered_person_uid:
-          type: string
-          description: Identifiant de la personne couverte.
-        consent_ref:
-          type: string
-          format: uuid
-          description: Référence de consentement fort.
-        coverage_type_code:
-          type: string
-          description: Garantie par défaut appliquée aux lignes dépourvues de `coverage_type_code`
-            propre. Pour une facture multi-couvertures, chaque ligne porte son propre
-            code et ce champ peut être omis.
+          description: 'Identifiant du titulaire de police. Requis quand la personne
+            couverte est un `beneficiary` (`422 POLICYHOLDER_REQUIRED`) — dérivé automatiquement
+            pour un claim `policyholder`.'
         provider_reference:
           type: string
-          description: Référence externe du prestataire (idempotence pharmacie).
-        service_date:
-          type: string
-          format: date
-          description: Date de la prestation.
-        amount_claimed:
-          type: number
-          minimum: 0.01
-          description: Montant réclamé.
-        currency:
-          type: string
-          default: XOF
+          description: 'Référence externe de la facture (unique par prestataire —
+            `409 PROVIDER_REFERENCE_CONFLICT` si rejouée). Défaut : la `provider_reference`
+            de l''exécution.'
         precheck_eligibility_uuid:
           type: string
           format: uuid
           description: UUID d'un précheck d'éligibilité réutilisé.
-        items:
-          type: array
-          items:
-            $ref: '#/components/schemas/MedicationReferenceLine'
+        currency:
+          type: string
+          default: XOF
         documents:
           type: array
           items:
@@ -108,6 +79,12 @@ components:
             properties:
               document_type:
                 type: string
+                enum:
+                - INVOICE
+                - PRESCRIPTION
+                - MEDICAL_REPORT
+                - LAB_RESULT
+                - OTHER
               media_uid:
                 type: string
               file_name:
@@ -2468,19 +2445,21 @@ paths:
     post:
       operationId: createClaimDraft
       summary: Créer un brouillon de claim
-      description: Crée un claim en statut `draft` sans effectuer le check final d'éligibilité
-        ni réserver les plafonds. Le brouillon peut ensuite être complété avec des
-        documents justificatifs puis soumis via `POST /api/v1/claims/{claimId}/submit`.
+      description: 'Crée un claim en statut `draft` sans effectuer le check final d''éligibilité
+        ni réserver les plafonds. **Facturation par référence** : le body ne contient
+        que les références des prestations déclarées (`service_execution_uids`) et
+        les métadonnées de facture — contrat, personne couverte, lignes et montant
+        sont sourcés depuis les exécutions. Le brouillon peut ensuite être complété
+        avec des documents justificatifs puis soumis via `POST /api/v1/claims/{claimId}/submit`.'
       x-codeSamples:
       - lang: curl
         source: "curl --request POST \\\n  --url \"https://provider-api-sandbox.elenami.com/api/v1/claims/draft\"\
           \ \\\n  --header \"X-Api-Key: $AZURANCE_PROVIDER_API_KEY\" \\\n  --header\
           \ \"Content-Type: application/json\" \\\n  --header \"Idempotency-Key: $(uuidgen)\"\
-          \ \\\n  --data '{\"contract_uid\":\"ctr_sandbox_001\",\"policyholder_id\"\
-          :\"mbr_sandbox_001\",\"coverage_type_code\":\"OUTPATIENT_PHARMACY\",\"service_date\"\
-          :\"2026-01-15\",\"amount_claimed\":50000,\"currency\":\"XOF\",\"items\"\
-          :[{\"description\":\"Consultation générale\",\"quantity\":1,\"unit_price\"\
-          :50000}]}'\n"
+          \ \\\n  --data '{\"service_execution_uids\":[\"50000000-0000-4000-8000-000000000001\"\
+          ,\"50000000-0000-4000-8000-000000000002\"],\"provider_reference\":\"ERP-CLAIM-2026-0001\"\
+          ,\"documents\":[{\"document_type\":\"INVOICE\",\"media_uid\":\"med_sandbox_001\"\
+          }]}'\n"
       parameters:
       - $ref: '#/components/parameters/RequestId'
       requestBody:
@@ -2490,36 +2469,15 @@ paths:
             schema:
               $ref: '#/components/schemas/SubmitClaimRequest'
             example:
-              contract_uid: ctr_sandbox_001
-              policyholder_id: mbr_sandbox_001
-              service_date: '2026-01-15'
-              amount_claimed: 58500
-              currency: XOF
-              covered_person_type: policyholder
-              covered_person_uid: mbr_sandbox_001
+              service_execution_uids:
+              - 50000000-0000-4000-8000-000000000001
+              - 50000000-0000-4000-8000-000000000002
               provider_reference: ERP-CLAIM-2026-0001
-              items:
-              - description: Consultation médecin généraliste
-                quantity: 1
-                unit_price: 15000
-                coverage_type_code: CONSULTATION_GP
-                medical_act_code: DEQP003
-              - description: NFS (numération formule sanguine)
-                quantity: 1
-                unit_price: 8500
-                coverage_type_code: LAB_ANALYSIS
-                prescription_uid: 50000000-0000-4000-8000-000000000001
-                prescription_line_uid: 50000000-0000-4000-8000-000000000002
-              - description: Amoxicilline 500mg x12
-                quantity: 12
-                unit_price: 2920
-                coverage_type_code: PHARMACY_DRUG
-                prescription_uid: 50000000-0000-4000-8000-000000000001
-                prescription_line_uid: 50000000-0000-4000-8000-000000000003
-                medication_product_uid: 60000000-0000-4000-8000-000000000001
-                medication_code: AMOX500
-                prescribed_quantity: 12
-                dispensed_quantity: 12
+              currency: XOF
+              documents:
+              - document_type: INVOICE
+                media_uid: med_sandbox_001
+              notes: Facture groupée consultation + analyse
       responses:
         '201':
           description: Brouillon de claim créé. `claim_hash` fige le contenu de la
@@ -2582,12 +2540,15 @@ paths:
         '403':
           description: Scope `claims.create` manquant
         '409':
-          description: provider_reference déjà utilisée (`PROVIDER_REFERENCE_CONFLICT`)
+          description: 'Référence déjà utilisée : `PROVIDER_REFERENCE_CONFLICT` (provider_reference
+            déjà consommée) ou `EXECUTION_ALREADY_CLAIMED` (exécution déjà rattachée
+            à un autre claim).'
         '422':
-          description: 'Lignes invalides : chaque entrée de `errors` pointe un champ
-            de ligne (`items.{index}.{champ}`) avec ses codes d''erreur — `PRESCRIPTION_LINE_NOT_FOUND`,
-            `PRESCRIPTION_LINE_MISMATCH`, `MEDICAL_ACT_NOT_FOUND`, `MEDICATION_PRODUCT_NOT_FOUND`,
-            `ITEM_COVERAGE_INCOMPATIBLE`, `UNKNOWN_REFERENCE_CODE` (plan strict).'
+          description: 'Champ métier interdit présent (`items`, `contract_uid`, `covered_person_*`,
+            `service_date`, `amount_claimed`, `coverage_type_code`, `consent_ref`,
+            `service_execution_uid`), ou exécution invalide : `EXECUTION_NOT_FOUND`,
+            `EXECUTION_NOT_BILLABLE`, `EXECUTION_PROVIDER_MISMATCH`, `EXECUTION_SCOPE_MISMATCH`,
+            `POLICYHOLDER_REQUIRED`.'
   /api/v1/claims/{claimId}/draft:
     get:
       operationId: getClaimDraft

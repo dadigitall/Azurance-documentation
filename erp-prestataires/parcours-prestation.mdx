@@ -213,11 +213,24 @@ Règles pharmacie v1:
 ## 6. Soumettre le claim
 
 ```http
-POST /api/v1/claims
+POST /api/v1/claims/draft
 Idempotency-Key: erp-claim-2026-0001
 ```
 
-Le claim référence la prestation effectuée via `service_execution_uid` lorsque disponible. Azurance refait une vérification finale `CLAIM_SUBMISSION`, réserve la part assureur sur les plafonds, valide les justificatifs requis et conserve un snapshot du consentement.
+```json
+{
+  "service_execution_uids": ["se_sandbox_001"],
+  "provider_reference": "ERP-CLAIM-2026-0001",
+  "documents": [
+    {
+      "document_type": "INVOICE",
+      "media_uid": "med-invoice-001"
+    }
+  ]
+}
+```
+
+Le claim facture **par référence** : le brouillon ne reçoit que les `service_execution_uids` des prestations déclarées à l'étape 5 — contrat, personne couverte, lignes et montant sont sourcés automatiquement, et une facture peut regrouper plusieurs exécutions. Soumettez ensuite le brouillon via `POST /api/v1/claims/{draftUid}/submit` avec le `consent_ref`. Azurance refait une vérification finale `CLAIM_SUBMISSION`, réserve la part assureur sur les plafonds, valide les justificatifs requis et conserve un snapshot du consentement.
 
 Effet sur les plafonds:
 

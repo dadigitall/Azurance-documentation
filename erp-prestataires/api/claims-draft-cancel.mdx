@@ -4,7 +4,7 @@ description: "Supprime un brouillon de claim en statut draft. Action irréversib
 openapi: "/openapi/provider-api.openapi.yml DELETE /api/v1/claims/{claimId}/draft"
 ---
 
-Cet endpoint annule définitivement un brouillon de claim. Le claim doit être en statut `draft`. Cette action est irréversible.
+Cet endpoint annule définitivement un brouillon de claim. Le claim doit être en statut `draft`. Cette action est irréversible. Les exécutions de service rattachées au brouillon sont libérées et repassent en statut `recorded` — elles redeviennent facturables sur un nouveau claim.
 
 ## Scope requis
 

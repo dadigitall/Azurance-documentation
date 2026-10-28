@@ -176,7 +176,7 @@ Règles :
 1. Résoudre la personne couverte via `POST /api/v1/covered-persons/resolve`.
 2. Obtenir un consentement via `POST /api/v1/consent-requests` puis `POST /api/v1/consent-requests/{uid}/verify`.
 3. Enregistrer la prestation via cet endpoint avec le `consent_ref`.
-4. Soumettre le claim via `POST /api/v1/claims/draft` puis `/submit` en référençant le `uuid` retourné dans `service_execution_uid`.
+4. Soumettre le claim via `POST /api/v1/claims/draft` puis `/submit` en référençant le ou les `uuid` retournés dans `service_execution_uids` — le claim source ses lignes depuis les exécutions.
 
 ## Erreurs
 

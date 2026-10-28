@@ -16,74 +16,58 @@ Le champ `provider_reference` doit aussi être unique par prestataire pour évit
 
 ## Soumettre un claim
 
-La soumission se fait en deux étapes : le brouillon (`POST /api/v1/claims/draft`) fige la facture et son hash d'intégrité, puis `POST /api/v1/claims/{draftUid}/submit` la transmet avec la preuve de consentement.
+La soumission se fait en trois étapes : les prestations sont déclarées via `POST /api/v1/service-executions`, le brouillon (`POST /api/v1/claims/draft`) facture **par référence** à ces exécutions et fige le hash d'intégrité, puis `POST /api/v1/claims/{draftUid}/submit` transmet la facture avec la preuve de consentement.
 
 ```http
+POST /api/v1/service-executions
 POST /api/v1/claims/draft
 POST /api/v1/claims/{draftUid}/submit
 ```
 
 ### Body du brouillon
 
+Le body ne porte **aucun champ métier** — contrat, personne couverte, date, couvertures, lignes et montant sont sourcés depuis les exécutions référencées. Une facture peut regrouper plusieurs exécutions (ex. hôpital : consultation + analyse + chirurgie).
+
 ```json
 {
-  "contract_uid": "sub-sandbox-001",
+  "service_execution_uids": [
+    "50000000-0000-4000-8000-000000000001",
+    "50000000-0000-4000-8000-000000000002"
+  ],
+  "prior_authorization_uid": "pa-sandbox-001",
   "policyholder_id": "insured-sandbox-001",
-  "service_execution_uid": "svc-exec-sandbox-001",
-  "covered_person_type": "beneficiary",
-  "covered_person_uid": "beneficiary-sandbox-001",
-  "consent_ref": "40000000-0000-4000-8000-000000000001",
-  "coverage_type_code": "CONSULTATION_GP",
-  "service_date": "2026-05-15",
-  "amount_claimed": 15000,
-  "currency": "XOF",
   "provider_reference": "ERP-CLAIM-2026-0001",
   "precheck_eligibility_uuid": "01HY6Q5V9QZ4J7B0J6C2P8T9RK",
-  "items": [
-    {
-      "description": "Consultation médecin généraliste",
-      "quantity": 1,
-      "unit_price": 15000
-    }
-  ],
   "documents": [
     {
-      "document_type": "CONSULTATION_REPORT",
-      "media_uid": "med-sandbox-001",
-      "file_name": "consultation.pdf"
+      "document_type": "INVOICE",
+      "media_uid": "med-sandbox-001"
     }
   ],
-  "notes": "Consultation initiale"
+  "notes": "Facture groupée"
 }
 ```
 
 | Champ | Requis | Description |
 | --- | --- | --- |
-| `contract_uid` | Oui | UUID public du contrat de couverture. |
-| `subscription_id` | Non | **Déprécié** — alias de `contract_uid`. |
-| `policyholder_id` | Oui | Identifiant public de l'assuré ou bénéficiaire. |
-| `service_execution_uid` | Non | Prestation réellement effectuée, créée via `POST /api/v1/service-executions`. |
-| `covered_person_type` | Non | `policyholder` ou `beneficiary`. Obligatoire si le flux utilise `covered_person`. |
-| `covered_person_uid` | Non | UUID public de la personne couverte. |
-| `consent_ref` | Non | Référence de consentement fort N2/N3. Obligatoire pour les données/actions soumises à consentement. |
-| `coverage_type_code` | Non* | Garantie par défaut pour les lignes sans code propre. Obligatoire si au moins une ligne ne porte pas son propre `coverage_type_code`. |
-| `service_date` | Oui | Date de prestation. |
-| `amount_claimed` | Oui | Montant total réclamé. |
-| `items` | Oui | Lignes facturées. |
-| `provider_reference` | Recommandé | Référence claim ERP, unique par prestataire. |
+| `service_execution_uids` | Oui | Prestations à facturer (1 à 50 uuid) — `recorded`, même prestataire, contrat, personne couverte et assureur. Chaque exécution n'est rattachable qu'à un seul claim. |
+| `prior_authorization_uid` | Non | PA couvrant l'ensemble du claim — regrouper les actes sous PA dans un claim dédié. |
+| `policyholder_id` | Conditionnel | Identifiant du titulaire — **requis si la personne couverte est un `beneficiary`**, dérivé sinon. |
+| `provider_reference` | Recommandé | Référence facture ERP, unique par prestataire. Défaut : celle de l'exécution. |
 | `precheck_eligibility_uuid` | Non | UUID de la pré-vérification ERP, conservé en trace. |
 | `documents` | Selon règle | Références de médias déjà uploadés ou documents joints. Certaines garanties imposent des pièces obligatoires. |
 
-### Lignes de facture — couverture par item
+Les champs `items`, `contract_uid`, `subscription_id`, `subscription_uid`, `covered_person_*`, `service_date`, `amount_claimed`, `coverage_type_code`, `consent_ref` et `service_execution_uid` (singulier) sont **interdits** — leur présence déclenche un `422`.
 
-Chaque ligne de `items[]` peut porter sa propre couverture. Le code au niveau de la requête sert de valeur par défaut :
+### Lignes de facture — sourcées des exécutions
+
+Les lignes du claim sont construites automatiquement depuis les `items[]` des exécutions référencées — chaque ligne garde la trace de son exécution (`service_execution_uid` par ligne) et sa couverture propre :
 
 | Champ item | Description |
 | --- | --- |
-| `coverage_type_code` | Code de garantie de la ligne (référentiel `GET /api/v1/reference/coverage-types`). Hérite du code global si omis. |
-| `prior_authorization_uid` | PA approuvée couvrant cette ligne — requise si la couverture de la ligne impose une PA. |
+| `coverage_type_code` | Code de garantie de la ligne (référentiel `GET /api/v1/reference/coverage-types`), déclaré sur l'exécution. |
 | `medical_act_code`, `medical_act_category`, `medical_act_chapter` | Acte codé (CCAM/ICHI) — sa cohérence avec la couverture de la ligne est vérifiée. |
-| `prescription_line_uid` | Ligne de prescription exécutée. La ligne doit exister et appartenir au `prescription_uid` déclaré (`422 PRESCRIPTION_LINE_NOT_FOUND` / `PRESCRIPTION_LINE_MISMATCH`). |
+| `prescription_line_uid` | Ligne de prescription exécutée, déclarée sur l'exécution. |
 
 ### Type de prestation par ligne (`item_type`)
 
@@ -110,14 +94,15 @@ La réponse du brouillon porte `warnings` (liste `items.{index}.{champ}:UNKNOWN_
 
 La vérification est **rejouée à la soumission** : si le plan est devenu strict entre-temps, un acte encore `UNKNOWN` rejette le submit avec `422 UNKNOWN_REFERENCE_CODE`.
 
-La résolution est faite **ligne par ligne** : l'éligibilité est vérifiée par couverture, le taux appliqué est celui de la couverture de chaque ligne, et une seule ligne non couverte par le plan de l'assuré rejette l'ensemble de la facture (`422 ITEMS_NOT_ELIGIBLE` avec les lignes fautives nommées). Quand `service_execution_uid` est fourni, chaque ligne facturée doit correspondre à un item de l'exécution (même couverture, même montant — `422 EXECUTION_MISMATCH` sinon).
+La résolution est faite **ligne par ligne** : l'éligibilité est vérifiée par couverture, le taux appliqué est celui de la couverture de chaque ligne, et une seule ligne non couverte par le plan de l'assuré rejette l'ensemble de la facture (`422 ITEMS_NOT_ELIGIBLE` avec les lignes fautives nommées). Comme les lignes sont sourcées des exécutions déclarées, la facture reflète toujours exactement ce qui a été exécuté — une divergence n'est plus possible.
 
 ```json
+// Lignes d'un claim sourcé de deux exécutions (réponse GET /api/v1/claims/{claimId})
 {
   "items": [
-    { "description": "Consultation médecin", "quantity": 1, "unit_price": 15000, "coverage_type_code": "CONSULTATION_GP" },
-    { "description": "NFS", "quantity": 1, "unit_price": 8500, "coverage_type_code": "LAB_ANALYSIS" },
-    { "description": "Hospitalisation 2 jours", "quantity": 1, "unit_price": 50000, "coverage_type_code": "HOSP_STANDARD", "prior_authorization_uid": "pa-sandbox-001" }
+    { "description": "Consultation médecin", "quantity": 1, "unit_price": 15000, "coverage_type_code": "CONSULTATION_GP", "service_execution_uid": "50000000-...-001" },
+    { "description": "NFS", "quantity": 1, "unit_price": 8500, "coverage_type_code": "LAB_ANALYSIS", "service_execution_uid": "50000000-...-002" },
+    { "description": "Chirurgie", "quantity": 1, "unit_price": 50000, "coverage_type_code": "SURGERY", "service_execution_uid": "50000000-...-002" }
   ]
 }
 ```
